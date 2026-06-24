@@ -1,0 +1,28 @@
+playbook:
+  id: context_compression_playbook
+  name: 自动上下文压缩流程
+  goal: Keep model context useful, bounded, and safe when many files are involved.
+
+  simple_flow:
+    - step: estimate
+      agent_action: Estimate needed context before reading files.
+      output: context_budget_plan
+    - step: classify
+      agent_action: Classify files as full read, extract, summary, index, or reference only.
+      output: file_context_plan
+    - step: compress
+      agent_action: Summarize large or repeated files into context-summaries/.
+      output: structured_summary
+    - step: execute
+      agent_action: Use summaries and reload source sections only when needed.
+      output: workflow_result
+    - step: verify
+      agent_action: Check source paths, safety reserve, and high-risk source reloads.
+      output: context_trace
+
+  user_visible_behavior:
+    - Do not ask the user to manage context.
+    - Tell the user when a very large file was summarized.
+    - Tell the user when a conclusion needs source verification.
+    - Keep final answers short unless the user asks for full detail.
+

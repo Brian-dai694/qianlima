@@ -1,0 +1,43 @@
+# Generated startup indexes
+.qianlima/WORKSPACE_INDEX.md
+.qianlima/workspace-index.json
+.qianlima/logs/*.json
+
+# Runtime outputs
+.qianlima/reports/*
+!.qianlima/reports/.gitkeep
+.qianlima/working/*
+!.qianlima/working/.gitkeep
+.qianlima/usage-ledger/*
+!.qianlima/usage-ledger/.gitkeep
+.qianlima/context-summaries/*
+!.qianlima/context-summaries/.gitkeep
+.qianlima/feedback/*
+!.qianlima/feedback/.gitkeep
+.qianlima/archive/*
+!.qianlima/archive/.gitkeep
+.qianlima/exports/*
+!.qianlima/exports/.gitkeep
+
+# Private local data
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+*.sqlite
+*.db
+
+# Large local media / screenshots
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.mp4
+*.mov
+
+# OS/editor files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,193 @@
+# data-sources.yaml - public data source registry template
+# Replace placeholders with approved private values in your own local workspace.
+# Never commit real tokens, URLs with account IDs, customer data, or credentials.
+
+data_sources:
+
+  - source_id: sample_ads_daily
+    display_name: Sample Ads Daily CSV
+    type: local_file
+    owner: example_user
+    status: template
+    business_purpose: Demo ad spend, sales, ACoS, and order data for daily ad reports.
+    scenarios: [ad_ops, profit_review]
+    workflows: [daily_ad_report, bid_suggestion_review, profit_review]
+    location:
+      provider: local_file
+      path: .qianlima/inbox/2026-06-23_ad-data_raw_US_V1.csv
+    permissions:
+      access_level: read_only
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
+    refresh:
+      frequency: manual
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [date, campaign_name, ad_group_name, spend, sales, orders, clicks, impressions]
+      optional_fields: [keyword_or_asin, cpc, ctr, cvr, acos]
+    privacy:
+      sensitivity: low
+      sensitive_fields: []
+    output_trace:
+      must_cite_source: true
+      source_label: Sample Ads Daily CSV
+
+  - source_id: sample_sales_daily
+    display_name: Sample Sales Daily
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for ASIN/SKU sales, orders, sessions, and conversion data.
+    scenarios: [sales_tracking, profit_review]
+    workflows: [sales_ledger, profit_review]
+    location:
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
+    permissions:
+      access_level: read_only
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
+    refresh:
+      frequency: manual
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [date, asin, sku, units_ordered, sales]
+      optional_fields: [sessions, conversion_rate, inventory]
+    privacy:
+      sensitivity: medium
+      sensitive_fields: [cost, margin, account_id]
+    output_trace:
+      must_cite_source: true
+      source_label: Sample Sales Daily
+
+  - source_id: sample_product_list
+    display_name: Sample Product List
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for product price, cost, margin, inventory, and lifecycle stage.
+    scenarios: [inventory_monitor, profit_review, product_selection]
+    workflows: [inventory_alert, profit_review, product_selection_analysis]
+    location:
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
+    permissions:
+      access_level: read_only
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
+    refresh:
+      frequency: manual
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [asin, sku, product_name, price, cost, margin_pct, inventory]
+      optional_fields: [bsr, rating, review_count]
+    privacy:
+      sensitivity: medium
+      sensitive_fields: [cost, supplier, account_id]
+    output_trace:
+      must_cite_source: true
+      source_label: Sample Product List
+
+  - source_id: sample_keyword_source
+    display_name: Sample Keyword Source
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for keyword rank, search volume, SERP, and competitor data.
+    scenarios: [keyword_tracking, product_selection]
+    workflows: [keyword_rank_scan, product_selection_analysis]
+    location:
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
+    permissions:
+      access_level: read_only
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
+    refresh:
+      frequency: manual
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [date, keyword, rank, asin]
+      optional_fields: [search_volume, spr, competitor_count]
+    privacy:
+      sensitivity: low
+      sensitive_fields: []
+    output_trace:
+      must_cite_source: true
+      source_label: Sample Keyword Source
+
+  - source_id: sample_market_source
+    display_name: Sample Market Research Source
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for product discovery, competitor comparison, and niche analysis.
+    scenarios: [product_selection]
+    workflows: [product_selection_analysis, competitor_comparison]
+    location:
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
+    permissions:
+      access_level: read_only
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
+    refresh:
+      frequency: manual
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [query, product_name, price, rating, review_count]
+      optional_fields: [sales_estimate, seller_count, brand, category]
+    privacy:
+      sensitivity: low
+      sensitive_fields: []
+    output_trace:
+      must_cite_source: true
+      source_label: Sample Market Research Source
+
+  - source_id: manual_input
+    display_name: Manual User Input
+    type: manual
+    owner: example_user
+    status: active
+    business_purpose: User-pasted text, notes, or short task instructions.
+    scenarios: [knowledge_digest, ad_ops, product_selection]
+    workflows: [knowledge_digest]
+    location:
+      provider: chat_or_file
+    permissions:
+      access_level: user_confirmed
+      allowed_operations: [read, summarize, classify]
+      forbidden_operations: [external_send, write_back_without_confirmation]
+    refresh:
+      frequency: on_demand
+      timezone: Asia/Shanghai
+    schema:
+      required_fields: [content]
+    privacy:
+      sensitivity: user_defined
+      sensitive_fields: [credentials, customer_contact, personal_id]
+    output_trace:
+      must_cite_source: true
+      source_label: Manual User Input
+
+privacy_defaults:
+  never_commit:
+    - access_token
+    - refresh_token
+    - api_key
+    - spreadsheet_token
+    - database_url
+    - password
+    - customer_phone
+    - customer_email
+    - supplier_contact
+    - account_id
+    - real_product_margin
+
+  sanitize_before_git:
+    replace_tokens_with: PLACEHOLDER_ONLY
+    replace_real_asins_with: B0EXAMPLE00
+    replace_real_skus_with: SKU-EXAMPLE-000
+    remove_generated_reports: true
+    remove_runtime_logs: true
+    remove_usage_ledger: true

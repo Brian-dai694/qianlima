@@ -1,0 +1,36 @@
+# naming-rules.yaml — 文件命名规则
+# 版本: v1.0 | 创建: 2026-06-23
+# 所有 workflow 输出文件必须遵守。
+
+rules:
+  format: "{date}_{scenario}_{purpose}_{marketplace}_V{version}.{ext}"
+
+  fields:
+    date:
+      daily: YYYY-MM-DD
+      weekly: YYYY-W{week_number}
+      monthly: YYYY-MM
+    scenario:
+      examples: [广告运营, 销量台账, 库存预警, 利润复盘, 关键词排名]
+    purpose:
+      examples: [日报, 周报, 异常清单, 复盘, 台账]
+    marketplace:
+      default: US
+      options: [US, UK, CA]
+    version:
+      default: V1
+      increment_on: overwrite
+
+  examples:
+    daily: "2026-06-23_广告运营_日报_US_V1.md"
+    weekly: "2026-W26_利润复盘_周报_US_V1.md"
+    monthly: "2026-06_使用成本_月报_全部场景_V1.md"
+    alert: "2026-06-23_库存预警_异常清单_US_V1.md"
+
+  forbidden:
+    - "新建文档.md"
+    - "未命名.xlsx"
+    - "最终版最终版2.docx"
+    - "广告数据最新.xlsx"
+    - "report.md"
+    - 包含空格或无意义的文件名

@@ -1,0 +1,32 @@
+task_card:
+  id: competitor_comparison
+  name: 竞品对比
+  plain_language_trigger:
+    - 我要做竞品对比
+    - 帮我对比几个 ASIN
+    - 看看竞品谁更强
+  when_to_use: 想知道几个竞品在价格、评论、排名、卖点上的差异，并制定竞争策略。
+  user_needs_to_provide:
+    - 2-5 个竞品 ASIN
+    - 站点，例如 US、AU、JP
+    - 自己的产品 ASIN，可选
+  agent_will_do:
+    - 查询或读取每个 ASIN 的产品信息
+    - 整理价格、排名、评论数、星级、卖点
+    - 生成对比表格
+    - 分析优劣势
+    - 给出竞争策略和风险
+  output:
+    type: markdown_report
+    template: templates/competitor-comparison_template.md
+  must_include:
+    - 摘要
+    - 数据对比表
+    - 优势和劣势
+    - 可执行建议
+    - 风险和待验证项
+  forbidden_actions:
+    - 自动改 Listing
+    - 自动改价格
+    - 自动发外部消息
+

@@ -1,0 +1,200 @@
+# file-registry.yaml - public file registry template
+# This registry only lists files that belong to the public Qianlima template.
+
+files:
+
+  - file_id: readme
+    path: README.md
+    display_name: Project README
+    scenario: all
+    file_type: reference
+    can_overwrite: true
+    retention: keep
+
+  - file_id: agents_rules
+    path: AGENTS.md
+    display_name: Agent startup rules
+    scenario: all
+    file_type: startup
+    can_overwrite: true
+    retention: keep
+
+  - file_id: ai_start_here
+    path: AI_START_HERE.md
+    display_name: AI startup entry
+    scenario: all
+    file_type: startup
+    can_overwrite: true
+    retention: keep
+
+  - file_id: start_script
+    path: start-qianlima.ps1
+    display_name: Qianlima startup script
+    scenario: all
+    file_type: script
+    can_overwrite: true
+    retention: keep
+
+  - file_id: startup_index_md
+    path: .qianlima/WORKSPACE_INDEX.md
+    display_name: Generated workspace index
+    scenario: all
+    file_type: generated_index
+    generated_by: bootstrap_qianlima
+    can_overwrite: true
+    retention: generated
+
+  - file_id: startup_index_json
+    path: .qianlima/workspace-index.json
+    display_name: Generated machine index
+    scenario: all
+    file_type: generated_index
+    generated_by: bootstrap_qianlima
+    can_overwrite: true
+    retention: generated
+
+  - file_id: work_ws
+    path: .qianlima/work.ws
+    display_name: Workspace state index
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: work_hub
+    path: .qianlima/work-hub.ws
+    display_name: Cross-scenario event hub
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: data_sources
+    path: .qianlima/data-sources.yaml
+    display_name: Data source registry template
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: naming_rules
+    path: .qianlima/naming-rules.yaml
+    display_name: Naming rules
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: workflow_index
+    path: .qianlima/workflow-index.yaml
+    display_name: Workflow index
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: risk_rules
+    path: .qianlima/risk-rules.yaml
+    display_name: Risk and permission rules
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: context_policy
+    path: .qianlima/context-policy.yaml
+    display_name: Context compression policy
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: model_adapters
+    path: .qianlima/model-adapters.yaml
+    display_name: Model adapter policy
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: observability
+    path: .qianlima/observability.yaml
+    display_name: Observability configuration
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: evaluation_tasks
+    path: .qianlima/evaluation-tasks.yaml
+    display_name: Evaluation task configuration
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: improvement_loop
+    path: .qianlima/improvement-loop.yaml
+    display_name: Improvement loop configuration
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: daily_ad_report_workflow
+    path: .qianlima/workflows/daily_ad_report.yaml
+    display_name: Daily ad report workflow
+    scenario: ad_ops
+    file_type: workflow
+    can_overwrite: true
+    retention: keep
+
+  - file_id: knowledge_digest_workflow
+    path: .qianlima/workflows/knowledge_digest.yaml
+    display_name: Knowledge digest workflow
+    scenario: knowledge_digest
+    file_type: workflow
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_cards
+    path: .qianlima/task-cards/
+    display_name: User-facing task cards
+    scenario: all
+    file_type: directory
+    can_overwrite: true
+    retention: keep
+
+  - file_id: templates
+    path: .qianlima/templates/
+    display_name: Report templates
+    scenario: all
+    file_type: directory
+    can_overwrite: true
+    retention: keep
+
+  - file_id: token_usage_template
+    path: .qianlima/templates/token-usage-record_template.yaml
+    display_name: Token and cost usage record template
+    scenario: all
+    file_type: template
+    description: Template for recording model input/output tokens and estimated cost.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: playbooks
+    path: .qianlima/playbooks/
+    display_name: Playbooks
+    scenario: all
+    file_type: directory
+    can_overwrite: true
+    retention: keep
+
+  - file_id: mock_ad_data
+    path: .qianlima/inbox/2026-06-23_ad-data_raw_US_V1.csv
+    display_name: Mock ad data CSV
+    scenario: ad_ops
+    file_type: sample_data
+    description: Public mock data for validation and demo only.
+    can_overwrite: true
+    retention: keep

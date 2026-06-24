@@ -1,0 +1,24 @@
+user:
+  id: current_user
+  display_name: 当前用户
+  language: zh-CN
+  timezone: Asia/Shanghai
+
+outputs:
+  default_report_format: markdown
+  prefer_tables: true
+  include_data_source: true
+  include_cost_summary: true
+  include_risk_notes: true
+
+confirmations:
+  ask_before_overwrite: true
+  ask_before_send_external: true
+  ask_before_write_back: true
+  ask_before_high_cost_task: true
+
+cost:
+  show_cost_for_automation: true
+  show_cost_for_single_low_cost_task: false
+  high_cost_threshold_usd: 5
+

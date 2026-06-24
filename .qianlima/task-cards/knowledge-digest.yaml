@@ -1,0 +1,31 @@
+task_card:
+  id: knowledge_digest
+  name: 资料消化
+  plain_language_trigger:
+    - 帮我整理这批资料
+    - 先把这些文档变成摘要
+    - 帮我看完这些材料
+    - 先帮我压成行动项
+  when_to_use: 资料很多、内容长、来源杂，先整理成可读摘要、问题清单和行动项。
+  user_needs_to_provide:
+    - 文档、PDF、网页链接或会议材料
+    - 希望关注的主题，可选
+    - 是否要输出行动项，可选
+  agent_will_do:
+    - 先用 NotebookLM 或同类资料消化方式整理原始材料
+    - 提炼摘要、问题、行动项和待验证点
+    - 把结果归档到千里马工作区
+    - 必要时转换成后续 workflow
+  output:
+    type: markdown_report
+    template: templates/knowledge-digest_template.md
+  must_include:
+    - 资料摘要
+    - 关键问题
+    - 行动项
+    - 待验证项
+    - 下一步
+  forbidden_actions:
+    - 直接把摘要当最终结论
+    - 自动写回外部系统
+

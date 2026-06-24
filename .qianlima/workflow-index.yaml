@@ -1,0 +1,110 @@
+# workflow-index.yaml — Workflow 索引
+# 版本: v2.0 | 更新: 2026-06-23
+
+workflows:
+  - id: daily_ad_report
+    name: 每日广告运营日报
+    scenario: ad_ops
+    status: draft
+    definition: workflows/daily_ad_report.yaml
+    template: templates/广告运营_日报模板.md
+    default_output_path: "reports/{date}_广告运营_日报_{marketplace}_V{version}.md"
+    required_data_sources:
+      - lark_ads_daily
+      - lingsing_ads
+    required_permissions:
+      - read
+      - aggregate
+    evaluation_tasks:
+      - eval_daily_ad_report_basic
+      - eval_data_connector_safety
+    forbidden_operations:
+      - update
+      - delete
+      - change_bid
+      - change_budget
+
+  - id: competitor_comparison
+    name: 竞品对比
+    scenario: product_selection
+    status: draft
+    task_card: task-cards/competitor-comparison.yaml
+    template: templates/competitor-comparison_template.md
+    default_output_path: "reports/{date}_竞品对比_{marketplace}_V{version}.md"
+    required_inputs:
+      - asins
+      - marketplace
+    forbidden_operations:
+      - update_listing
+      - change_price
+      - send_external
+
+  - id: listing_optimization
+    name: Listing 优化诊断
+    scenario: product_selection
+    status: draft
+    task_card: task-cards/listing-optimization.yaml
+    template: templates/listing-optimization_template.md
+    default_output_path: "reports/{date}_Listing优化_{asin}_{marketplace}_V{version}.md"
+    required_inputs:
+      - asin
+      - marketplace
+    forbidden_operations:
+      - update_listing
+      - upload_backend
+
+  - id: profit_check
+    name: 利润测算
+    scenario: profit_review
+    status: draft
+    task_card: task-cards/profit-check.yaml
+    template: templates/profit-check_template.md
+    default_output_path: "reports/{date}_利润测算_{marketplace}_V{version}.md"
+    required_inputs:
+      - product_or_asin
+      - marketplace
+    forbidden_operations:
+      - purchase_order
+      - change_price
+
+  - id: keyword_monitoring
+    name: 关键词监控
+    scenario: keyword_tracking
+    status: draft
+    task_card: task-cards/keyword-monitoring.yaml
+    template: templates/keyword-monitoring_template.md
+    default_output_path: "reports/{date}_关键词监控_{asin}_{marketplace}_V{version}.md"
+    required_inputs:
+      - asin
+      - marketplace
+      - keywords
+    forbidden_operations:
+      - change_bid
+      - write_back
+
+  - id: product_discovery
+    name: 新品机会探索
+    scenario: product_selection
+    status: draft
+    task_card: task-cards/product-discovery.yaml
+    template: templates/product-discovery_template.md
+    default_output_path: "reports/{date}_新品机会_{marketplace}_V{version}.md"
+    required_inputs:
+      - product_concept_or_keyword
+      - marketplace
+    forbidden_operations:
+      - create_product
+      - purchase_order
+
+  - id: knowledge_digest
+    name: 资料消化
+    scenario: knowledge_digest
+    status: draft
+    task_card: task-cards/knowledge-digest.yaml
+    template: templates/knowledge-digest_template.md
+    default_output_path: "reports/{date}_资料消化_{topic}_V{version}.md"
+    required_inputs:
+      - materials
+    forbidden_operations:
+      - write_external_truth
+      - send_external

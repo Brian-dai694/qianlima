@@ -1,0 +1,31 @@
+task_card:
+  id: keyword_monitoring
+  name: 关键词监控
+  plain_language_trigger:
+    - 跑一下关键词排名
+    - 看看卡位
+    - 监控这些关键词
+  when_to_use: 想知道 ASIN 在核心关键词下的排名变化和机会词。
+  user_needs_to_provide:
+    - ASIN
+    - 关键词列表
+    - 站点
+    - 对比时间，可选
+  agent_will_do:
+    - 查询关键词排名
+    - 对比历史变化
+    - 找出上升、下滑和空白机会
+    - 给出广告或 Listing 动作建议
+  output:
+    type: markdown_report
+    template: templates/keyword-monitoring_template.md
+  must_include:
+    - 关键词排名表
+    - 变化趋势
+    - 机会词
+    - 风险词
+    - 下一步建议
+  forbidden_actions:
+    - 自动调广告
+    - 自动写回后台
+

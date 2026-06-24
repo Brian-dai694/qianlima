@@ -1,0 +1,137 @@
+model_adapters:
+  version: 1
+  purpose: Provide model-agnostic context, output, caching, and reasoning policies.
+
+  defaults:
+    strategy: conservative
+    total_window_tokens: unknown
+    usable_context_ratio: 0.60
+    safety_reserve_ratio: 0.40
+    max_output_ratio: 0.15
+    summarize_large_files: true
+    require_source_reload_for_high_risk: true
+    notes: Use this profile when a model is unknown or its limits are not verified.
+
+  capability_classes:
+    small_context:
+      total_window_tokens: 32000
+      usable_context_ratio: 0.50
+      safety_reserve_ratio: 0.50
+      direct_read_max_file_size_kb: 10
+      summary_mode: aggressive
+
+    standard_context:
+      total_window_tokens: 128000
+      usable_context_ratio: 0.70
+      safety_reserve_ratio: 0.30
+      direct_read_max_file_size_kb: 20
+      summary_mode: balanced
+
+    long_context:
+      total_window_tokens: 200000
+      usable_context_ratio: 0.65
+      safety_reserve_ratio: 0.35
+      direct_read_max_file_size_kb: 30
+      summary_mode: balanced
+
+    ultra_long_context:
+      total_window_tokens: 1000000
+      usable_context_ratio: 0.55
+      safety_reserve_ratio: 0.45
+      direct_read_max_file_size_kb: 50
+      summary_mode: staged
+      notes: Ultra-long context still needs staged summaries because retrieval quality and cost can degrade.
+
+  providers:
+    deepseek:
+      source:
+        docs:
+          - https://api-docs.deepseek.com/
+          - https://api-docs.deepseek.com/quick_start/pricing
+          - https://api-docs.deepseek.com/guides/kv_cache
+      api_compatibility:
+        openai_format: true
+        anthropic_format: true
+      cache_policy:
+        context_caching: enabled_by_default
+        track_fields:
+          - prompt_cache_hit_tokens
+          - prompt_cache_miss_tokens
+        prompt_design:
+          - Put stable system instructions first.
+          - Put stable source summaries before changing task instructions.
+          - Avoid rewriting unchanged long prefixes.
+      models:
+        deepseek-v4-flash:
+          capability_class: ultra_long_context
+          total_window_tokens: 1000000
+          max_output_tokens: 384000
+          thinking_mode: supported
+          recommended_use:
+            - daily_reports
+            - document_digest
+            - data_analysis
+            - low_cost_batch_work
+          context_policy:
+            usable_context_ratio: 0.55
+            safety_reserve_ratio: 0.45
+            warning_threshold_ratio: 0.50
+            stop_threshold_ratio: 0.80
+          notes: Prefer this for broad, cost-sensitive, ordinary-user workflows.
+
+        deepseek-v4-pro:
+          capability_class: ultra_long_context
+          total_window_tokens: 1000000
+          max_output_tokens: 384000
+          thinking_mode: supported
+          recommended_use:
+            - complex_reasoning
+            - multi_file_synthesis
+            - business_decision_review
+            - high_value_analysis
+          context_policy:
+            usable_context_ratio: 0.50
+            safety_reserve_ratio: 0.50
+            warning_threshold_ratio: 0.45
+            stop_threshold_ratio: 0.75
+          notes: Use for high-value reasoning. Keep larger reserve because thinking mode and final synthesis need space.
+
+        deepseek-chat:
+          compatibility_alias_for: deepseek-v4-flash non-thinking mode
+          deprecation_notice: DeepSeek docs say this name is scheduled for deprecation on 2026-07-24 15:59 UTC.
+
+        deepseek-reasoner:
+          compatibility_alias_for: deepseek-v4-flash thinking mode
+          deprecation_notice: DeepSeek docs say this name is scheduled for deprecation on 2026-07-24 15:59 UTC.
+          reasoning_policy:
+            do_not_reinject_reasoning_content: true
+            preserve_final_answer_only_for_next_turn: true
+
+    openai:
+      strategy: use_capability_class_from_runtime
+      notes: Read actual model limits from runtime config. Do not hard-code.
+
+    anthropic:
+      strategy: use_capability_class_from_runtime
+      notes: Read actual model limits from runtime config. Do not hard-code.
+
+    google:
+      strategy: use_capability_class_from_runtime
+      notes: Use for Gemini and NotebookLM-adjacent document workflows when available.
+
+    local_or_open_weight:
+      strategy: require_manual_profile
+      notes: Local model limits vary by serving stack. Require explicit total_window_tokens.
+
+  selection_rules:
+    - if: user_requests_low_cost_or_batch
+      prefer: deepseek-v4-flash
+    - if: task_requires_deep_reasoning
+      prefer: deepseek-v4-pro
+    - if: model_unknown
+      prefer: defaults
+    - if: many_large_documents
+      prefer: staged_summary_even_with_ultra_long_context
+    - if: high_risk_decision
+      require: source_reload
+

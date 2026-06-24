@@ -1,0 +1,43 @@
+playbook:
+  id: amz_simple_playbook
+  name: 亚马逊运营大众版流程
+  source_reference: amz-evo-harness
+  goal: Make common Amazon operations tasks usable by non-technical users.
+
+  simple_flow:
+    - step: choose_task
+      user_language: 用户说自己想做什么，例如竞品对比、Listing 优化、利润测算。
+      agent_action: 匹配 task-cards 中的任务卡。
+    - step: collect_minimum_inputs
+      user_language: 只问最少必要信息。
+      agent_action: 收集 ASIN、站点、日期、关键词或产品概念。
+    - step: check_data
+      user_language: 告诉用户还缺什么数据。
+      agent_action: 检查 data-sources.yaml、file-registry.yaml 和可用工具。
+    - step: run_analysis
+      user_language: 不展示复杂过程，只说明正在读取数据和生成报告。
+      agent_action: 按 workflow 和模板生成结果。
+    - step: deliver_report
+      user_language: 给出摘要、表格、建议和风险。
+      agent_action: 输出报告并记录来源、成本和待验证项。
+    - step: improve_next_time
+      user_language: 询问用户是否采纳、是否要调整模板。
+      agent_action: 写入 feedback，并进入 improvement-loop。
+
+  default_report_structure:
+    - 摘要
+    - 数据表
+    - 分析
+    - 建议
+    - 风险
+    - 待验证项
+    - 下一步
+    - 使用量与成本
+
+  non_technical_rules:
+    - Do not expose internal file paths unless user asks.
+    - Explain missing data in business language.
+    - Ask only one or two clarifying questions at a time.
+    - Default to read-only.
+    - Never execute price, bid, budget, listing, purchase, or external-send actions without confirmation.
+
