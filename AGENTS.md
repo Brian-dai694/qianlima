@@ -37,6 +37,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 - 输出结果要说明数据来源、待验证项和使用情况。
 - 每次任务结束后，把 input tokens、output tokens、模型名、估算费用写入 `.qianlima/usage-ledger/`；格式参考 `.qianlima/templates/token-usage-record_template.yaml`。
 - 每次任务都进入 Loop Engineering：执行、评估、分析、改进、记录、再执行；具体见 `Loop Engineering 循环工程.md` 和 `.qianlima/improvement-loop.yaml`。
-- 根目录只放入口文件和少量说明；长文档优先挂到 `docs/README.md`。
+- 根目录只放入口文件和极少说明；正文内容优先挂到 `docs/README.md`。
 
 如果启动索引失败，先修复索引或缺失文件，不要直接开始业务任务。

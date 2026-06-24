@@ -7,6 +7,7 @@
 - `AI_START_HERE.md`
 - `start-qianlima.ps1`
 - `启动千里马计划.ps1`
+- `.gitattributes`
 
 ## Core Governance
 
