@@ -5,6 +5,10 @@
 
 ## 阅读顺序
 
+### 文档地图
+
+完整分组索引见 `docs/README.md`。
+
 ### 启动前置步骤
 
 任何大模型、Agent 或自动化工具打开本工作区后，先遵守 `AGENTS.md`，并运行启动索引：
@@ -25,9 +29,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 | 6 | `Harness 千里马计划 MVP 数据上下文层与广告运营日报 Agent.md` | 🏗️ 系统架构 | 七层能力模型 + 广告日报 Agent 的完整设计（日报结构、指标计算） |
 | 7 | `PWE-v2.0个人使用版-治理方案.md` | 📦 远期参考 | 代码项目管理方案。当前工作台无代码项目，以 `.qianlima/` 体系为准 |
 | 8 | `AHE 借鉴清单与千里马适配方案.md` | 🔁 Harness 演化参考 | 组件可观测、经验可观测、决策可观测和改进闭环 |
-| 9 | `AMZ-EVO 简单版融合说明.md` | 🧭 大众任务入口 | 如何把简单版亚马逊运营 harness 融合成普通人会用的任务卡 |
-| 10 | `NotebookLM 融合说明.md` | 📚 资料消化入口 | 先整理长资料，再交给千里马做任务卡、报告和行动项 |
-| 11 | `如何把千里马计划合并到大模型.md` | 🔧 模型接入说明 | 如何把 `.qianlima/` 作为外部工作台、上下文包和规则层接入大模型 |
+| 9 | `Loop Engineering 循环工程.md` | 🔁 持续改进中枢 | 执行、评估、分析、改进、记录、再执行 |
+| 10 | `AMZ-EVO 简单版融合说明.md` | 🧭 大众任务入口 | 如何把简单版亚马逊运营 harness 融合成普通人会用的任务卡 |
+| 11 | `NotebookLM 融合说明.md` | 📚 资料消化入口 | 先整理长资料，再交给千里马做任务卡、报告和行动项 |
+| 12 | `如何把千里马计划合并到大模型.md` | 🔧 模型接入说明 | 如何把 `.qianlima/` 作为外部工作台、上下文包和规则层接入大模型 |
 
 ## 实施入口
 
@@ -39,7 +44,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 - **NotebookLM 资料消化**：见 `.qianlima/playbooks/notebooklm-simple-playbook.yaml`
 - **自动上下文压缩**：见 `.qianlima/context-policy.yaml`
 - **大模型适配**：见 `.qianlima/model-adapters.yaml`
+- **Loop Engineering**：见 `Loop Engineering 循环工程.md`、`.qianlima/improvement-loop.yaml`、`.qianlima/evaluation-tasks.yaml`
 - **Token 与费用记录**：见 `.qianlima/usage-ledger/` 和 `.qianlima/templates/token-usage-record_template.yaml`
+- **文档地图**：见 `docs/README.md`
 - **模型接入说明**：见 `如何把千里马计划合并到大模型.md`
 - **强制启动索引**：见 `AGENTS.md`、`AI_START_HERE.md`、`start-qianlima.ps1`、`.qianlima/WORKSPACE_INDEX.md`
 
@@ -128,6 +135,7 @@ README.md                      ← 本文件
 | AHE 适配 | `AHE 借鉴清单` + `.qianlima/observability.yaml` | ✅ 已融合 |
 | AMZ-EVO 简单版 | `AMZ-EVO 简单版融合说明` + `.qianlima/task-cards/` | ✅ 已融合 |
 | NotebookLM | `NotebookLM 融合说明` + `.qianlima/task-cards/knowledge-digest.yaml` | ✅ 已融合 |
+| Loop Engineering | `Loop Engineering 循环工程.md` + `.qianlima/improvement-loop.yaml` | ✅ 已定义 |
 | 上下文治理 | `.qianlima/context-policy.yaml` + `.qianlima/context-summaries/` | ✅ 已定义 |
 | 大模型适配 | `.qianlima/model-adapters.yaml` | ✅ 已定义，DeepSeek 优先适配 |
 | MVP 实施 | — | ⏳ 待启动 |

@@ -11,6 +11,14 @@ files:
     can_overwrite: true
     retention: keep
 
+  - file_id: docs_map
+    path: docs/README.md
+    display_name: Documentation map
+    scenario: all
+    file_type: reference
+    can_overwrite: true
+    retention: keep
+
   - file_id: agents_rules
     path: AGENTS.md
     display_name: Agent startup rules
@@ -138,6 +146,15 @@ files:
     display_name: Improvement loop configuration
     scenario: all
     file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: loop_engineering
+    path: Loop Engineering 循环工程.md
+    display_name: Loop Engineering 循环工程
+    scenario: all
+    file_type: reference
+    description: Formal chapter for execution-evaluation-improvement-record loop.
     can_overwrite: true
     retention: keep
 

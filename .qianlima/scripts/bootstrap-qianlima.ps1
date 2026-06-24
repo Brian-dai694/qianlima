@@ -53,6 +53,14 @@ $taskCards = Get-IndexedFiles (Join-Path $Root 'task-cards') '*.yaml' '.qianlima
 $workflows = Get-IndexedFiles (Join-Path $Root 'workflows') '*.yaml' '.qianlima/workflows'
 $templates = Get-IndexedFiles (Join-Path $Root 'templates') '*' '.qianlima/templates'
 $playbooks = Get-IndexedFiles (Join-Path $Root 'playbooks') '*.yaml' '.qianlima/playbooks'
+$docs = Get-IndexedFiles (Join-Path $ProjectRoot 'docs') '*.md' 'docs'
+$rootDocs = Get-ChildItem -LiteralPath $ProjectRoot -File -Filter '*.md' | Sort-Object Name | ForEach-Object {
+  [PSCustomObject]@{
+    file = $_.Name
+    name = $_.BaseName
+    size_bytes = $_.Length
+  }
+}
 
 $governanceFiles = @(
   'work.ws',
@@ -87,6 +95,8 @@ $indexObject = [PSCustomObject]@{
   workflows = $workflows
   templates = $templates
   playbooks = $playbooks
+  docs = $docs
+  root_docs = $rootDocs
   startup_instruction = 'Read .qianlima/WORKSPACE_INDEX.md first, then follow startup_files in order.'
 }
 
@@ -125,6 +135,18 @@ $lines.Add('')
 $lines.Add('## Task Cards')
 $lines.Add('')
 foreach ($item in $taskCards) {
+  $lines.Add("- $($item.name): $($item.file)")
+}
+$lines.Add('')
+$lines.Add('## Root Documents')
+$lines.Add('')
+foreach ($item in $rootDocs) {
+  $lines.Add("- $($item.name): $($item.file)")
+}
+$lines.Add('')
+$lines.Add('## Docs')
+$lines.Add('')
+foreach ($item in $docs) {
   $lines.Add("- $($item.name): $($item.file)")
 }
 $lines.Add('')
