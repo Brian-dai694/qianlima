@@ -19,6 +19,19 @@ task_card:
   output:
     type: markdown_report
     template: templates/keyword-monitoring_template.md
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    required_refs:
+      - scenario_ref
+      - file_ref
+      - data_ref
+      - run_ref
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+    cross_project_mode: sanitized_reference_package
   must_include:
     - 关键词排名表
     - 变化趋势
@@ -28,4 +41,3 @@ task_card:
   forbidden_actions:
     - 自动调广告
     - 自动写回后台
-

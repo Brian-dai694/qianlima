@@ -6,6 +6,7 @@ workflows:
     name: 每日广告运营日报
     scenario: ad_ops
     status: draft
+    communication_protocol: communication-protocol.yaml
     definition: workflows/daily_ad_report.yaml
     template: templates/广告运营_日报模板.md
     default_output_path: "reports/{date}_广告运营_日报_{marketplace}_V{version}.md"
@@ -28,6 +29,7 @@ workflows:
     name: 竞品对比
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/competitor-comparison.yaml
     template: templates/competitor-comparison_template.md
     default_output_path: "reports/{date}_竞品对比_{marketplace}_V{version}.md"
@@ -43,6 +45,7 @@ workflows:
     name: Listing 优化诊断
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/listing-optimization.yaml
     template: templates/listing-optimization_template.md
     default_output_path: "reports/{date}_Listing优化_{asin}_{marketplace}_V{version}.md"
@@ -57,6 +60,7 @@ workflows:
     name: 利润测算
     scenario: profit_review
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/profit-check.yaml
     template: templates/profit-check_template.md
     default_output_path: "reports/{date}_利润测算_{marketplace}_V{version}.md"
@@ -71,6 +75,7 @@ workflows:
     name: 关键词监控
     scenario: keyword_tracking
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/keyword-monitoring.yaml
     template: templates/keyword-monitoring_template.md
     default_output_path: "reports/{date}_关键词监控_{asin}_{marketplace}_V{version}.md"
@@ -86,6 +91,7 @@ workflows:
     name: 新品机会探索
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/product-discovery.yaml
     template: templates/product-discovery_template.md
     default_output_path: "reports/{date}_新品机会_{marketplace}_V{version}.md"
@@ -100,6 +106,7 @@ workflows:
     name: 资料消化
     scenario: knowledge_digest
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/knowledge-digest.yaml
     template: templates/knowledge-digest_template.md
     default_output_path: "reports/{date}_资料消化_{topic}_V{version}.md"

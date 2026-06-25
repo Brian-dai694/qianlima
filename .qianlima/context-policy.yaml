@@ -17,12 +17,45 @@ context_policy:
     warning_threshold_ratio: 0.60
     stop_threshold_ratio: 0.85
 
+  optimization_goal:
+    primary: Reduce token use while improving task performance in the user's real work scenario.
+    measure_both_cost_and_quality: true
+    never_reduce_context_if_it_removes_required_source_evidence: true
+    prefer_task_relevant_context_over_large_general_context: true
+
   default_budget_tokens:
     total_window: 128000
     usable_context: 89600
     safety_reserve: 38400
     warning_threshold: 76800
     stop_threshold: 108800
+
+  startup_profiles:
+    minimal:
+      use_when: Routine task in a known workspace.
+      read:
+        - .qianlima/WORKSPACE_INDEX.md
+        - .qianlima/work.ws
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+      then_load_by_task_card: true
+    standard:
+      use_when: New task type, changed workflow, or model handoff.
+      read:
+        - .qianlima/WORKSPACE_INDEX.md
+        - .qianlima/README.md
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/model-adapters.yaml
+      then_load_by_task_card: true
+    full:
+      use_when: First setup, repo audit, policy edit, or architecture change.
+      read:
+        - docs/README.md
+        - relevant root reference docs only
+      require_reason: true
 
   adapter_resolution:
     order:
@@ -116,6 +149,7 @@ context_policy:
     preflight:
       - estimate_needed_context
       - classify_files_by_size_and_relevance
+      - choose_startup_profile
       - choose_compression_level
       - reserve_safety_budget
     execute:
@@ -126,3 +160,15 @@ context_policy:
       - check_summary_has_source_paths
       - reload_source_sections_for_high_risk_decisions
       - record_context_usage_in_trace
+
+  performance_loop:
+    required_metrics:
+      - input_tokens
+      - output_tokens
+      - cached_input_tokens
+      - loaded_file_count
+      - task_success
+      - user_edit_required
+      - source_citation_present
+      - elapsed_seconds
+    improvement_rule: Reduce unnecessary context only when task_success and source quality do not degrade.

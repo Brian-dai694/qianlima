@@ -1,0 +1,210 @@
+# communication-protocol.yaml - Qianlima cross-file and cross-project protocol
+
+communication_protocol:
+  version: 1
+  status: draft
+  updated: 2026-06-25
+  purpose: >
+    Define how agents pass references, events, summaries, and execution state
+    across files, workflows, scenarios, projects, and model handoffs without
+    loading unnecessary context or exposing private data.
+
+  design_principles:
+    - Prefer references over copying full content.
+    - Keep source files as the source of truth.
+    - Store large payloads on disk and pass stable refs.
+    - Record every cross-file or cross-project dependency.
+    - Do not introduce a heavy message bus for the personal edition.
+    - Optimize for lower token cost and better task performance together.
+
+  scope:
+    included:
+      - cross_file_reference
+      - cross_workflow_handoff
+      - cross_scenario_event
+      - cross_project_reference
+      - cross_agent_execution_state
+      - model_handoff_summary
+    excluded_by_default:
+      - real_time_message_queue
+      - direct_agent_to_agent_chat
+      - automatic_external_write
+      - unsanitized_private_data_export
+
+  source_of_truth:
+    workspace_state: .qianlima/work.ws
+    cross_scenario_hub: .qianlima/work-hub.ws
+    file_registry: .qianlima/file-registry.yaml
+    workflow_index: .qianlima/workflow-index.yaml
+    data_sources: .qianlima/data-sources.yaml
+    context_policy: .qianlima/context-policy.yaml
+    risk_rules: .qianlima/risk-rules.yaml
+    usage_ledger: .qianlima/usage-ledger/
+    execution_context_pattern: .qianlima/logs/{run_id}_context.json
+    trace_log_pattern: .qianlima/logs/{run_id}_trace.jsonl
+    summary_manifest_pattern: .qianlima/context-summaries/{run_id}_summary.yaml
+
+  reference_formats:
+    file_ref:
+      pattern: "file:{file_id}"
+      example: "file:token_usage_template"
+      resolves_through: .qianlima/file-registry.yaml
+    file_section_ref:
+      pattern: "file:{file_id}#section={heading_or_anchor}"
+      example: "file:context_policy#section=auto_compression_triggers"
+      resolves_through: .qianlima/file-registry.yaml
+    data_ref:
+      pattern: "data:{data_source_id}:{view_or_query_id}"
+      example: "data:sample_ads_daily:daily_snapshot"
+      resolves_through: .qianlima/data-sources.yaml
+    run_ref:
+      pattern: "run:{run_id}"
+      example: "run:daily-ad-report-2026-06-25-001"
+      resolves_through: .qianlima/logs/
+    event_ref:
+      pattern: "event:{event_id}"
+      example: "event:inventory_low_2026_06_25_001"
+      resolves_through: .qianlima/work-hub.ws
+    scenario_ref:
+      pattern: "scenario:{scenario_id}"
+      example: "scenario:ad_ops"
+      resolves_through: .qianlima/work.ws
+    project_ref:
+      pattern: "project:{project_id}"
+      example: "project:qianlima_public_template"
+      resolves_through: .qianlima/work.ws
+    summary_ref:
+      pattern: "summary:{summary_id}"
+      example: "summary:long-doc-2026-06-25-001"
+      resolves_through: .qianlima/context-summaries/
+
+  communication_levels:
+    - id: L0_direct_read
+      use_when: Small registered files are needed for the current task.
+      payload_rule: Read the file or section directly.
+      token_rule: Allowed only within context-policy direct_read limits.
+    - id: L1_reference_only
+      use_when: A file, data source, event, or project only needs to be cited.
+      payload_rule: Pass ref id, path, owner, and reason.
+      token_rule: Do not copy source content into prompt.
+    - id: L2_summary_manifest
+      use_when: Long files, multiple files, or model handoff are involved.
+      payload_rule: Pass structured summary with source paths and open risks.
+      token_rule: Store summary in context-summaries and pass summary_ref.
+    - id: L3_execution_context
+      use_when: Multiple agents or workflow steps must share state.
+      payload_rule: Store intermediate outputs under working or logs.
+      token_rule: Pass only run_ref, step id, status, and output refs.
+    - id: L4_cross_project_package
+      use_when: Another workspace/project needs a sanitized context package.
+      payload_rule: Export only approved summary, refs, and public-safe files.
+      token_rule: Never export raw private or credential-bearing data.
+
+  message_types:
+    - id: file_reference
+      required_fields: [message_id, timestamp, source, target, refs, reason]
+    - id: data_request
+      required_fields: [message_id, timestamp, source, target, data_ref, permission_level, fields_needed]
+    - id: event_notice
+      required_fields: [event_id, timestamp, event_type, severity, source, target, action_suggestion]
+    - id: task_handoff
+      required_fields: [message_id, timestamp, run_ref, from_step, to_step, inputs, expected_output]
+    - id: dependency_change
+      required_fields: [message_id, timestamp, changed_ref, affected_refs, required_action]
+    - id: risk_notice
+      required_fields: [message_id, timestamp, risk_type, severity, source_ref, mitigation]
+    - id: model_handoff
+      required_fields: [message_id, timestamp, source_model, target_model, summary_ref, loaded_refs, omitted_refs]
+
+  standard_message_schema:
+    message_id: required
+    timestamp: required
+    message_type: required
+    created_by: required
+    source:
+      project: optional
+      scenario: required
+      workflow: optional
+      run_id: optional
+      step_id: optional
+    target:
+      project: optional
+      scenario: optional
+      workflow: optional
+      agent_role: optional
+    refs:
+      files: optional
+      data: optional
+      events: optional
+      summaries: optional
+      runs: optional
+    context_level: required
+    payload_location: optional
+    privacy_level: required
+    permission_level: required
+    token_budget:
+      estimated_input_tokens: optional
+      estimated_output_tokens: optional
+      compression_level: optional
+    status: required
+    next_action: optional
+
+  write_rules:
+    - Every generated output file must be registered in file-registry.yaml.
+    - Every shared input file must list all workflows that use it.
+    - Do not overwrite a registered file when can_overwrite is false.
+    - If a file is used by more than one workflow, ask for confirmation before deletion or replacement.
+    - If a data source changes status, mark affected workflows for preflight recheck.
+    - If an event changes scenario priority, update work-hub.ws and the relevant scenario in work.ws.
+    - Large payloads over 10KB must be written to working, logs, or context-summaries and passed by reference.
+    - Public Git-safe copies must not include raw private data, credentials, account ids, customer data, or real cost ledgers.
+
+  cross_project_rules:
+    default_mode: sanitized_reference_package
+    allowed_to_share_by_default:
+      - public_docs
+      - templates
+      - schemas
+      - summary_manifests_without_private_data
+      - sample_data
+    requires_user_confirmation:
+      - real_business_data
+      - customer_or_personal_data
+      - account_identifiers
+      - external_write_action
+      - private_cost_or_token_ledgers
+    package_manifest_schema:
+      package_id: required
+      source_project: required
+      target_project: required
+      created_at: required
+      included_refs: required
+      excluded_refs: required
+      privacy_check: required
+      intended_use: required
+
+  conflict_handling:
+    missing_ref: Stop and ask the index owner or regenerate the workspace index.
+    stale_summary: Regenerate summary before making a decision.
+    source_changed_after_summary: Reload relevant source section.
+    duplicated_output_path: Create next version instead of overwriting.
+    permission_mismatch: Downgrade to read-only or ask user for approval.
+    privacy_uncertain: Treat as private and do not export.
+    token_budget_exceeded: Switch to summary_manifest or reference_only.
+
+  preflight_checklist:
+    - Generate or refresh WORKSPACE_INDEX.md.
+    - Identify scenario, workflow, and required refs.
+    - Resolve refs through source_of_truth files.
+    - Estimate context and choose communication_level.
+    - Check risk_rules before external write or private data access.
+    - Register any new output or summary files.
+
+  acceptance_checks:
+    - All referenced files exist or are explicitly marked missing.
+    - Cross-file outputs cite source refs.
+    - Shared files list used_by workflows.
+    - Cross-scenario events are recorded in work-hub.ws.
+    - Cross-project packages have a privacy check.
+    - Token/cost records include loaded refs and compression level.
+    - High-risk decisions reload source sections instead of using stale summaries.

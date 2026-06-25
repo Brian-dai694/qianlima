@@ -24,6 +24,7 @@ $requiredStartupFiles = @(
   'workflow-index.yaml',
   'risk-rules.yaml',
   'context-policy.yaml',
+  'communication-protocol.yaml',
   'model-adapters.yaml'
 )
 
@@ -72,6 +73,7 @@ $governanceFiles = @(
   'risk-rules.yaml',
   'user-preferences.yaml',
   'context-policy.yaml',
+  'communication-protocol.yaml',
   'model-adapters.yaml',
   'observability.yaml',
   'evaluation-tasks.yaml',
@@ -129,6 +131,7 @@ $lines.Add('')
 $lines.Add('- Do not read the whole workspace at once.')
 $lines.Add('- Load files by task-card and workflow.')
 $lines.Add('- Compress long files and multi-file tasks using context-policy.yaml.')
+$lines.Add('- Use communication-protocol.yaml for cross-file, cross-project, model-handoff, and event references.')
 $lines.Add('- Reload source sections before high-risk decisions.')
 $lines.Add('- Use model-adapters.yaml for DeepSeek, OpenAI, Anthropic, Google, and local models.')
 $lines.Add('')

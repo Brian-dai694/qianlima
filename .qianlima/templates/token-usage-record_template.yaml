@@ -12,9 +12,11 @@ run:
 
 token_usage:
   startup_tokens_estimated:
-    input_low: 10655
-    input_high: 19534
-    note: Current public-template startup package estimate. Recalculate after major file changes.
+    minimal_input_low: 6622
+    minimal_input_high: 12140
+    standard_input_low: 11174
+    standard_input_high: 20485
+    note: Current public-template startup package estimates. Recalculate after major file changes.
   actual:
     input_tokens: 0
     output_tokens: 0
@@ -31,14 +33,21 @@ cost:
   formula: "(input_tokens / 1000000 * input_price) + (output_tokens / 1000000 * output_price) + (cached_input_tokens / 1000000 * cached_input_price)"
 
 context:
+  startup_profile: minimal
   files_loaded:
     - .qianlima/WORKSPACE_INDEX.md
   compression_used: false
   context_policy: .qianlima/context-policy.yaml
+  loaded_file_count: 1
 
 result:
   output_file: replace_me
   data_sources_used:
     - replace_me
   user_visible_cost_summary: true
+  task_success: false
+  user_edit_required: unknown
+  source_citation_present: false
+  elapsed_seconds: 0
+  performance_notes: replace_me
   notes: replace_me

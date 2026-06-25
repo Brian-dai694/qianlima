@@ -525,6 +525,8 @@ MVP 默认使用 `single`。等流程稳定后逐步升级到 `daily` 和 `monit
 
 `file-registry.yaml` 管文件。`work.ws` 管场景。它们之间通过 workflow 建立关联。
 
+跨文件、跨 workflow、跨场景、跨项目和模型交接的统一引用、摘要、事件和执行状态传递规则，由 `.qianlima/communication-protocol.yaml` 管理。普通任务优先传 `file:{file_id}`、`data:{data_source_id}`、`run:{run_id}`、`event:{event_id}` 和 `summary:{summary_id}`，避免重复把全文塞进模型上下文。
+
 ### 4.1 关联规则
 
 - 每个 workflow 的输出文件必须登记到 `file-registry.yaml`
@@ -824,6 +826,8 @@ confidence: required
 ### 8.1 work-hub.ws
 
 `work-hub.ws` 是跨场景通信的轻量中枢。它不引入消息队列或事件总线，只是记录场景之间的关联和事件。
+
+跨场景事件的消息结构、引用格式、隐私边界、跨项目共享方式和 token 压缩策略，统一遵循 `.qianlima/communication-protocol.yaml`。`work-hub.ws` 负责记录事件，`communication-protocol.yaml` 负责规定事件如何被引用、传递、压缩、脱敏和验收。
 
 ### 8.2 四类跨场景联动
 

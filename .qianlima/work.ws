@@ -100,15 +100,15 @@ scenarios:
 
 products:
   active:
-    - asin: B0EXAMPLE01
-      sku: SKU-EXAMPLE-001
+    - asin: ASIN-EXAMPLE-01
+      sku: EXAMPLE-SKU-001
       name: Example Product A
       price: 29.99
       margin: 35.0
       inventory: 100
       stage: template
-    - asin: B0EXAMPLE02
-      sku: SKU-EXAMPLE-002
+    - asin: ASIN-EXAMPLE-02
+      sku: EXAMPLE-SKU-002
       name: Example Product B
       price: 39.99
       margin: 32.0
@@ -148,6 +148,18 @@ context_governance:
   stop_threshold_ratio: 0.85
   direct_read_max_file_size_kb: 20
   default_behavior: summarize_large_files_before_use
+
+communication_governance:
+  protocol_file: communication-protocol.yaml
+  default_cross_file_level: L2_summary_manifest
+  default_cross_agent_level: L3_execution_context
+  default_cross_project_mode: sanitized_reference_package
+  source_of_truth:
+    - work.ws
+    - work-hub.ws
+    - file-registry.yaml
+    - data-sources.yaml
+  token_saving_rule: Prefer refs and summaries over copying full source content.
 
 model_governance:
   adapter_file: model-adapters.yaml

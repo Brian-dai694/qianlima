@@ -19,6 +19,19 @@ task_card:
   output:
     type: markdown_report
     template: templates/knowledge-digest_template.md
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    creates_refs:
+      - summary_ref
+      - file_ref
+      - run_ref
+    output_rules:
+      - cite_loaded_refs
+      - write_summary_manifest
+      - register_report_in_file_registry
+      - record_usage_ledger
+    cross_project_mode: sanitized_reference_package
   must_include:
     - 资料摘要
     - 关键问题
@@ -28,4 +41,3 @@ task_card:
   forbidden_actions:
     - 直接把摘要当最终结论
     - 自动写回外部系统
-

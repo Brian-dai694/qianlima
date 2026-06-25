@@ -19,6 +19,19 @@ task_card:
   output:
     type: markdown_report
     template: templates/listing-optimization_template.md
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    required_refs:
+      - scenario_ref
+      - file_ref
+      - data_ref
+      - summary_ref
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+    cross_project_mode: sanitized_reference_package
   must_include:
     - 当前问题
     - 关键词机会
@@ -29,4 +42,3 @@ task_card:
   forbidden_actions:
     - 自动上传 Listing
     - 自动修改亚马逊后台
-

@@ -9,6 +9,28 @@ workflow:
   status: draft
   description: 每天读取昨日广告数据，计算核心指标，识别异常，生成结构化日报
 
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L3_execution_context
+    scenario_ref: scenario:ad_ops
+    required_refs:
+      - data:lark_ads_daily:daily_snapshot
+      - data:lingsing_ads:realtime_snapshot
+      - file:file_registry
+      - file:context_policy
+      - file:communication_protocol
+    creates_refs:
+      - run_ref
+      - file_ref
+    handoff_rules:
+      - each_step_writes_intermediate_output
+      - pass_large_payloads_by_ref
+      - audit_agent_checks_refs_before_delivery
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+
   schedule:
     type: daily
     time: "09:30"
@@ -211,6 +233,7 @@ workflow:
     reads:
       - data-sources.yaml
       - file-registry.yaml
+      - communication-protocol.yaml
       - inbox/*_ad-data_raw_*.csv
       - inbox/*_广告数据_原始_*.xlsx
       - templates/广告运营_日报模板.md

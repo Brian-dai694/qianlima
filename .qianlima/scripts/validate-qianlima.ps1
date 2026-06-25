@@ -24,6 +24,7 @@ $requiredFiles = @(
   'risk-rules.yaml',
   'model-adapters.yaml',
   'context-policy.yaml',
+  'communication-protocol.yaml',
   'WORKSPACE_INDEX.md',
   'workspace-index.json',
   'rules/work-governance-rules.yaml',

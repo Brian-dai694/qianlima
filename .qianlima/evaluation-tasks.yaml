@@ -100,3 +100,45 @@ evaluation_tasks:
       - id: high_risk_decisions_reload_source
         description: High-risk decisions reload source sections instead of relying only on summaries.
         required: true
+
+  - id: eval_communication_protocol_safety
+    name: Cross-file and cross-project communication protocol check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: communication_protocol_loaded_when_needed
+        description: communication-protocol.yaml is loaded for cross-file, cross-project, multi-agent, event, or model-handoff tasks.
+        required: true
+      - id: refs_resolve_through_registries
+        description: file_ref, data_ref, event_ref, run_ref, scenario_ref, project_ref, and summary_ref resolve through the configured registries.
+        required: true
+      - id: large_payloads_passed_by_reference
+        description: Payloads over 10KB are written to working, logs, or context-summaries and passed by reference.
+        required: true
+      - id: shared_outputs_registered
+        description: Generated reports, summaries, and reusable outputs are registered in file-registry.yaml.
+        required: true
+      - id: cross_project_privacy_checked
+        description: Cross-project packages exclude private data unless the user explicitly approves sharing.
+        required: true
+
+  - id: eval_token_performance_balance
+    name: Token cost and work performance balance check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: startup_profile_declared
+        description: Run declares minimal, standard, or full startup profile.
+        required: true
+      - id: loaded_files_are_task_relevant
+        description: Loaded files are tied to the task card, workflow, data source, or risk rule.
+        required: true
+      - id: token_usage_recorded
+        description: Usage ledger records input, output, cached, and total tokens when available.
+        required: true
+      - id: performance_outcome_recorded
+        description: Usage ledger records task success, user edit required, and source citation status.
+        required: true
+      - id: no_quality_drop_for_token_savings
+        description: Token reduction does not remove required source evidence or risk checks.
+        required: true

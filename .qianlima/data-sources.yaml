@@ -186,8 +186,8 @@ privacy_defaults:
 
   sanitize_before_git:
     replace_tokens_with: PLACEHOLDER_ONLY
-    replace_real_asins_with: B0EXAMPLE00
-    replace_real_skus_with: SKU-EXAMPLE-000
+    replace_real_asins_with: ASIN-EXAMPLE-00
+    replace_real_skus_with: EXAMPLE-SKU-000
     remove_generated_reports: true
     remove_runtime_logs: true
     remove_usage_ledger: true

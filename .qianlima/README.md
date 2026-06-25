@@ -29,6 +29,7 @@ Agent 负责维护这些配置文件。
 | `evaluation-tasks.yaml` | 每个 workflow 的质量评估任务 |
 | `improvement-loop.yaml` | 从失败和反馈到规则改进的闭环 |
 | `context-policy.yaml` | 自动上下文压缩、文件读取上限和安全冗余 |
+| `communication-protocol.yaml` | 跨文件、跨场景、跨项目和模型交接通信协议 |
 | `model-adapters.yaml` | 面向 DeepSeek、OpenAI、Anthropic、Google、本地模型的适配策略 |
 
 ## 固定目录
@@ -85,6 +86,10 @@ NotebookLM 适合先消化长资料，再交给千里马继续做任务卡、报
 ## 自动上下文压缩
 
 Agent 不应该把所有文件一次性塞进模型上下文。遇到长文档、多文件或长任务时，先按 `context-policy.yaml` 自动压缩，只保留必要摘要、来源路径和待验证点，并预留安全上下文给推理、工具结果和最终输出。
+
+## 跨文件与跨项目通信
+
+跨文件、跨 workflow、跨场景、跨项目和模型交接统一使用 `communication-protocol.yaml`。默认传引用和摘要，不重复搬运全文；跨项目共享默认走脱敏引用包，避免把个人、客户、账号、成本或 token 数据带入公开仓库或其他项目。
 
 ## 启动索引
 

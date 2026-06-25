@@ -117,6 +117,15 @@ files:
     can_overwrite: true
     retention: keep
 
+  - file_id: communication_protocol
+    path: .qianlima/communication-protocol.yaml
+    display_name: Cross-file and cross-project communication protocol
+    scenario: all
+    file_type: governance
+    description: Protocol for refs, events, handoffs, cross-project packages, and token-saving context transfer.
+    can_overwrite: true
+    retention: keep
+
   - file_id: model_adapters
     path: .qianlima/model-adapters.yaml
     display_name: Model adapter policy
@@ -155,6 +164,24 @@ files:
     scenario: all
     file_type: reference
     description: Formal chapter for execution-evaluation-improvement-record loop.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: four_layer_agent_system
+    path: docs/Four-Layer Agent System 四层 Agent 系统.md
+    display_name: Four-Layer Agent System 四层 Agent 系统
+    scenario: all
+    file_type: reference
+    description: Reference for locating agent issues across prompt, context, harness, and loop.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: cross_file_cross_project_protocol_doc
+    path: docs/Cross-File and Cross-Project Communication Protocol 跨文件与跨项目通信协议.md
+    display_name: Cross-File and Cross-Project Communication Protocol 跨文件与跨项目通信协议
+    scenario: all
+    file_type: reference
+    description: Human-readable guide for cross-file, cross-workflow, cross-scenario, cross-project, and model-handoff communication.
     can_overwrite: true
     retention: keep
 

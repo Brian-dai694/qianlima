@@ -5,6 +5,26 @@ workflow:
   status: draft
   mode: on_demand
 
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    scenario_ref: scenario:knowledge_digest
+    required_refs:
+      - file_ref
+      - summary_ref
+    creates_refs:
+      - summary_ref
+      - run_ref
+      - file_ref
+    handoff_rules:
+      - write_summary_manifest
+      - pass_source_materials_by_ref
+      - mark_omitted_content_for_verification
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+
   user_intents:
     - 整理资料
     - 压缩长文档
@@ -13,10 +33,12 @@ workflow:
   reads:
     - inbox/*
     - templates/knowledge-digest_template.md
+    - communication-protocol.yaml
 
   writes:
     - reports/{date}_资料消化_{topic}_V{version}.md
     - logs/{date}_knowledge_digest_trace.json
+    - context-summaries/{date}_knowledge_digest_{topic}_summary.yaml
     - usage-ledger/{month}_usage_cost.yaml
 
   updates:
@@ -34,4 +56,3 @@ workflow:
       - report_has_actions
       - report_has_source_citation
       - report_has_usage_cost
-
