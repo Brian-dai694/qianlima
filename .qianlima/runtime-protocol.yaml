@@ -1,0 +1,111 @@
+# runtime-protocol.yaml - Qianlima rule enforcement runtime skeleton
+
+runtime_protocol:
+  version: 1
+  status: skeleton
+  purpose: >
+    Convert Qianlima from rule-document driven to rule-execution driven by
+    defining enforcement points for startup, tool use, tool output, and final
+    verification.
+
+  layers:
+    - id: layer_1_prompt_injection
+      status: active
+      responsibility: Make agents aware of workspace rules through startup files.
+      files:
+        - AI_START_HERE.md
+        - AGENTS.md
+        - .qianlima/WORKSPACE_INDEX.md
+    - id: layer_2_hooks_scripts
+      status: next
+      responsibility: Enforce rules before and after tool calls.
+      files:
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/decision-log.yaml
+    - id: layer_3_native_middleware
+      status: future
+      responsibility: Full middleware migration, auto-evaluation, and native context control.
+      candidates:
+        - NexAU
+        - AHE style runtime middleware
+
+  hooks:
+    SessionStart:
+      required: true
+      goal: Identify scenario and load minimum context.
+      steps:
+        - generate_or_refresh_workspace_index
+        - read_WORKSPACE_INDEX
+        - infer_scenario_from_user_task
+        - load_scenario_context_map_from_workflow_index
+        - load_minimum_required_refs
+        - record_startup_profile_in_trace
+      blocks_if:
+        - workspace_index_missing
+        - scenario_unclear_and_user_confirmation_needed
+
+    BeforeToolUse:
+      required: true
+      goal: Block or confirm high-risk actions before execution.
+      steps:
+        - classify_tool_action
+        - check_risk_rules
+        - check_permissions
+        - create_decision_log_entry_for_operational_action
+        - require_user_confirmation_when_policy_requires
+      blocks_if:
+        - forbidden_operation
+        - missing_required_confirmation
+        - privacy_uncertain
+
+    AfterToolUse:
+      required: true
+      goal: Truncate tool output, persist raw data, and pass only summaries.
+      steps:
+        - save_raw_tool_output_to_working
+        - summarize_output_under_context_policy
+        - record_raw_output_ref
+        - record_summary_ref
+        - update_trace_with_token_and_context_usage
+      blocks_if:
+        - raw_output_not_saved_for_large_payload
+        - summary_missing_source_ref
+
+    FinalCheck:
+      required: true
+      goal: Verify result, update decision log, and record usage.
+      steps:
+        - run_workflow_quality_gates
+        - run_operation_verification_gates
+        - update_decision_log_actual_result
+        - write_usage_ledger_entry
+        - update_file_registry_for_outputs
+        - record_loop_engineering_next_action
+      blocks_if:
+        - high_risk_action_unverified
+        - usage_ledger_missing
+        - output_source_refs_missing
+
+  enforcement_contract:
+    raw_outputs_over_10kb_must_be_disk_refs: true
+    final_reports_must_cite_sources: true
+    operational_actions_must_have_decision_log: true
+    high_risk_actions_must_have_verification_result: true
+    scenario_context_map_must_be_used_before_full_bootstrap: true
+
+  minimum_trace_fields:
+    - run_id
+    - scenario
+    - workflow_id
+    - startup_profile
+    - loaded_refs
+    - tool_calls
+    - raw_output_refs
+    - summary_refs
+    - risk_checks
+    - verification_gates
+    - decision_log_refs
+    - usage_ledger_ref
+

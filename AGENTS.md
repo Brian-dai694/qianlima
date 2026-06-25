@@ -25,6 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 .qianlima/risk-rules.yaml
 .qianlima/context-policy.yaml
 .qianlima/communication-protocol.yaml
+.qianlima/runtime-protocol.yaml
 .qianlima/model-adapters.yaml
 ```
 
@@ -35,7 +36,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 - 需要数据时再读取 `.qianlima/data-sources.yaml` 和 `.qianlima/file-registry.yaml`。
 - 长文件、多文件任务必须按 `.qianlima/context-policy.yaml` 处理。
 - 跨文件、跨项目、跨场景和模型交接必须按 `.qianlima/communication-protocol.yaml` 传引用、摘要、事件和执行状态。
+- 所有任务按 `.qianlima/runtime-protocol.yaml` 经过 SessionStart、BeforeToolUse、AfterToolUse、FinalCheck。
 - 高风险动作必须按 `.qianlima/risk-rules.yaml` 处理。
+- 运营动作必须写 `.qianlima/decision-log.yaml` 格式的决策记录，并完成验证门。
 - 输出结果要说明数据来源、待验证项和使用情况。
 - 每次任务结束后，把 input tokens、output tokens、模型名、估算费用写入 `.qianlima/usage-ledger/`；格式参考 `.qianlima/templates/token-usage-record_template.yaml`。
 - 每次任务都进入 Loop Engineering：执行、评估、分析、改进、记录、再执行；具体见 `Loop Engineering 循环工程.md` 和 `.qianlima/improvement-loop.yaml`。

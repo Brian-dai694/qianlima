@@ -142,3 +142,24 @@ evaluation_tasks:
       - id: no_quality_drop_for_token_savings
         description: Token reduction does not remove required source evidence or risk checks.
         required: true
+
+  - id: eval_runtime_enforcement
+    name: Runtime protocol enforcement check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: session_start_used_scenario_context_map
+        description: SessionStart identifies scenario and loads context through scenario_context_map before full bootstrap.
+        required: true
+      - id: before_tool_use_checked_risk_rules
+        description: BeforeToolUse checks risk-rules.yaml before high-risk or external write actions.
+        required: true
+      - id: after_tool_use_truncated_output
+        description: AfterToolUse saves raw tool output to disk and passes only summary refs when output exceeds policy limits.
+        required: true
+      - id: final_check_verified_operational_actions
+        description: FinalCheck runs operation_verification_gates for bid, budget, Lark write, external write, or send actions.
+        required: true
+      - id: decision_log_created_for_operational_action
+        description: Operational actions have decision log entries with evidence, expected impact, verification window, and actual result.
+        required: true

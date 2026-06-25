@@ -25,6 +25,8 @@ $requiredFiles = @(
   'model-adapters.yaml',
   'context-policy.yaml',
   'communication-protocol.yaml',
+  'runtime-protocol.yaml',
+  'decision-log.yaml',
   'WORKSPACE_INDEX.md',
   'workspace-index.json',
   'rules/work-governance-rules.yaml',
@@ -88,6 +90,42 @@ if (Test-Path -LiteralPath $sampleCsv -PathType Leaf) {
   }
 } else {
   $issues.Add('Missing sample CSV')
+}
+
+$runtimeProtocol = Join-Path $Root 'runtime-protocol.yaml'
+if (Test-Path -LiteralPath $runtimeProtocol -PathType Leaf) {
+  $runtimeText = Get-Content -LiteralPath $runtimeProtocol -Encoding UTF8 -Raw
+  foreach ($hook in @('SessionStart', 'BeforeToolUse', 'AfterToolUse', 'FinalCheck')) {
+    if ($runtimeText -notmatch $hook) {
+      $issues.Add("Runtime protocol missing hook: $hook")
+    }
+  }
+} else {
+  $issues.Add('Missing runtime protocol')
+}
+
+$contextPolicy = Join-Path $Root 'context-policy.yaml'
+if (Test-Path -LiteralPath $contextPolicy -PathType Leaf) {
+  $contextText = Get-Content -LiteralPath $contextPolicy -Encoding UTF8 -Raw
+  if ($contextText -notmatch 'tool_output_truncation') {
+    $issues.Add('context-policy.yaml missing tool_output_truncation')
+  }
+}
+
+$workflowIndex = Join-Path $Root 'workflow-index.yaml'
+if (Test-Path -LiteralPath $workflowIndex -PathType Leaf) {
+  $workflowText = Get-Content -LiteralPath $workflowIndex -Encoding UTF8 -Raw
+  if ($workflowText -notmatch 'scenario_context_map') {
+    $issues.Add('workflow-index.yaml missing scenario_context_map')
+  }
+}
+
+$riskRules = Join-Path $Root 'risk-rules.yaml'
+if (Test-Path -LiteralPath $riskRules -PathType Leaf) {
+  $riskText = Get-Content -LiteralPath $riskRules -Encoding UTF8 -Raw
+  if ($riskText -notmatch 'operation_verification_gates') {
+    $issues.Add('risk-rules.yaml missing operation_verification_gates')
+  }
 }
 
 if ($issues.Count -gt 0) {

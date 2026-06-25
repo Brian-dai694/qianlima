@@ -124,6 +124,57 @@ context_policy:
     - user_provides_many_documents
     - conversation_history_blocks_current_task
 
+  tool_output_truncation:
+    default_policy: raw_to_disk_summary_to_context
+    raw_output_dir: .qianlima/working/tool-outputs/
+    summary_output_dir: .qianlima/context-summaries/
+    max_context_chars_per_tool_call: 6000
+    max_table_rows_in_context: 30
+    max_error_chars_in_context: 2000
+    required_context_fields:
+      - source_tool
+      - query_or_action
+      - row_count_or_item_count
+      - key_findings
+      - anomalies
+      - diffs_since_last_run
+      - source_ref
+      - raw_output_ref
+    tool_rules:
+      kimi_webbridge:
+        max_context_chars: 4000
+        keep_in_context: [page_title, current_url, selected_records, action_result, visible_error]
+        write_raw_to_disk: true
+      lark:
+        max_context_chars: 5000
+        max_rows: 30
+        keep_in_context: [field_names, changed_records, validation_errors, write_result]
+        write_raw_to_disk: true
+      sorftime:
+        max_context_chars: 5000
+        max_rows: 50
+        keep_in_context: [keyword, rank_change, top_anomalies, source_time]
+        write_raw_to_disk: true
+      pangolinfo:
+        max_context_chars: 6000
+        max_items: 20
+        keep_in_context: [market_signal, competitor_delta, risk_signal, source_refs]
+        write_raw_to_disk: true
+      lingsing_erp:
+        max_context_chars: 5000
+        max_rows: 30
+        keep_in_context: [metric_totals, changed_campaigns, write_result, verification_result]
+        write_raw_to_disk: true
+    enforcement_hooks:
+      before_tool_use:
+        - estimate_expected_output_size
+        - prepare_raw_output_ref
+      after_tool_use:
+        - save_raw_output_to_disk
+        - summarize_tool_output
+        - pass_summary_ref_to_context
+        - record_truncation_in_trace
+
   required_summary_schema:
     file_path: required
     source_type: required
@@ -156,6 +207,7 @@ context_policy:
       - read_small_files_directly
       - summarize_large_files_to_working
       - pass_summary_manifest_between_agents
+      - truncate_tool_outputs_after_tool_use
     verify:
       - check_summary_has_source_paths
       - reload_source_sections_for_high_risk_decisions

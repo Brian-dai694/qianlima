@@ -126,6 +126,24 @@ files:
     can_overwrite: true
     retention: keep
 
+  - file_id: runtime_protocol
+    path: .qianlima/runtime-protocol.yaml
+    display_name: Runtime enforcement protocol
+    scenario: all
+    file_type: governance
+    description: SessionStart, BeforeToolUse, AfterToolUse, and FinalCheck enforcement skeleton.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: decision_log_template
+    path: .qianlima/decision-log.yaml
+    display_name: Operational decision log template
+    scenario: all
+    file_type: governance
+    description: Template for recording evidence, expected impact, verification windows, and actual outcomes for operational actions.
+    can_overwrite: true
+    retention: keep
+
   - file_id: model_adapters
     path: .qianlima/model-adapters.yaml
     display_name: Model adapter policy

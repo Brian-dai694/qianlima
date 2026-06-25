@@ -2,6 +2,8 @@
 .qianlima/WORKSPACE_INDEX.md
 .qianlima/workspace-index.json
 .qianlima/logs/*.json
+.qianlima/logs/*decision-log*.yaml
+.qianlima/logs/*decision-log*.yml
 
 # Runtime outputs
 .qianlima/reports/*

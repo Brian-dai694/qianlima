@@ -1,6 +1,99 @@
 # workflow-index.yaml — Workflow 索引
 # 版本: v2.0 | 更新: 2026-06-23
 
+scenario_context_map:
+  default_startup_profile: minimal
+  selection_rule: Identify scenario before loading workflow-specific files.
+  fallback_when_unclear: ask_user_or_use_knowledge_digest
+  scenarios:
+    ad_ops:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/competitor-comparison.yaml
+        - .qianlima/workflows/daily_ad_report.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+      avoid_by_default:
+        - unrelated root docs
+        - archive
+        - full historical reports
+    keyword_tracking:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/keyword-monitoring.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    sales_tracking:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    inventory_monitor:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/work-hub.ws
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    profit_review:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/profit-check.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    product_selection:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/competitor-comparison.yaml
+        - .qianlima/task-cards/listing-optimization.yaml
+        - .qianlima/task-cards/product-discovery.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    knowledge_digest:
+      startup_profile: standard
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/knowledge-digest.yaml
+        - .qianlima/workflows/knowledge_digest.yaml
+      optional_refs:
+        - .qianlima/file-registry.yaml
+
 workflows:
   - id: daily_ad_report
     name: 每日广告运营日报

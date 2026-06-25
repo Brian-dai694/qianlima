@@ -37,6 +37,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 .qianlima/risk-rules.yaml
 .qianlima/context-policy.yaml
 .qianlima/communication-protocol.yaml
+.qianlima/runtime-protocol.yaml
 .qianlima/model-adapters.yaml
 ```
 
@@ -69,6 +70,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 .qianlima/communication-protocol.yaml
 ```
 
+所有任务都必须按运行协议执行：
+
+```text
+.qianlima/runtime-protocol.yaml
+```
+
 完整的文档分组和阅读顺序见 `docs/README.md`。
 
 ## 第四步：记录 Token 与费用
@@ -94,7 +101,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 - 索引过旧，先重新生成。
 - 长文件和多文件任务必须按 `.qianlima/context-policy.yaml` 压缩。
 - 跨文件、跨项目、跨场景和模型交接必须按 `.qianlima/communication-protocol.yaml` 传引用、摘要和事件。
+- 所有任务必须按 `.qianlima/runtime-protocol.yaml` 走 SessionStart、BeforeToolUse、AfterToolUse、FinalCheck。
 - 高风险动作必须按 `.qianlima/risk-rules.yaml` 处理。
+- 调竞价、改预算、写飞书表、发送外部消息等运营动作必须写决策日志，并验证是否真的生效。
 - 每次任务必须记录 input tokens、output tokens、模型名、估算费用和记录文件位置。
 - 每次任务结束后进入 Loop Engineering：评估结果、分析问题、改进规则或模板，并记录到日志/反馈/使用台账。
 - 根目录只保留入口和总览，正文文档放到 `docs/`。

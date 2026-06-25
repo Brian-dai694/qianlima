@@ -23,6 +23,8 @@
 - `如何把千里马计划合并到大模型.md`
 - `.qianlima/context-policy.yaml`
 - `.qianlima/communication-protocol.yaml`
+- `.qianlima/runtime-protocol.yaml`
+- `.qianlima/decision-log.yaml`
 - `.qianlima/model-adapters.yaml`
 - `.qianlima/templates/token-usage-record_template.yaml`
 

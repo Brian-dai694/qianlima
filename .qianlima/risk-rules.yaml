@@ -9,18 +9,22 @@ risk_rules:
     - id: change_bid
       name: 修改广告竞价
       policy: second_confirmation_required
+      verification_gate: verify_bid_changed
     - id: change_budget
       name: 修改广告预算
       policy: second_confirmation_required
+      verification_gate: verify_budget_changed
     - id: delete_data
       name: 删除数据
       policy: blocked_by_default
     - id: send_to_group
       name: 发送到群聊
       policy: confirmation_required
+      verification_gate: verify_message_sent
     - id: write_back
       name: 写回外部系统
       policy: confirmation_required
+      verification_gate: verify_external_write
 
   sensitive_data:
     default_policy: mask_or_aggregate
@@ -35,3 +39,55 @@ risk_rules:
       - salary
       - contract_amount
 
+  operation_verification_gates:
+    default_required: true
+    decision_log_file: decision-log.yaml
+    gates:
+      - id: verify_bid_changed
+        applies_to: change_bid
+        method: read_back_after_write
+        expected_evidence:
+          - before_bid
+          - requested_bid
+          - after_bid
+          - campaign_or_adgroup_ref
+        verification_window: immediate_then_next_report
+        failure_action: log_failed_verification_and_notify_user
+      - id: verify_budget_changed
+        applies_to: change_budget
+        method: read_back_after_write
+        expected_evidence:
+          - before_budget
+          - requested_budget
+          - after_budget
+          - campaign_ref
+        verification_window: immediate_then_next_report
+        failure_action: log_failed_verification_and_notify_user
+      - id: verify_lark_write
+        applies_to: write_back
+        method: read_written_record
+        expected_evidence:
+          - target_table_or_doc
+          - record_id_or_range
+          - written_fields
+          - readback_snapshot
+        verification_window: immediate
+        failure_action: retry_once_then_stop
+      - id: verify_message_sent
+        applies_to: send_to_group
+        method: confirm_message_id_or_visible_result
+        expected_evidence:
+          - target_channel
+          - message_id_or_timestamp
+          - content_summary
+        verification_window: immediate
+        failure_action: log_uncertain_delivery
+      - id: verify_external_write
+        applies_to: write_back
+        method: tool_specific_readback
+        expected_evidence:
+          - target_system
+          - write_action
+          - readback_result
+        verification_window: immediate
+        failure_action: stop_and_ask_user
