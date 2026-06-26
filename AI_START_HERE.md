@@ -38,6 +38,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 .qianlima/context-policy.yaml
 .qianlima/communication-protocol.yaml
 .qianlima/runtime-protocol.yaml
+.qianlima/user-profile.yaml
 .qianlima/model-adapters.yaml
 ```
 
@@ -74,6 +75,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 
 ```text
 .qianlima/runtime-protocol.yaml
+```
+
+如果目标是先了解普通用户、识别工作场景或从资料里抽取画像，先读取：
+
+```text
+docs/User Profile and Work Scenario Discovery 用户画像与工作场景发现.md
 ```
 
 完整的文档分组和阅读顺序见 `docs/README.md`。

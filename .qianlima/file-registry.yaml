@@ -203,6 +203,15 @@ files:
     can_overwrite: true
     retention: keep
 
+  - file_id: user_profile_discovery_doc
+    path: docs/User Profile and Work Scenario Discovery 用户画像与工作场景发现.md
+    display_name: User Profile and Work Scenario Discovery 用户画像与工作场景发现
+    scenario: all
+    file_type: reference
+    description: Human-readable guide for inferring user profile and work scenarios from documents, knowledge bases, and conversations.
+    can_overwrite: true
+    retention: keep
+
   - file_id: daily_ad_report_workflow
     path: .qianlima/workflows/daily_ad_report.yaml
     display_name: Daily ad report workflow
@@ -214,6 +223,14 @@ files:
   - file_id: knowledge_digest_workflow
     path: .qianlima/workflows/knowledge_digest.yaml
     display_name: Knowledge digest workflow
+    scenario: knowledge_digest
+    file_type: workflow
+    can_overwrite: true
+    retention: keep
+
+  - file_id: user_profile_discovery_workflow
+    path: .qianlima/workflows/user_profile_discovery.yaml
+    display_name: User profile discovery workflow
     scenario: knowledge_digest
     file_type: workflow
     can_overwrite: true
@@ -241,6 +258,15 @@ files:
     scenario: all
     file_type: template
     description: Template for recording model input/output tokens and estimated cost.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: user_profile_discovery_template
+    path: .qianlima/templates/user-profile-discovery_template.md
+    display_name: User profile discovery template
+    scenario: all
+    file_type: template
+    description: Template for documenting inferred user profile, work scenarios, and confirmation questions.
     can_overwrite: true
     retention: keep
 

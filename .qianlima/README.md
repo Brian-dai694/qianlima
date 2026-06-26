@@ -32,6 +32,7 @@ Agent 负责维护这些配置文件。
 | `communication-protocol.yaml` | 跨文件、跨场景、跨项目和模型交接通信协议 |
 | `runtime-protocol.yaml` | SessionStart、BeforeToolUse、AfterToolUse、FinalCheck 运行执行协议 |
 | `decision-log.yaml` | 运营动作的证据、预期影响、验证窗口和实际结果记录模板 |
+| `user-profile.yaml` | 用户画像、工作习惯和场景候选模板 |
 | `model-adapters.yaml` | 面向 DeepSeek、OpenAI、Anthropic、Google、本地模型的适配策略 |
 
 ## 固定目录
@@ -84,6 +85,10 @@ Agent 负责维护这些配置文件。
 NotebookLM 适合先消化长资料，再交给千里马继续做任务卡、报告和行动项。
 
 普通用户可以把它当成“先帮我看完”的入口。
+
+## 用户画像与场景发现
+
+普通用户不需要先学会管理文件。千里马会先从文档、知识库和对话里抽取用户画像，再识别高频工作场景，然后把结果写回 `user-profile.yaml` 和 `work.ws`。细则见 `docs/User Profile and Work Scenario Discovery 用户画像与工作场景发现.md`。
 
 ## 自动上下文压缩
 

@@ -17,6 +17,7 @@
 - `Four-Layer Agent System 四层 Agent 系统.md`
 - `Loop Engineering 循环工程.md`
 - `Cross-File and Cross-Project Communication Protocol 跨文件与跨项目通信协议.md`
+- `User Profile and Work Scenario Discovery 用户画像与工作场景发现.md`
 
 ## Integration
 
@@ -27,6 +28,7 @@
 - `.qianlima/decision-log.yaml`
 - `.qianlima/model-adapters.yaml`
 - `.qianlima/templates/token-usage-record_template.yaml`
+- `.qianlima/user-profile.yaml`
 
 ## Adaptation References
 
