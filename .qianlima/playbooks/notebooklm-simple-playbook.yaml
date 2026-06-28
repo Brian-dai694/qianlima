@@ -1,0 +1,37 @@
+playbook:
+  id: notebooklm_simple_playbook
+  name: NotebookLM 资料消化流程
+  source_reference: NotebookLM
+  goal: Turn long materials into usable summaries and actions for ordinary users.
+
+  simple_flow:
+    - step: collect_materials
+      user_language: 用户上传或提供文档、PDF、链接、会议材料。
+      agent_action: 检查资料类型和数量。
+    - step: digest_materials
+      user_language: 先把资料整理好。
+      agent_action: 使用 NotebookLM 式的资料消化方式，提炼摘要、问题和行动项。
+    - step: extract_actions
+      user_language: 告诉我该做什么。
+      agent_action: 把摘要变成待办、报告或后续 workflow。
+    - step: store_results
+      user_language: 存进工作区。
+      agent_action: 归档到 reports/ 或 working/，并记录来源。
+    - step: handoff
+      user_language: 继续下一步。
+      agent_action: 把结果交给千里马的其他 workflow，例如会议纪要、知识库或任务卡。
+
+  default_report_structure:
+    - 摘要
+    - 关键问题
+    - 行动项
+    - 待验证项
+    - 下一步
+    - 使用量与成本
+
+  non_technical_rules:
+    - Explain missing materials in plain language.
+    - Ask for the minimum number of follow-up items.
+    - Default to read-only.
+    - Do not treat the digest as final truth without verification.
+

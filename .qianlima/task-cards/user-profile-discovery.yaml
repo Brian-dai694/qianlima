@@ -1,0 +1,44 @@
+task_card:
+  id: user_profile_discovery
+  name: 用户画像与工作场景发现
+  plain_language_trigger:
+    - 先了解我平时在做什么
+    - 帮我看看我主要有哪些工作场景
+    - 你先总结一下我的工作习惯
+    - 先从这些资料里判断我是什么角色
+  when_to_use: 想从文档、知识库、聊天或会议材料里提炼用户画像、固定工作场景和高频任务。
+  user_needs_to_provide:
+    - 文档、知识库内容、会议材料或聊天记录
+    - 希望重点识别的工作目标，可选
+    - 希望固定的输出形式，可选
+  agent_will_do:
+    - 先做资料消化，提炼摘要和关键线索
+    - 抽取用户角色、工具习惯、输出偏好和风险偏好
+    - 识别重复出现的工作场景
+    - 给出少量业务语言确认问题
+    - 把确认后的画像和场景写回工作区
+  output:
+    type: markdown_report
+    template: templates/user-profile-discovery_template.md
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    creates_refs:
+      - summary_ref
+      - file_ref
+      - run_ref
+    output_rules:
+      - cite_loaded_refs
+      - write_summary_manifest
+      - register_report_in_file_registry
+      - record_usage_ledger
+    cross_project_mode: sanitized_reference_package
+  must_include:
+    - 用户画像
+    - 工作场景候选
+    - 高置信场景
+    - 待确认问题
+    - 下一步
+  forbidden_actions:
+    - 直接把推断当成已确认事实
+    - 自动写回外部系统

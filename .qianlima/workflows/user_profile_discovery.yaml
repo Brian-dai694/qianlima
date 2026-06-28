@@ -1,0 +1,61 @@
+workflow:
+  id: user_profile_discovery
+  name: 用户画像与工作场景发现
+  scenario: knowledge_digest
+  status: draft
+  mode: on_demand
+
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    scenario_ref: scenario:knowledge_digest
+    required_refs:
+      - file_ref
+      - summary_ref
+      - scenario_ref
+    creates_refs:
+      - summary_ref
+      - run_ref
+      - file_ref
+    handoff_rules:
+      - write_summary_manifest
+      - pass_source_materials_by_ref
+      - separate_inference_from_confirmation
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+
+  user_intents:
+    - 先了解我在做什么
+    - 帮我总结我的工作场景
+    - 从资料里判断我的角色和习惯
+    - 先给我一个画像再决定后续工作流
+
+  reads:
+    - inbox/*
+    - templates/user-profile-discovery_template.md
+    - communication-protocol.yaml
+
+  writes:
+    - reports/{date}_用户画像与工作场景发现_{topic}_V{version}.md
+    - logs/{date}_user_profile_discovery_trace.json
+    - context-summaries/{date}_user_profile_discovery_{topic}_summary.yaml
+    - user-profile.yaml
+
+  updates:
+    - file-registry.yaml
+    - work.ws
+    - work-hub.ws
+
+  required_inputs:
+    - materials
+    - optional_focus
+
+  validation:
+    required_checks:
+      - report_has_profile
+      - report_has_scenario_candidates
+      - report_has_confirmation_questions
+      - report_has_source_citation
+      - report_has_usage_cost

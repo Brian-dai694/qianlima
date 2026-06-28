@@ -1,0 +1,4 @@
+date,marketplace,campaign_name,ad_group_name,keyword_or_asin,impressions,clicks,spend,sales,orders
+2026-06-23,US,SP_AUTO_Main,Auto_Group,auto,1200,24,18.50,95.00,3
+2026-06-23,US,SP_Manual_Core,Exact_Core,mig welding gun,800,18,22.40,0,0
+2026-06-23,US,SP_Manual_ASIN,ASIN_Target,ASIN-EXAMPLE-00,500,10,7.80,58.00,2

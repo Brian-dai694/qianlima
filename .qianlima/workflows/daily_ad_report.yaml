@@ -1,0 +1,256 @@
+# daily_ad_report.wf.yaml — 每日广告运营日报 Workflow
+# 版本: v2.0 | 更新: 2026-06-23
+# 对齐 Work Scenario Governance Spec §3.2 标准结构
+
+workflow:
+  id: daily_ad_report
+  name: 每日广告运营日报
+  scenario: ad_ops
+  status: draft
+  description: 每天读取昨日广告数据，计算核心指标，识别异常，生成结构化日报
+
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L3_execution_context
+    scenario_ref: scenario:ad_ops
+    required_refs:
+      - data:lark_ads_daily:daily_snapshot
+      - data:lingsing_ads:realtime_snapshot
+      - file:file_registry
+      - file:context_policy
+      - file:communication_protocol
+    creates_refs:
+      - run_ref
+      - file_ref
+    handoff_rules:
+      - each_step_writes_intermediate_output
+      - pass_large_payloads_by_ref
+      - audit_agent_checks_refs_before_delivery
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+
+  schedule:
+    type: daily
+    time: "09:30"
+    timezone: Asia/Shanghai
+    auto_run: false
+    requires_confirmation: true
+
+  # ── 用户自然语言触发 ──
+  user_intents:
+    - 生成广告日报
+    - 用今天的广告数据生成报告
+    - 检查昨天广告表现
+    - 跑一下广告日报
+
+  # ── 输入 ──
+  inputs:
+    data_sources:
+      - source_id: lark_ads_daily
+        role: ad_performance
+        required: true
+      - source_id: lingsing_ads
+        role: ad_performance_realtime
+        required: false
+    parameters:
+      - name: date
+        type: date
+        default: yesterday
+        description: 数据日期
+      - name: marketplace
+        type: enum
+        default: US
+
+  # ── 执行步骤 ──
+  execution:
+    mode: single
+    steps:
+      - order: 1
+        agent: data_agent
+        action: read_ad_data
+        source: lark_ads_daily
+        description: 读取昨日广告数据（飞书 Ad Daily 表）
+      - order: 2
+        agent: data_agent
+        action: read_sales_data
+        source: lingsing_ads
+        description: 读取领星广告仪表盘实时数据（交叉验证）
+        optional: true
+      - order: 3
+        agent: data_agent
+        action: validate_data
+        description: 检查数据质量（必填字段、日期范围、数字字段有效性）
+      - order: 4
+        agent: analysis_agent
+        action: calculate_metrics
+        description: 计算 ACoS / CPC / CTR / CVR / TACoS
+      - order: 5
+        agent: analysis_agent
+        action: apply_diagnostic_rules
+        description: 应用 5 条诊断规则，标记异常和机会
+      - order: 6
+        agent: execution_agent
+        action: generate_report
+        description: 按模板生成 Markdown 日报
+      - order: 7
+        agent: audit_agent
+        action: verify_report
+        description: 验证指标准确性、来源引用、风险标注
+      - order: 8
+        agent: execution_agent
+        action: record_usage
+        description: 记录 Token / 工具调用 / 成本到 usage-ledger
+
+  # ── 指标计算 ──
+  metrics:
+    - id: spend
+      name: 广告花费
+      formula: sum(spend)
+      unit: USD
+    - id: sales
+      name: 广告销售额
+      formula: sum(sales)
+      unit: USD
+    - id: orders
+      name: 广告订单数
+      formula: sum(orders)
+    - id: acos
+      name: ACoS
+      formula: spend / sales
+      empty_when: sales = 0
+      unit: "%"
+    - id: cpc
+      name: CPC
+      formula: spend / clicks
+      empty_when: clicks = 0
+      unit: USD
+    - id: ctr
+      name: CTR
+      formula: clicks / impressions
+      empty_when: impressions = 0
+      unit: "%"
+    - id: cvr
+      name: CVR
+      formula: orders / clicks
+      empty_when: clicks = 0
+      unit: "%"
+    - id: tacos
+      name: TACoS
+      formula: spend / total_sales
+      empty_when: total_sales = 0
+      unit: "%"
+
+  # ── 诊断规则 ──
+  diagnostic_rules:
+    - id: high_spend_no_order
+      name: 高花费无单
+      condition: spend >= 10 AND orders = 0
+      severity: high
+      suggestion: 降低竞价或暂停观察，检查 listing 转化
+    - id: high_acos
+      name: ACoS 过高
+      condition: acos > target_acos * 1.3 AND orders >= 1
+      severity: medium
+      suggestion: 降低竞价 10%-20%，检查关键词相关性
+    - id: excellent_performance
+      name: 表现优秀
+      condition: acos <= target_acos AND orders >= 2
+      severity: positive
+      suggestion: 保留或小幅加预算，观察排名变化
+    - id: high_click_low_conversion
+      name: 高点击低转化
+      condition: clicks >= 15 AND (orders = 0 OR cvr < 0.5)
+      severity: medium
+      suggestion: 检查主图、价格、Review、Coupon、页面转化
+    - id: low_impression
+      name: 低曝光
+      condition: impressions < 100 AND spend < 5
+      severity: low
+      suggestion: 检查竞价、预算、关键词搜索量
+
+  # ── 输出 ──
+  outputs:
+    primary:
+      format: markdown
+      template: templates/广告运营_日报模板.md
+      path: reports/{date}_广告运营_日报_{marketplace}_V{version}.md
+    auxiliary:
+      - format: json
+        path: logs/{date}_daily_ad_report_trace.json
+      - format: yaml
+        path: usage-ledger/{date}_daily_ad_report_usage.yaml
+
+  # ── 质量门 ──
+  quality_gates:
+    - check: required_fields_exist
+      description: 日报必须包含花费、销售额、订单、ACoS
+    - check: date_range_correct
+      description: 日期必须是目标日期
+    - check: total_spend_matches
+      description: 日报总花费与原始数据汇总一致
+    - check: no_empty_conclusion
+      description: 必须至少有一条诊断结论
+    - check: source_cited
+      description: 必须标明数据来源和日期范围
+    - check: cost_record_created
+      description: 必须记录本次运行的 Token 使用和成本
+
+  # ── 权限 ──
+  permissions:
+    allowed:
+      - read_data_sources
+      - generate_report
+      - write_local_file
+    requires_confirmation:
+      - send_to_lark_group
+      - sync_to_lark_sheet
+      - overwrite_existing_report
+    forbidden:
+      - modify_ad_campaign
+      - change_bid
+      - change_budget
+      - delete_source_data
+
+  # ── 错误处理 ──
+  error_handling:
+    on_data_missing:
+      action: report_partial
+      user_message: "{date} 的广告数据暂时不可用，已用最近可用日期 {fallback_date} 的数据代替"
+    on_data_empty:
+      action: report_empty
+      user_message: "{date} 暂无广告数据，请检查飞书 Ad Daily 表是否已更新"
+    on_permission_denied:
+      action: stop_and_ask
+      user_message: "没有权限读取广告数据，请检查数据源授权"
+    on_calculation_error:
+      action: skip_and_note
+      user_message: "部分指标因 sales 或 clicks 为 0 无法计算，已标注"
+
+  # ── 文件操作 ──
+  file_operations:
+    reads:
+      - data-sources.yaml
+      - file-registry.yaml
+      - communication-protocol.yaml
+      - inbox/*_ad-data_raw_*.csv
+      - inbox/*_广告数据_原始_*.xlsx
+      - templates/广告运营_日报模板.md
+    writes:
+      - reports/{date}_广告运营_日报_{marketplace}_V{version}.md
+      - logs/{date}_daily_ad_report_trace.json
+      - usage-ledger/{date}_daily_ad_report_usage.yaml
+    updates:
+      - file-registry.yaml
+      - work.ws
+
+  # ── 追溯要求 ──
+  trace:
+    must_log:
+      - data_sources_accessed
+      - rows_read
+      - diagnostic_rules_fired
+      - token_usage
+      - estimated_cost
+      - duration_seconds

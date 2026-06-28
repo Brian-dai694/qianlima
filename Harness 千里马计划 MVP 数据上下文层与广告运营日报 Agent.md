@@ -1086,7 +1086,7 @@ TACoS = 广告花费 / 总销售额
   "task_name": "广告运营日报",
   "model_usage": [
     {
-      "model": "claude-opus-4-8",
+      "model": "gpt-5-codex",
       "step": "分析异常广告组并生成建议",
       "input_tokens": 18000,
       "output_tokens": 3200,
@@ -1269,4 +1269,4 @@ MVP 通过标准：
 
 > Work Scenario Governance Spec 工作场景治理标准
 
-它用于定义 `work.ws`、workflow、权限规则、成本台账、跨场景事件和验收标准
+它用于定义 `work.ws`、workflow、权限规则、成本台账、跨场景事件和验收标准。

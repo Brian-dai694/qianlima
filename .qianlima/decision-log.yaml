@@ -1,0 +1,108 @@
+# decision-log.yaml - Qianlima operational decision log template
+
+decision_log:
+  version: 1
+  status: template
+  purpose: >
+    Record operational actions, evidence, expected impact, verification window,
+    and actual result. This is the Qianlima equivalent of an AHE change manifest.
+
+  storage_rule:
+    public_template_only: true
+    real_user_decisions_should_be_written_to: .qianlima/logs/{run_id}_decision-log.yaml
+    do_not_commit_real_decision_logs: true
+
+  entry_schema:
+    decision_id: required
+    run_id: required
+    created_at: required
+    scenario: required
+    workflow_id: required
+    action_type: required
+    risk_level: required
+    status: proposed
+    actor:
+      agent_role: required
+      user_confirmation_ref: optional
+    evidence:
+      source_refs: required
+      data_window: optional
+      key_metrics_before: optional
+      source_quality_notes: optional
+    decision:
+      recommendation: required
+      expected_impact: required
+      expected_risks: required
+      rollback_or_stop_condition: optional
+    execution:
+      tool_name: optional
+      target_system: optional
+      target_ref: optional
+      requested_change: optional
+      raw_output_ref: optional
+      summary_ref: optional
+    verification:
+      required: true
+      gate_id: required
+      verification_window: required
+      expected_evidence: required
+      actual_result: pending
+      verified_at: optional
+      verification_ref: optional
+    outcome:
+      final_status: pending
+      user_visible_summary: optional
+      follow_up_required: optional
+      loop_learning_ref: optional
+
+  example_entry:
+    decision_id: decision-example-001
+    run_id: run-example-001
+    created_at: "2026-06-25T10:00:00+08:00"
+    scenario: ad_ops
+    workflow_id: daily_ad_report
+    action_type: change_bid
+    risk_level: high
+    status: proposed
+    actor:
+      agent_role: execution_agent
+      user_confirmation_ref: user-confirmation-example-001
+    evidence:
+      source_refs:
+        - data:sample_ads_daily:daily_snapshot
+      data_window: "2026-06-24"
+      key_metrics_before:
+        spend: 18.50
+        orders: 0
+        acos: null
+      source_quality_notes: Public sample data only.
+    decision:
+      recommendation: Lower example bid by 10%.
+      expected_impact: Reduce wasted spend while preserving observation.
+      expected_risks: Ranking may drop if the keyword is still learning.
+      rollback_or_stop_condition: Restore previous bid if orders recover or rank drops sharply.
+    execution:
+      tool_name: example_tool
+      target_system: example_ads_console
+      target_ref: campaign:example
+      requested_change:
+        before_bid: 1.00
+        after_bid: 0.90
+      raw_output_ref: .qianlima/working/tool-outputs/example.json
+      summary_ref: summary:decision-example-001
+    verification:
+      required: true
+      gate_id: verify_bid_changed
+      verification_window: immediate_then_next_report
+      expected_evidence:
+        - before_bid
+        - requested_bid
+        - after_bid
+      actual_result: pending
+      verified_at: null
+      verification_ref: null
+    outcome:
+      final_status: pending
+      user_visible_summary: Example only. No real action executed.
+      follow_up_required: false
+      loop_learning_ref: null

@@ -50,6 +50,31 @@ dimensions:
       - rows_read
       - estimated_cost_usd
 
+  context_observability:
+    description: Track context usage, compression level, and safety reserve.
+    metrics:
+      - estimated_context_tokens
+      - context_budget_ratio
+      - safety_reserve_tokens
+      - files_read_full
+      - files_summarized
+      - files_indexed
+      - compression_level_used
+      - source_reload_count
+
+  model_observability:
+    description: Track provider-specific model behavior and adapter choice.
+    metrics:
+      - provider
+      - model
+      - adapter_profile
+      - total_window_tokens
+      - max_output_tokens
+      - cache_hit_tokens
+      - cache_miss_tokens
+      - reasoning_mode_enabled
+      - reserve_ratio_used
+
 default_trace_fields:
   - run_id
   - workflow_id
@@ -62,5 +87,6 @@ default_trace_fields:
   - confirmations_required
   - validation_result
   - usage_summary
+  - context_budget_summary
+  - model_adapter_summary
   - status
-

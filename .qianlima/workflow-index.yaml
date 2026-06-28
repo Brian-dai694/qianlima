@@ -1,12 +1,106 @@
 # workflow-index.yaml — Workflow 索引
 # 版本: v2.0 | 更新: 2026-06-23
 
+scenario_context_map:
+  default_startup_profile: minimal
+  selection_rule: Identify scenario before loading workflow-specific files.
+  fallback_when_unclear: ask_user_or_use_knowledge_digest
+  scenarios:
+    ad_ops:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/competitor-comparison.yaml
+        - .qianlima/workflows/daily_ad_report.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+      avoid_by_default:
+        - unrelated root docs
+        - archive
+        - full historical reports
+    keyword_tracking:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/keyword-monitoring.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    sales_tracking:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    inventory_monitor:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/work-hub.ws
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    profit_review:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/profit-check.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    product_selection:
+      startup_profile: minimal
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/competitor-comparison.yaml
+        - .qianlima/task-cards/listing-optimization.yaml
+        - .qianlima/task-cards/product-discovery.yaml
+      optional_refs:
+        - .qianlima/data-sources.yaml
+        - .qianlima/file-registry.yaml
+    knowledge_digest:
+      startup_profile: standard
+      load_refs:
+        - .qianlima/work.ws
+        - .qianlima/context-policy.yaml
+        - .qianlima/runtime-protocol.yaml
+        - .qianlima/task-cards/knowledge-digest.yaml
+        - .qianlima/workflows/knowledge_digest.yaml
+      optional_refs:
+        - .qianlima/file-registry.yaml
+
 workflows:
   - id: daily_ad_report
     name: 每日广告运营日报
     scenario: ad_ops
     status: draft
-    definition: workflows/daily_ad_report.wf.yaml
+    communication_protocol: communication-protocol.yaml
+    definition: workflows/daily_ad_report.yaml
     template: templates/广告运营_日报模板.md
     default_output_path: "reports/{date}_广告运营_日报_{marketplace}_V{version}.md"
     required_data_sources:
@@ -28,6 +122,7 @@ workflows:
     name: 竞品对比
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/competitor-comparison.yaml
     template: templates/competitor-comparison_template.md
     default_output_path: "reports/{date}_竞品对比_{marketplace}_V{version}.md"
@@ -43,6 +138,7 @@ workflows:
     name: Listing 优化诊断
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/listing-optimization.yaml
     template: templates/listing-optimization_template.md
     default_output_path: "reports/{date}_Listing优化_{asin}_{marketplace}_V{version}.md"
@@ -57,6 +153,7 @@ workflows:
     name: 利润测算
     scenario: profit_review
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/profit-check.yaml
     template: templates/profit-check_template.md
     default_output_path: "reports/{date}_利润测算_{marketplace}_V{version}.md"
@@ -71,6 +168,7 @@ workflows:
     name: 关键词监控
     scenario: keyword_tracking
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/keyword-monitoring.yaml
     template: templates/keyword-monitoring_template.md
     default_output_path: "reports/{date}_关键词监控_{asin}_{marketplace}_V{version}.md"
@@ -86,6 +184,7 @@ workflows:
     name: 新品机会探索
     scenario: product_selection
     status: draft
+    communication_protocol: communication-protocol.yaml
     task_card: task-cards/product-discovery.yaml
     template: templates/product-discovery_template.md
     default_output_path: "reports/{date}_新品机会_{marketplace}_V{version}.md"
@@ -94,4 +193,18 @@ workflows:
       - marketplace
     forbidden_operations:
       - create_product
-      - purchase_ord
+      - purchase_order
+
+  - id: knowledge_digest
+    name: 资料消化
+    scenario: knowledge_digest
+    status: draft
+    communication_protocol: communication-protocol.yaml
+    task_card: task-cards/knowledge-digest.yaml
+    template: templates/knowledge-digest_template.md
+    default_output_path: "reports/{date}_资料消化_{topic}_V{version}.md"
+    required_inputs:
+      - materials
+    forbidden_operations:
+      - write_external_truth
+      - send_external

@@ -34,6 +34,9 @@ cycle:
       - report_missing_source
       - report_missing_risk
       - cost_too_high
+      - context_loaded_unnecessarily
+      - token_savings_caused_quality_drop
+      - missing_performance_metric
       - user_rejected_suggestion
       - user_changed_template
 
@@ -72,6 +75,9 @@ examples:
     improvement: Add field alias mapping in data-sources.yaml.
   - trigger: high_cost_run
     improvement: Reduce query range or aggregate before model analysis.
+  - trigger: context_loaded_unnecessarily
+    improvement: Switch next run to minimal startup profile or task-card-only loading.
+  - trigger: token_savings_caused_quality_drop
+    improvement: Restore required source evidence and mark the file as mandatory for this workflow.
   - trigger: user_rejected_bid_suggestion
     improvement: Adjust diagnosis rule threshold or require stronger evidence.
-

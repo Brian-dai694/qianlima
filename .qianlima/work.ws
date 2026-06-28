@@ -1,104 +1,128 @@
-# work.ws — 工作状态总索引（公开示例模板）
-# 本文件为去敏后的示例。真实使用时由 Agent 根据你的实际场景填充。
-# Agent 每次执行任务前必须读取本文件。
+# work.ws - Qianlima workspace state index
+# Public template version. Replace placeholders before real use.
 
 workspace:
-  id: example_ops_workspace
-  name: 示例运营工作台
-  owner: current_user
-  mode: personal                       # personal | team | enterprise
-  root: "<你的工作目录绝对路径>"
-  created: YYYY-MM-DD
-  updated: YYYY-MM-DD
+  id: qianlima_public_template
+  name: Qianlima Public Template Workspace
+  owner: example_user
+  mode: template
+  root: "."
+  created: 2026-06-23
+  updated: 2026-06-24
 
 status:
-  overall: active                      # active | paused | archived
-  health: green                        # green | yellow | red
+  overall: template
+  health: green
   last_patrol: null
   last_report: null
+  last_trial_run: null
+  context_policy: enabled
 
 current_focus:
   primary_scenario: ad_ops
+  active_event: example_campaign
   active_projects:
-    - 千里马计划 MVP Phase 1
-  pending_decisions: []                # 示例："5 词待调价确认"
-  attention_required: []               # 示例："某 SKU 库存偏低"
+    - Qianlima MVP template
+  pending_decisions:
+    - Replace sample data with your own approved data sources.
+  attention_required:
+    - Do not commit real customer, product, token, cost, or account data.
 
-# 以下为示例场景，结构真实、数据为占位。请按自己的实际业务替换。
 scenarios:
   - id: ad_ops
-    name: 广告运营
+    name: Ad Operations
     priority: high
-    status: active
+    status: template
     frequency: daily
     core_metrics: [spend, sales, orders, acos, cpc, cvr, tacos]
     workflows: [daily_ad_report, bid_suggestion_review]
-    data_sources: [lark_ads_daily, lingsing_ads]
+    data_sources: [sample_ads_daily]
     risk_level: medium
 
   - id: sales_tracking
-    name: 销量台账
+    name: Sales Tracking
     priority: high
-    status: active
+    status: template
     frequency: daily
     core_metrics: [units_ordered, sales, sessions, conversion_rate]
     workflows: [sales_ledger]
-    data_sources: [lingsing_product, lark_asin_sales]
+    data_sources: [sample_sales_daily]
     risk_level: low
 
   - id: keyword_tracking
-    name: 关键词排名追踪
-    priority: high
-    status: active
-    frequency: twice_daily
-    core_metrics: [rank_position, rank_change, spr]
-    keywords: ["<示例关键词 1>", "<示例关键词 2>"]
+    name: Keyword Tracking
+    priority: medium
+    status: template
+    frequency: on_demand
+    core_metrics: [rank_position, rank_change, search_volume]
+    keywords: [sample keyword 1, sample keyword 2]
     workflows: [keyword_rank_scan]
-    data_sources: [sorftime_mcp, pangolinfo_mcp]
+    data_sources: [sample_keyword_source]
     risk_level: medium
 
   - id: inventory_monitor
-    name: 库存预警
+    name: Inventory Monitor
     priority: medium
-    status: active
+    status: template
     frequency: daily
     core_metrics: [inventory_on_hand, days_remaining, inbound_qty]
     workflows: [inventory_alert]
-    data_sources: [lingsing_product, lark_product_list]
-    cross_scenario_triggers:
-      - when: inventory_days < 14
-        notify: ad_ops
-        action: lower_ad_aggressiveness
+    data_sources: [sample_product_list]
     risk_level: medium
 
   - id: profit_review
-    name: 利润复盘
+    name: Profit Review
     priority: medium
-    status: active
+    status: template
     frequency: weekly
     core_metrics: [net_sales, gross_margin, tacos, net_profit_rate]
     workflows: [profit_review]
-    data_sources: [lark_ads_daily, lark_asin_sales, lark_product_list]
+    data_sources: [sample_ads_daily, sample_sales_daily, sample_product_list]
     risk_level: low
 
   - id: product_selection
-    name: 选品分析
+    name: Product Discovery
     priority: low
-    status: paused
+    status: template
     frequency: on_demand
     workflows: [product_selection_analysis]
-    data_sources: [sorftime_mcp, pangolinfo_mcp]
+    data_sources: [sample_market_source]
     risk_level: low
 
-# 产品矩阵：示例占位。真实 ASIN/SKU/价格/库存/财务请勿提交到公开仓库，
-# 放入 .qianlima/secrets.local.yaml（已被 .gitignore 忽略）。
+  - id: knowledge_digest
+    name: Knowledge Digest
+    priority: low
+    status: template
+    frequency: on_demand
+    workflows: [knowledge_digest]
+    data_sources: [manual_input, inbox_docs, urls, meeting_notes]
+    risk_level: low
+
 products:
   active:
-    - {asin: "<ASIN>", sku: "<SKU>", name: "<产品名>", price: 0.00, margin: 0.0, inventory: 0, stage: growth}
+    - asin: ASIN-EXAMPLE-01
+      sku: EXAMPLE-SKU-001
+      name: Example Product A
+      price: 29.99
+      margin: 35.0
+      inventory: 100
+      stage: template
+    - asin: ASIN-EXAMPLE-02
+      sku: EXAMPLE-SKU-002
+      name: Example Product B
+      price: 39.99
+      margin: 32.0
+      inventory: 80
+      stage: template
   clearance: []
 
 annual_targets:
-  note: "财务目标属敏感数据，请放入 secrets.local.yaml，不要提交公开仓库"
+  net_sales: 0
+  net_profit_rate: 0
+  breakeven: 0
+  ytd_actual: 0
+  ad_budget_monthly: 0
+  knowledge_digest_mode: enabled
 
 harness_evolution:
   inspiration: agentic-Harness-engineering
@@ -107,7 +131,51 @@ harness_evolution:
     - experience_observability
     - decision_observability
     - evaluate_analyze_improve_loop
+    - context_compression
   local_files:
     - observability.yaml
     - evaluation-tasks.yaml
     - improvement-loop.yaml
+    - context-policy.yaml
+
+context_governance:
+  policy_file: context-policy.yaml
+  summary_folder: context-summaries
+  default_total_window_tokens: 128000
+  usable_context_ratio: 0.70
+  safety_reserve_ratio: 0.30
+  warning_threshold_ratio: 0.60
+  stop_threshold_ratio: 0.85
+  direct_read_max_file_size_kb: 20
+  default_behavior: summarize_large_files_before_use
+
+communication_governance:
+  protocol_file: communication-protocol.yaml
+  default_cross_file_level: L2_summary_manifest
+  default_cross_agent_level: L3_execution_context
+  default_cross_project_mode: sanitized_reference_package
+  source_of_truth:
+    - work.ws
+    - work-hub.ws
+    - file-registry.yaml
+    - data-sources.yaml
+  token_saving_rule: Prefer refs and summaries over copying full source content.
+
+model_governance:
+  adapter_file: model-adapters.yaml
+  default_provider_profile: auto_detect_or_manual
+  preferred_low_cost_model: deepseek-v4-flash
+  preferred_reasoning_model: deepseek-v4-pro
+  fallback_policy: conservative_context_budget
+
+usage_governance:
+  ledger_folder: usage-ledger
+  track_per_task: true
+  track_per_model_call: true
+  require_cost_summary_in_report: true
+
+startup_rules:
+  must_generate_workspace_index: true
+  startup_script: start-qianlima.ps1
+  first_read_file: .qianlima/WORKSPACE_INDEX.md
+  do_not_load_full_workspace: true

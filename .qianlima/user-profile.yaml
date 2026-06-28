@@ -1,0 +1,52 @@
+# user-profile.yaml - public template for inferred user profile
+
+user_profile:
+  user_id: current_user
+  display_name: 当前用户
+  language: zh-CN
+  timezone: Asia/Shanghai
+  inferred_role: unknown
+  confidence: low
+
+work_style:
+  primary_channels: []
+  preferred_outputs:
+    - markdown_report
+  preferred_review_pattern:
+    - summary
+    - findings
+    - next_steps
+  file_management_awareness: low
+  manual_configuration_tolerance: low
+
+behavioral_signals:
+  repeated_tasks: []
+  repeated_keywords: []
+  repeated_documents: []
+  repeated_outputs: []
+  external_action_tolerance: ask_before_write
+
+discovered_scenarios: []
+
+scenario_candidates: []
+
+knowledge_sources:
+  - type: conversation
+    refs: []
+  - type: documents
+    refs: []
+  - type: notebooklm
+    refs: []
+  - type: knowledge_base
+    refs: []
+
+confirmation_state:
+  profile_confirmed: false
+  scenarios_confirmed: false
+  next_questions: []
+
+storage_policy:
+  summary_ref_required: true
+  write_back_to_work_ws: true
+  write_back_to_work_hub: true
+  write_back_to_usage_ledger: false

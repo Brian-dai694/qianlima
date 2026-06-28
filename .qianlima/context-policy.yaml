@@ -1,0 +1,226 @@
+context_policy:
+  version: 1
+  purpose: Control how agents read, compress, and carry file context safely.
+  model_adapter_file: model-adapters.yaml
+
+  principle:
+    - Never assume the model can read every file in full.
+    - Always keep safety reserve for reasoning, tool results, and final answer.
+    - Prefer source references over copying full files into context.
+    - Preserve source of truth in files; compress only working context.
+
+  model_context_budget:
+    mode: configurable
+    notes: Do not hard-code vendor-specific maximum context windows.
+    usable_context_ratio: 0.70
+    safety_reserve_ratio: 0.30
+    warning_threshold_ratio: 0.60
+    stop_threshold_ratio: 0.85
+
+  optimization_goal:
+    primary: Reduce token use while improving task performance in the user's real work scenario.
+    measure_both_cost_and_quality: true
+    never_reduce_context_if_it_removes_required_source_evidence: true
+    prefer_task_relevant_context_over_large_general_context: true
+
+  default_budget_tokens:
+    total_window: 128000
+    usable_context: 89600
+    safety_reserve: 38400
+    warning_threshold: 76800
+    stop_threshold: 108800
+
+  startup_profiles:
+    minimal:
+      use_when: Routine task in a known workspace.
+      read:
+        - .qianlima/WORKSPACE_INDEX.md
+        - .qianlima/work.ws
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+      then_load_by_task_card: true
+    standard:
+      use_when: New task type, changed workflow, or model handoff.
+      read:
+        - .qianlima/WORKSPACE_INDEX.md
+        - .qianlima/README.md
+        - .qianlima/work.ws
+        - .qianlima/workflow-index.yaml
+        - .qianlima/risk-rules.yaml
+        - .qianlima/context-policy.yaml
+        - .qianlima/model-adapters.yaml
+      then_load_by_task_card: true
+    full:
+      use_when: First setup, repo audit, policy edit, or architecture change.
+      read:
+        - docs/README.md
+        - relevant root reference docs only
+      require_reason: true
+
+  adapter_resolution:
+    order:
+      - explicit_workflow_model
+      - user_selected_model
+      - provider_default
+      - generic_capability_class
+      - conservative_defaults
+    fallback_profile: defaults
+    deepseek_default_profile: deepseek-v4-flash
+    deepseek_reasoning_profile: deepseek-v4-pro
+
+  provider_notes:
+    deepseek:
+      official_context_length_tokens: 1000000
+      official_max_output_tokens: 384000
+      use_staged_summary_even_with_1m_context: true
+      recommended_reserve:
+        flash: 0.45
+        pro: 0.50
+      cache_hint: Keep stable prefixes unchanged to benefit from context caching.
+
+  file_reading_limits:
+    direct_read:
+      max_file_size_kb: 20
+      max_files_per_turn: 5
+      use_when: Small instructions, current workflow files, short templates.
+    extract_then_read:
+      max_file_size_kb: 200
+      use_when: Medium documents with headings, tables, or repeated structure.
+    summarize_first:
+      max_file_size_kb: 2048
+      use_when: Long docs, reports, transcripts, PDFs, exports, knowledge files.
+    index_only:
+      min_file_size_kb: 2048
+      use_when: Very large files, datasets, logs, archives.
+
+  compression_levels:
+    - level: L0
+      name: full_context
+      description: Read full file into context.
+      allowed_for: Small files only.
+    - level: L1
+      name: relevant_extract
+      description: Extract only sections matching the current task.
+      allowed_for: Medium files and targeted lookups.
+    - level: L2
+      name: structured_summary
+      description: Summarize into goal, facts, decisions, risks, and next actions.
+      allowed_for: Long docs and knowledge materials.
+    - level: L3
+      name: outline_index
+      description: Keep table of contents, key entities, and file references only.
+      allowed_for: Very large files and recurring references.
+    - level: L4
+      name: source_reference_only
+      description: Keep path, metadata, and retrieval instructions only.
+      allowed_for: Archives, raw data, and source files not needed immediately.
+
+  auto_compression_triggers:
+    - planned_context_ratio_above_warning_threshold
+    - more_than_5_files_needed
+    - any_file_above_direct_read_limit
+    - repeated_reference_to_same_large_file
+    - workflow_runs_longer_than_3_steps
+    - user_provides_many_documents
+    - conversation_history_blocks_current_task
+
+  tool_output_truncation:
+    default_policy: raw_to_disk_summary_to_context
+    raw_output_dir: .qianlima/working/tool-outputs/
+    summary_output_dir: .qianlima/context-summaries/
+    max_context_chars_per_tool_call: 6000
+    max_table_rows_in_context: 30
+    max_error_chars_in_context: 2000
+    required_context_fields:
+      - source_tool
+      - query_or_action
+      - row_count_or_item_count
+      - key_findings
+      - anomalies
+      - diffs_since_last_run
+      - source_ref
+      - raw_output_ref
+    tool_rules:
+      kimi_webbridge:
+        max_context_chars: 4000
+        keep_in_context: [page_title, current_url, selected_records, action_result, visible_error]
+        write_raw_to_disk: true
+      lark:
+        max_context_chars: 5000
+        max_rows: 30
+        keep_in_context: [field_names, changed_records, validation_errors, write_result]
+        write_raw_to_disk: true
+      sorftime:
+        max_context_chars: 5000
+        max_rows: 50
+        keep_in_context: [keyword, rank_change, top_anomalies, source_time]
+        write_raw_to_disk: true
+      pangolinfo:
+        max_context_chars: 6000
+        max_items: 20
+        keep_in_context: [market_signal, competitor_delta, risk_signal, source_refs]
+        write_raw_to_disk: true
+      lingsing_erp:
+        max_context_chars: 5000
+        max_rows: 30
+        keep_in_context: [metric_totals, changed_campaigns, write_result, verification_result]
+        write_raw_to_disk: true
+    enforcement_hooks:
+      before_tool_use:
+        - estimate_expected_output_size
+        - prepare_raw_output_ref
+      after_tool_use:
+        - save_raw_output_to_disk
+        - summarize_tool_output
+        - pass_summary_ref_to_context
+        - record_truncation_in_trace
+
+  required_summary_schema:
+    file_path: required
+    source_type: required
+    date_or_version: optional
+    why_relevant: required
+    key_facts: required
+    decisions: optional
+    risks: optional
+    open_questions: optional
+    action_items: optional
+    source_sections: required
+    confidence: required
+
+  safety_rules:
+    - Summaries must cite source file paths.
+    - Summaries must not replace original files.
+    - Financial, legal, medical, account, credential, and customer data must be summarized with extra caution.
+    - Raw sensitive fields must not be copied into context unless explicitly needed and permitted.
+    - If a conclusion depends on omitted content, mark it as pending verification.
+    - Before high-risk action, reload the source section instead of relying only on summary.
+
+  workflow_integration:
+    preflight:
+      - estimate_needed_context
+      - classify_files_by_size_and_relevance
+      - choose_startup_profile
+      - choose_compression_level
+      - reserve_safety_budget
+    execute:
+      - read_small_files_directly
+      - summarize_large_files_to_working
+      - pass_summary_manifest_between_agents
+      - truncate_tool_outputs_after_tool_use
+    verify:
+      - check_summary_has_source_paths
+      - reload_source_sections_for_high_risk_decisions
+      - record_context_usage_in_trace
+
+  performance_loop:
+    required_metrics:
+      - input_tokens
+      - output_tokens
+      - cached_input_tokens
+      - loaded_file_count
+      - task_success
+      - user_edit_required
+      - source_citation_present
+      - elapsed_seconds
+    improvement_rule: Reduce unnecessary context only when task_success and source quality do not degrade.

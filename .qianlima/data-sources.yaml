@@ -1,305 +1,193 @@
-# data-sources.yaml — 数据源注册表
-# 版本: v1.0 | 创建: 2026-06-23
-# 记录所有可被 Agent 使用的数据源及其权限、字段、更新频率。
+# data-sources.yaml - public data source registry template
+# Replace placeholders with approved private values in your own local workspace.
+# Never commit real tokens, URLs with account IDs, customer data, or credentials.
 
 data_sources:
 
-  # ── 飞书表格 ──
-
-  - source_id: lark_ads_daily
-    display_name: 广告消耗日报
-    type: lark_sheet
-    owner: current_user
-    status: active
-    business_purpose: 每日广告花费/销售额/ACoS/订单，用于广告运营日报
+  - source_id: sample_ads_daily
+    display_name: Sample Ads Daily CSV
+    type: local_file
+    owner: example_user
+    status: template
+    business_purpose: Demo ad spend, sales, ACoS, and order data for daily ad reports.
     scenarios: [ad_ops, profit_review]
     workflows: [daily_ad_report, bid_suggestion_review, profit_review]
     location:
-      provider: lark
-      spreadsheet_token: <LARK_SPREADSHEET_TOKEN>
-      sheet_id: "<SHEET_ID>"
-      sheet_name: Ad Daily
+      provider: local_file
+      path: .qianlima/inbox/2026-06-23_ad-data_raw_US_V1.csv
     permissions:
       access_level: read_only
       allowed_operations: [read, aggregate]
-      forbidden_operations: [update, delete]
+      forbidden_operations: [update, delete, external_send]
     refresh:
-      frequency: daily
-      expected_ready_time: "14:00"
+      frequency: manual
       timezone: Asia/Shanghai
     schema:
-      required_fields: [date, campaign_name, spend, sales, orders, acos, clicks, impressions]
-      optional_fields: [cpc, ctr, cvr]
+      required_fields: [date, campaign_name, ad_group_name, spend, sales, orders, clicks, impressions]
+      optional_fields: [keyword_or_asin, cpc, ctr, cvr, acos]
     privacy:
-      sensitivity: medium
+      sensitivity: low
       sensitive_fields: []
     output_trace:
       must_cite_source: true
-      source_label: 飞书表格：Ad Daily
+      source_label: Sample Ads Daily CSV
 
-  - source_id: lark_asin_sales
-    display_name: ASIN 销量台账
-    type: lark_sheet
-    owner: current_user
-    status: active
-    business_purpose: 每日 ASIN 级别销量/销售额/订单，用于销量台账和利润复盘
+  - source_id: sample_sales_daily
+    display_name: Sample Sales Daily
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for ASIN/SKU sales, orders, sessions, and conversion data.
     scenarios: [sales_tracking, profit_review]
     workflows: [sales_ledger, profit_review]
     location:
-      provider: lark
-      spreadsheet_token: <LARK_SPREADSHEET_TOKEN>
-      sheet_id: "<SHEET_ID>"
-      sheet_name: ASIN Sales
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
     permissions:
       access_level: read_only
       allowed_operations: [read, aggregate]
-      forbidden_operations: [update, delete]
+      forbidden_operations: [update, delete, external_send]
     refresh:
-      frequency: daily
-      expected_ready_time: "14:00"
+      frequency: manual
       timezone: Asia/Shanghai
     schema:
       required_fields: [date, asin, sku, units_ordered, sales]
       optional_fields: [sessions, conversion_rate, inventory]
     privacy:
       sensitivity: medium
-      sensitive_fields: []
+      sensitive_fields: [cost, margin, account_id]
     output_trace:
       must_cite_source: true
-      source_label: 飞书表格：ASIN Sales
+      source_label: Sample Sales Daily
 
-  - source_id: lark_kw_log
-    display_name: 关键词卡位追踪
-    type: lark_sheet
-    owner: current_user
-    status: active
-    business_purpose: 8 个核心关键词的每日排名记录，用于排名趋势分析
-    scenarios: [keyword_tracking]
-    workflows: [keyword_rank_scan]
+  - source_id: sample_product_list
+    display_name: Sample Product List
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for product price, cost, margin, inventory, and lifecycle stage.
+    scenarios: [inventory_monitor, profit_review, product_selection]
+    workflows: [inventory_alert, profit_review, product_selection_analysis]
     location:
-      provider: lark
-      spreadsheet_token: <LARK_SPREADSHEET_TOKEN>
-      sheet_id: "<SHEET_ID>"
-      sheet_name: KW日志
-    permissions:
-      access_level: read_write_confirmed
-      allowed_operations: [read, aggregate, append]
-      forbidden_operations: [update, delete]
-      requires_confirmation: [write_back]
-    refresh:
-      frequency: twice_daily
-      expected_ready_time: "10:00"
-      timezone: Asia/Shanghai
-    schema:
-      required_fields: [date, time, keyword, rank, asin, spr]
-    privacy:
-      sensitivity: low
-      sensitive_fields: []
-    output_trace:
-      must_cite_source: true
-      source_label: 飞书表格：KW日志
-
-  - source_id: lark_product_list
-    display_name: 自有产品清单
-    type: lark_sheet
-    owner: current_user
-    status: active
-    business_purpose: 10 ASIN 的售价/成本/毛利率/库存/BSR，用于利润计算和库存预警
-    scenarios: [inventory_monitor, profit_review]
-    workflows: [inventory_alert, profit_review]
-    location:
-      provider: lark
-      spreadsheet_token: <LARK_SPREADSHEET_TOKEN>
-      sheet_name: 自有产品清单
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
     permissions:
       access_level: read_only
       allowed_operations: [read, aggregate]
-      forbidden_operations: [update, delete]
+      forbidden_operations: [update, delete, external_send]
     refresh:
-      frequency: on_change
+      frequency: manual
       timezone: Asia/Shanghai
     schema:
       required_fields: [asin, sku, product_name, price, cost, margin_pct, inventory]
       optional_fields: [bsr, rating, review_count]
     privacy:
       sensitivity: medium
-      sensitive_fields: [cost]
+      sensitive_fields: [cost, supplier, account_id]
     output_trace:
       must_cite_source: true
-      source_label: 飞书表格：自有产品清单
+      source_label: Sample Product List
 
-  # ── 领星 ERP ──
-
-  - source_id: lingsing_ads
-    display_name: 领星广告仪表盘
-    type: browser
-    owner: current_user
-    status: active
-    business_purpose: 实时广告花费/ACoS/ROAS/订单，比飞书数据更新更实时
-    scenarios: [ad_ops]
-    workflows: [daily_ad_report, bid_suggestion_review]
+  - source_id: sample_keyword_source
+    display_name: Sample Keyword Source
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for keyword rank, search volume, SERP, and competitor data.
+    scenarios: [keyword_tracking, product_selection]
+    workflows: [keyword_rank_scan, product_selection_analysis]
     location:
-      provider: lingsing
-      url: https://ads.lingxing.com/amazon/store-dashboard
-      access_method: kimi_webbridge
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
     permissions:
       access_level: read_only
-      allowed_operations: [read, screenshot]
-      forbidden_operations: [click, modify, write_back]
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
     refresh:
-      frequency: realtime
+      frequency: manual
       timezone: Asia/Shanghai
     schema:
-      required_fields: [spend, sales, orders, acos]
+      required_fields: [date, keyword, rank, asin]
+      optional_fields: [search_volume, spr, competitor_count]
     privacy:
-      sensitivity: high
+      sensitivity: low
       sensitive_fields: []
     output_trace:
       must_cite_source: true
-      source_label: 领星 ERP：广告仪表盘
+      source_label: Sample Keyword Source
 
-  - source_id: lingsing_product
-    display_name: 领星产品表现
-    type: browser
-    owner: current_user
-    status: active
-    business_purpose: ASIN 级别销量/库存/BSR/售价，用于销量台账和库存预警
-    scenarios: [sales_tracking, inventory_monitor]
-    workflows: [sales_ledger, inventory_alert]
+  - source_id: sample_market_source
+    display_name: Sample Market Research Source
+    type: placeholder
+    owner: example_user
+    status: not_connected
+    business_purpose: Placeholder for product discovery, competitor comparison, and niche analysis.
+    scenarios: [product_selection]
+    workflows: [product_selection_analysis, competitor_comparison]
     location:
-      provider: lingsing
-      url: https://erp.lingxing.com/erp/productExpressionNew
-      access_method: kimi_webbridge
+      provider: replace_me
+      connection_ref: PLACEHOLDER_ONLY
     permissions:
       access_level: read_only
-      allowed_operations: [read, screenshot]
-      forbidden_operations: [click, modify, write_back]
+      allowed_operations: [read, aggregate]
+      forbidden_operations: [update, delete, external_send]
     refresh:
-      frequency: realtime
+      frequency: manual
       timezone: Asia/Shanghai
     schema:
-      required_fields: [asin, sku, units_ordered, sales, inventory, bsr]
+      required_fields: [query, product_name, price, rating, review_count]
+      optional_fields: [sales_estimate, seller_count, brand, category]
     privacy:
-      sensitivity: high
+      sensitivity: low
       sensitive_fields: []
     output_trace:
       must_cite_source: true
-      source_label: 领星 ERP：产品表现
+      source_label: Sample Market Research Source
 
-  - source_id: lingsing_ad_list
-    display_name: 领星广告活动列表
-    type: browser
-    owner: current_user
+  - source_id: manual_input
+    display_name: Manual User Input
+    type: manual
+    owner: example_user
     status: active
-    business_purpose: 按广告活动/广告组查看花费/ACoS/CPC/订单，用于诊断和调价
-    scenarios: [ad_ops]
-    workflows: [bid_suggestion_review]
+    business_purpose: User-pasted text, notes, or short task instructions.
+    scenarios: [knowledge_digest, ad_ops, product_selection]
+    workflows: [knowledge_digest]
     location:
-      provider: lingsing
-      url: https://ads.lingxing.com/amazon/constantly-list
-      access_method: kimi_webbridge
+      provider: chat_or_file
     permissions:
-      access_level: read_only
-      allowed_operations: [read, screenshot]
-      forbidden_operations: [click, modify, write_back]
+      access_level: user_confirmed
+      allowed_operations: [read, summarize, classify]
+      forbidden_operations: [external_send, write_back_without_confirmation]
     refresh:
-      frequency: realtime
+      frequency: on_demand
       timezone: Asia/Shanghai
     schema:
-      required_fields: [campaign_name, ad_group_name, spend, sales, orders, acos, cpc]
+      required_fields: [content]
     privacy:
-      sensitivity: high
-      sensitive_fields: []
+      sensitivity: user_defined
+      sensitive_fields: [credentials, customer_contact, personal_id]
     output_trace:
       must_cite_source: true
-      source_label: 领星 ERP：广告活动列表
+      source_label: Manual User Input
 
-  # ── 文档源（知识库 / Knowledge Notebook） ──
-  # 供 notebooks.yaml 引用；问答与衍生产物以这些源为唯一依据。
+privacy_defaults:
+  never_commit:
+    - access_token
+    - refresh_token
+    - api_key
+    - spreadsheet_token
+    - database_url
+    - password
+    - customer_phone
+    - customer_email
+    - supplier_contact
+    - account_id
+    - real_product_margin
 
-  - source_id: doc_readme
-    display_name: 千里马计划文档索引
-    type: document
-    owner: current_user
-    status: active
-    business_purpose: 千里马设计知识库的入口与阅读顺序
-    scenarios: [all]
-    notebooks: [qianlima_design_kb]
-    location:
-      path: README.md
-    permissions:
-      access_level: suggest_only
-      allowed_operations: [read, cite]
-      forbidden_operations: [modify_source, delete_source]
-    document_meta:
-      title: README 文档索引
-      anchor_style: heading
-      sections_indexed: true
-    privacy:
-      sensitivity: low
-    output_trace:
-      must_cite_source: true
-      source_label: 千里马计划/README.md
-
-  - source_id: doc_governance_spec
-    display_name: 工作场景治理标准
-    type: document
-    owner: current_user
-    status: active
-    business_purpose: 治理中枢权威定义，设计知识库核心源
-    scenarios: [all]
-    notebooks: [qianlima_design_kb]
-    location:
-      path: Work Scenario Governance Spec 工作场景治理标准.md
-    permissions:
-      access_level: suggest_only
-      allowed_operations: [read, cite]
-      forbidden_operations: [modify_source, delete_source]
-    document_meta:
-      anchor_style: heading
-      sections_indexed: true
-    privacy:
-      sensitivity: low
-    output_trace:
-      must_cite_source: true
-      source_label: Work Scenario Governance Spec
-
-  - source_id: doc_harness_mvp
-    display_name: Harness MVP 架构
-    type: document
-    owner: current_user
-    status: active
-    business_purpose: 七层能力模型 + 广告日报 Agent 设计
-    scenarios: [all]
-    notebooks: [qianlima_design_kb]
-    location:
-      path: Harness 千里马计划 MVP 数据上下文层与广告运营日报 Agent.md
-    permissions:
-      access_level: suggest_only
-      allowed_operations: [read, cite]
-      forbidden_operations: [modify_source, delete_source]
-    document_meta:
-      anchor_style: heading
-      sections_indexed: true
-    privacy:
-      sensitivity: low
-    output_trace:
-      must_cite_source: true
-      source_label: Harness MVP
-
-  - source_id: doc_dataconnector
-    display_name: 数据连接器标准
-    type: document
-    owner: current_user
-    status: active
-    business_purpose: 数据源登记/授权/脱敏/校验标准
-    scenarios: [all]
-    notebooks: [qianlima_design_kb]
-    location:
-      path: Data Connector Spec 数据连接器标准.md
-    permissions:
-      access_level: suggest_only
-      allowed_operations: [read, cite]
-      forbidden_operations: [modify_source, delete_source]
-    document_meta:
-      anchor_style: he
+  sanitize_before_git:
+    replace_tokens_with: PLACEHOLDER_ONLY
+    replace_real_asins_with: ASIN-EXAMPLE-00
+    replace_real_skus_with: EXAMPLE-SKU-000
+    remove_generated_reports: true
+    remove_runtime_logs: true
+    remove_usage_ledger: true

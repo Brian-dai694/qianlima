@@ -1,29 +1,7 @@
-# ── 默认：自动规范化文本文件行尾 ──
 * text=auto eol=lf
 
-# ── PowerShell 脚本：强制 CRLF，保留 BOM（Windows PowerShell 5.1 需要 BOM 才能正确解析中文） ──
-*.ps1 text eol=crlf working-tree-encoding=UTF-8
-
-# ── 显式声明文本类型，统一用 LF ──
-*.py    text eol=lf
-*.md    text eol=lf
-*.txt   text eol=lf
-*.yaml  text eol=lf
-*.yml   text eol=lf
-*.json  text eol=lf
-*.ws    text eol=lf
-
-# ── 二进制文件：禁止行尾转换 ──
-*.png   binary
-*.jpg   binary
-*.jpeg  binary
-*.gif   binary
-*.ico   binary
-*.pdf   binary
-*.zip   binary
-*.xlsx  binary
-*.xls   binary
-
-# ── 语言统计：标记生成/文档目录，让 GitHub 语言条更准确 ──
-*.md            linguist-documentation
-templates/*     linguist-documentation
+*.ps1 text eol=crlf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.ws text eol=lf

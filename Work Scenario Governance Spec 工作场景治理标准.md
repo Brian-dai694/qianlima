@@ -123,6 +123,8 @@ Agent 应该把这些转换成治理配置，而不是要求用户填表。
   file-registry.yaml               ← 文件注册表（文件在哪里、被谁用）
   data-sources.yaml                ← 数据源注册表（数据从哪来、权限是什么）
   naming-rules.yaml                ← 文件命名规则
+  model-adapters.yaml              ← 不同大模型的上下文、输出、缓存和推理策略
+  context-policy.yaml              ← 上下文压缩、文件读取上限和安全冗余
   user-preferences.yaml            ← 用户偏好和习惯
   risk-rules.yaml                  ← 高风险动作和确认规则
   workflows/                       ← 工作流定义
@@ -139,6 +141,7 @@ Agent 应该把这些转换成治理配置，而不是要求用户填表。
   archive/                         ← 历史归档
   logs/                            ← 执行日志
   usage-ledger/                    ← Token 与成本台账
+  context-summaries/               ← 长文件、多文件任务的结构化摘要
   feedback/                        ← 用户反馈和修正规则
 ```
 
@@ -198,7 +201,7 @@ current_focus:
     - 5 词紧急调价确认
   attention_required:
     - PD Day1 关键词巡检
-    - 某 SKU 库存偏低
+    - P80 Plasma 库存仅 17 套
 
 scenarios:
   - id: ad_ops
@@ -522,6 +525,8 @@ MVP 默认使用 `single`。等流程稳定后逐步升级到 `daily` 和 `monit
 
 `file-registry.yaml` 管文件。`work.ws` 管场景。它们之间通过 workflow 建立关联。
 
+跨文件、跨 workflow、跨场景、跨项目和模型交接的统一引用、摘要、事件和执行状态传递规则，由 `.qianlima/communication-protocol.yaml` 管理。普通任务优先传 `file:{file_id}`、`data:{data_source_id}`、`run:{run_id}`、`event:{event_id}` 和 `summary:{summary_id}`，避免重复把全文塞进模型上下文。
+
 ### 4.1 关联规则
 
 - 每个 workflow 的输出文件必须登记到 `file-registry.yaml`
@@ -704,11 +709,125 @@ budget:
 
 ---
 
+## 7A. 上下文治理标准
+
+上下文治理解决一个核心问题：大模型不能无限读取文件，也不能把所有资料一次性塞进上下文。千里马必须在执行前判断文件量、内容量和任务复杂度，自动压缩上下文，并保留安全冗余。
+
+上下文治理必须和 `model-adapters.yaml` 联动。业务 workflow 不直接关心模型厂商，只声明任务类型、风险等级和输出要求；模型适配层负责选择上下文预算、输出预算、缓存策略和推理冗余。
+
+### 7A.1 不绑定厂商最大窗口
+
+不同模型的上下文窗口不同，而且会随版本变化。千里马不把某个模型的最大窗口写死为系统能力，而是使用可配置预算。
+
+默认策略：
+
+```yaml
+model_context_budget:
+  usable_context_ratio: 0.70
+  safety_reserve_ratio: 0.30
+  warning_threshold_ratio: 0.60
+  stop_threshold_ratio: 0.85
+```
+
+含义：
+
+- 最多只规划使用 70% 上下文。
+- 至少保留 30% 给推理、工具返回、异常处理和最终输出。
+- 到 60% 开始压缩或摘要。
+- 到 85% 必须停止继续塞内容，改用摘要、索引或文件引用。
+
+### 7A.1.1 大模型适配层
+
+`model-adapters.yaml` 负责适配不同模型：
+
+| 类型 | 策略 |
+|---|---|
+| DeepSeek | 优先适配，单独维护 v4 flash/pro profile |
+| OpenAI | 从运行配置读取实际模型窗口，不硬编码 |
+| Anthropic | 从运行配置读取实际模型窗口，不硬编码 |
+| Google / Gemini | 从运行配置读取实际模型窗口，适合资料消化场景 |
+| 本地或开源模型 | 必须手动声明窗口大小和输出上限 |
+
+DeepSeek 当前适配原则：
+
+- `deepseek-v4-flash`：优先用于低成本、批量、日报、资料消化。
+- `deepseek-v4-pro`：优先用于复杂推理、高价值分析、多文件综合判断。
+- 即使模型支持超长上下文，也不把长文件原文全塞进去；仍然使用分阶段摘要。
+- 思考模式任务保留更大安全冗余，避免推理和最终输出挤占上下文。
+- 利用上下文缓存时，稳定系统指令和稳定摘要尽量放在前缀，减少重复成本。
+
+### 7A.2 文件读取分级
+
+```yaml
+direct_read:
+  max_file_size_kb: 20
+  max_files_per_turn: 5
+extract_then_read:
+  max_file_size_kb: 200
+summarize_first:
+  max_file_size_kb: 2048
+index_only:
+  min_file_size_kb: 2048
+```
+
+规则：
+
+- 小文件可以直接读。
+- 中等文件只抽取相关章节。
+- 长文档先生成结构化摘要。
+- 大文件、数据集、日志和归档只保留索引和引用。
+
+### 7A.3 压缩层级
+
+| 层级 | 名称 | 用途 |
+|---|---|---|
+| L0 | full_context | 小文件完整读取 |
+| L1 | relevant_extract | 中等文件抽取相关段落 |
+| L2 | structured_summary | 长文档摘要成事实、风险、行动项 |
+| L3 | outline_index | 大文件只保留目录、实体、引用 |
+| L4 | source_reference_only | 只保留路径和取用说明 |
+
+### 7A.4 自动触发条件
+
+满足任一条件时必须启动压缩：
+
+- 预计上下文超过 warning threshold。
+- 本轮需要读取超过 5 个文件。
+- 任一文件超过直接读取上限。
+- 同一个大文件被重复引用。
+- workflow 超过 3 个步骤。
+- 用户一次提供多份文档。
+- 历史对话已经影响当前任务空间。
+
+### 7A.5 摘要必须保留来源
+
+每份摘要至少包含：
+
+```yaml
+file_path: required
+source_type: required
+why_relevant: required
+key_facts: required
+source_sections: required
+confidence: required
+```
+
+安全规则：
+
+- 摘要不能替代原文件。
+- 高风险动作前必须回读原文关键段落。
+- 如果结论依赖被省略内容，必须标注待验证。
+- 敏感字段默认脱敏或只保留聚合结果。
+
+---
+
 ## 8. 跨场景通信标准
 
 ### 8.1 work-hub.ws
 
 `work-hub.ws` 是跨场景通信的轻量中枢。它不引入消息队列或事件总线，只是记录场景之间的关联和事件。
+
+跨场景事件的消息结构、引用格式、隐私边界、跨项目共享方式和 token 压缩策略，统一遵循 `.qianlima/communication-protocol.yaml`。`work-hub.ws` 负责记录事件，`communication-protocol.yaml` 负责规定事件如何被引用、传递、压缩、脱敏和验收。
 
 ### 8.2 四类跨场景联动
 
@@ -738,8 +857,8 @@ event:
       - ad_ops
       - profit_review
     action_suggestion:
-      for_ad_ops: "某 SKU 库存偏低。降低该 ASIN 的广告放量优先级，避免断货后广告空跑。"
-      for_profit_review: "某 SKU 库存不足，本周利润复盘请标注该 SKU 的供应风险。"
+      for_ad_ops: "P80 Plasma 仅剩 17 套。降低该 ASIN 的广告放量优先级，避免断货后广告空跑。"
+      for_profit_review: "P80 Plasma 库存不足，本周利润复盘请标注该 SKU 的供应风险。"
 
   resolution:
     status: pending             # pending | acknowledged | resolved

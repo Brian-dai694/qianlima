@@ -56,3 +56,110 @@ evaluation_tasks:
         description: Sensitive fields are masked or absent.
         required: true
 
+  - id: eval_knowledge_digest_basic
+    name: Knowledge digest basic quality check
+    workflow_id: knowledge_digest
+    frequency: every_run
+    checks:
+      - id: report_exists
+        description: Report file exists.
+        required: true
+      - id: report_has_summary
+        description: Report includes a summary.
+        required: true
+      - id: report_has_key_questions
+        description: Report includes key questions.
+        required: true
+      - id: report_has_actions
+        description: Report includes action items.
+        required: true
+      - id: report_has_source_citation
+        description: Report cites source materials.
+        required: true
+      - id: report_has_usage_cost
+        description: Report includes usage and cost summary.
+        required: true
+
+  - id: eval_context_budget_safety
+    name: Context budget and compression safety check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: context_policy_loaded
+        description: context-policy.yaml is loaded before multi-file or long-file tasks.
+        required: true
+      - id: safety_reserve_kept
+        description: At least the configured safety reserve remains unused.
+        required: true
+      - id: large_files_summarized
+        description: Files above the direct-read limit are summarized or indexed first.
+        required: true
+      - id: summaries_have_source_paths
+        description: Summaries include source file paths and source sections.
+        required: true
+      - id: high_risk_decisions_reload_source
+        description: High-risk decisions reload source sections instead of relying only on summaries.
+        required: true
+
+  - id: eval_communication_protocol_safety
+    name: Cross-file and cross-project communication protocol check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: communication_protocol_loaded_when_needed
+        description: communication-protocol.yaml is loaded for cross-file, cross-project, multi-agent, event, or model-handoff tasks.
+        required: true
+      - id: refs_resolve_through_registries
+        description: file_ref, data_ref, event_ref, run_ref, scenario_ref, project_ref, and summary_ref resolve through the configured registries.
+        required: true
+      - id: large_payloads_passed_by_reference
+        description: Payloads over 10KB are written to working, logs, or context-summaries and passed by reference.
+        required: true
+      - id: shared_outputs_registered
+        description: Generated reports, summaries, and reusable outputs are registered in file-registry.yaml.
+        required: true
+      - id: cross_project_privacy_checked
+        description: Cross-project packages exclude private data unless the user explicitly approves sharing.
+        required: true
+
+  - id: eval_token_performance_balance
+    name: Token cost and work performance balance check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: startup_profile_declared
+        description: Run declares minimal, standard, or full startup profile.
+        required: true
+      - id: loaded_files_are_task_relevant
+        description: Loaded files are tied to the task card, workflow, data source, or risk rule.
+        required: true
+      - id: token_usage_recorded
+        description: Usage ledger records input, output, cached, and total tokens when available.
+        required: true
+      - id: performance_outcome_recorded
+        description: Usage ledger records task success, user edit required, and source citation status.
+        required: true
+      - id: no_quality_drop_for_token_savings
+        description: Token reduction does not remove required source evidence or risk checks.
+        required: true
+
+  - id: eval_runtime_enforcement
+    name: Runtime protocol enforcement check
+    workflow_id: all
+    frequency: every_run
+    checks:
+      - id: session_start_used_scenario_context_map
+        description: SessionStart identifies scenario and loads context through scenario_context_map before full bootstrap.
+        required: true
+      - id: before_tool_use_checked_risk_rules
+        description: BeforeToolUse checks risk-rules.yaml before high-risk or external write actions.
+        required: true
+      - id: after_tool_use_truncated_output
+        description: AfterToolUse saves raw tool output to disk and passes only summary refs when output exceeds policy limits.
+        required: true
+      - id: final_check_verified_operational_actions
+        description: FinalCheck runs operation_verification_gates for bid, budget, Lark write, external write, or send actions.
+        required: true
+      - id: decision_log_created_for_operational_action
+        description: Operational actions have decision log entries with evidence, expected impact, verification window, and actual result.
+        required: true
