@@ -1,0 +1,32 @@
+task_card:
+  id: listing_optimization
+  name: Listing 优化诊断
+  plain_language_trigger:
+    - 帮我优化 Listing
+    - 诊断这个 ASIN
+    - 看看标题五点怎么改
+  when_to_use: 想提升标题、五点、关键词、A+ 页面和转化率。
+  user_needs_to_provide:
+    - 一个 ASIN
+    - 站点
+    - 当前 Listing 文案，可选
+    - 目标关键词，可选
+  agent_will_do:
+    - 读取产品详情和关键词表现
+    - 找出流量机会和转化问题
+    - 给出标题、五点、关键词、A+ 的修改建议
+    - 标注优先级
+  output:
+    type: markdown_report
+    template: templates/listing-optimization_template.md
+  must_include:
+    - 当前问题
+    - 关键词机会
+    - 标题建议
+    - 五点建议
+    - A+ 和图片建议
+    - 优先级
+  forbidden_actions:
+    - 自动上传 Listing
+    - 自动修改亚马逊后台
+

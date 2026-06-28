@@ -1,0 +1,300 @@
+# file-registry.yaml — 文件注册表
+# 版本: v1.1 | 创建: 2026-06-23 | 更新: 2026-06-23
+# 记录所有重要文件的位置、用途、来源和调用关系。
+#
+# 路径约定：本仓库根目录即「千里马计划」文件夹。
+#   - files[].path 一律相对仓库根目录，不带 `千里马计划/` 前缀。
+#   - external_references[] 为父级 Work Space 的运营文件，不在本仓库内（present: false），
+#     仅作上下文登记，Agent 不应把它们当作本仓库可读文件。
+
+files:
+
+  # ── 千里马计划设计文档（仓库根目录） ──
+
+  - file_id: qianlima_readme
+    path: README.md
+    display_name: 千里马计划文档索引
+    scenario: all
+    file_type: reference
+    description: 文档索引、阅读顺序、依赖关系
+    can_overwrite: true
+    retention: keep
+
+  - file_id: qianlima_governance
+    path: Work Scenario Governance Spec 工作场景治理标准.md
+    display_name: 工作场景治理标准
+    scenario: all
+    file_type: reference
+    description: 治理中枢权威定义（时间/场景/workflow/权限/成本/跨场景/运行时保障）
+    can_overwrite: true
+    retention: keep
+
+  - file_id: qianlima_harness
+    path: Harness 千里马计划 MVP 数据上下文层与广告运营日报 Agent.md
+    display_name: Harness MVP 架构
+    scenario: all
+    file_type: reference
+    description: 七层能力模型 + 广告日报 Agent 设计
+    can_overwrite: true
+    retention: keep
+
+  - file_id: qianlima_dataconnector
+    path: Data Connector Spec 数据连接器标准.md
+    display_name: 数据连接器标准
+    scenario: all
+    file_type: reference
+    description: 数据源登记/授权/脱敏/校验/调用标准
+    can_overwrite: true
+    retention: keep
+
+  - file_id: qianlima_notebook_spec
+    path: Knowledge Notebook Spec 知识库标准.md
+    display_name: 知识库标准
+    scenario: all
+    file_type: reference
+    description: notebook 登记/来源受限问答/引用格式/衍生产物/反幻觉标准
+    can_overwrite: true
+    retention: keep
+
+  - file_id: qianlima_pwe
+    path: PWE-v2.0个人使用版-治理方案.md
+    display_name: PWE v2.0 治理方案（远期参考）
+    scenario: all
+    file_type: reference
+    description: 代码项目治理方案，当前以 .qianlima 体系为准
+    can_overwrite: true
+    retention: keep
+
+  - file_id: ahe_adaptation_doc
+    path: AHE 借鉴清单与千里马适配方案.md
+    display_name: AHE 借鉴清单与千里马适配方案
+    scenario: all
+    file_type: reference
+    source: agentic-Harness-engineering
+    can_overwrite: true
+    retention: keep
+
+  - file_id: amz_evo_doc
+    path: AMZ-EVO 简单版融合说明.md
+    display_name: AMZ-EVO 简单版融合说明
+    scenario: all
+    file_type: reference
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  - file_id: session_index_template
+    path: 会话索引摘要-模板.md
+    display_name: 会话索引摘要模板
+    scenario: all
+    file_type: template
+    description: 跨会话续接模板（MVP Phase 1 后启用）
+    can_overwrite: true
+    retention: keep
+
+  # ── .qianlima 治理文件 ──
+
+  - file_id: work_ws
+    path: .qianlima/work.ws
+    display_name: 工作状态总索引
+    scenario: all
+    file_type: governance
+    description: Agent 每次执行任务前必读
+    can_overwrite: true
+    retention: keep
+
+  - file_id: work_hub_ws
+    path: .qianlima/work-hub.ws
+    display_name: 跨场景通信中枢
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: data_sources_yaml
+    path: .qianlima/data-sources.yaml
+    display_name: 数据源注册表
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: notebooks_yaml
+    path: .qianlima/notebooks.yaml
+    display_name: 知识库注册表
+    scenario: all
+    file_type: governance
+    description: 知识库（notebook）登记，绑定 document 源与衍生产物
+    can_overwrite: true
+    retention: keep
+
+  - file_id: file_registry_yaml
+    path: .qianlima/file-registry.yaml
+    display_name: 文件注册表
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: naming_rules_yaml
+    path: .qianlima/naming-rules.yaml
+    display_name: 文件命名规则
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: risk_rules_yaml
+    path: .qianlima/risk-rules.yaml
+    display_name: 高风险动作与确认规则
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: user_preferences_yaml
+    path: .qianlima/user-preferences.yaml
+    display_name: 用户偏好
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: workflow_index_yaml
+    path: .qianlima/workflow-index.yaml
+    display_name: Workflow 索引
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: work_governance_rules_yaml
+    path: .qianlima/rules/work-governance-rules.yaml
+    display_name: 工作治理规则（W001-W015）
+    scenario: all
+    file_type: governance
+    can_overwrite: true
+    retention: keep
+
+  - file_id: observability_config
+    path: .qianlima/observability.yaml
+    display_name: 观测指标配置
+    scenario: all
+    file_type: governance
+    source: ahe_adaptation
+    can_overwrite: true
+    retention: keep
+
+  - file_id: evaluation_tasks
+    path: .qianlima/evaluation-tasks.yaml
+    display_name: 评估任务配置
+    scenario: all
+    file_type: governance
+    source: ahe_adaptation
+    used_by:
+      - daily_ad_report
+    can_overwrite: true
+    retention: keep
+
+  - file_id: improvement_loop
+    path: .qianlima/improvement-loop.yaml
+    display_name: 改进循环配置
+    scenario: all
+    file_type: governance
+    source: ahe_adaptation
+    can_overwrite: true
+    retention: keep
+
+  # ── Workflow 定义 ──
+
+  - file_id: workflow_daily_ad_report
+    path: .qianlima/workflows/daily_ad_report.wf.yaml
+    display_name: 每日广告运营日报 Workflow
+    scenario: ad_ops
+    file_type: workflow
+    used_by:
+      - daily_ad_report
+    can_overwrite: true
+    retention: keep
+
+  - file_id: workflow_knowledge_qa
+    path: .qianlima/workflows/knowledge_qa.wf.yaml
+    display_name: 知识库来源受限问答 Workflow
+    scenario: all
+    file_type: workflow
+    used_by:
+      - knowledge_qa
+      - knowledge_briefing
+    can_overwrite: true
+    retention: keep
+
+  # ── Playbook ──
+
+  - file_id: amz_simple_playbook
+    path: .qianlima/playbooks/amz-simple-playbook.yaml
+    display_name: 亚马逊运营大众版流程
+    scenario: all
+    file_type: playbook
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  # ── 任务卡 ──
+
+  - file_id: task_cards_readme
+    path: .qianlima/task-cards/README.md
+    display_name: 任务卡说明
+    scenario: all
+    file_type: reference
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_competitor_comparison
+    path: .qianlima/task-cards/competitor-comparison.yaml
+    display_name: 竞品对比任务卡
+    scenario: product_selection
+    file_type: task_card
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_listing_optimization
+    path: .qianlima/task-cards/listing-optimization.yaml
+    display_name: Listing 优化任务卡
+    scenario: product_selection
+    file_type: task_card
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_profit_check
+    path: .qianlima/task-cards/profit-check.yaml
+    display_name: 利润测算任务卡
+    scenario: profit_review
+    file_type: task_card
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_keyword_monitoring
+    path: .qianlima/task-cards/keyword-monitoring.yaml
+    display_name: 关键词监控任务卡
+    scenario: keyword_tracking
+    file_type: task_card
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_product_discovery
+    path: .qianlima/task-cards/product-discovery.yaml
+    display_name: 新品机会任务卡
+    scenario: product_selection
+    file_type: task_card
+    source: amz-evo-harness
+    can_overwrite: true
+    retention: keep
+
+  # ── 报告模板 ──
+
+  - file_id: template_ad_ops_daily_report
+    path: .qianlima/templates/广告运营_日报模板.md

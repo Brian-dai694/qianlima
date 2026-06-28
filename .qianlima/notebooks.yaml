@@ -1,0 +1,46 @@
+# notebooks.yaml — 知识库注册表
+# 版本: v1.0 | 创建: 2026-06-23
+# 对齐 Knowledge Notebook Spec 知识库标准 §1
+# 一个 notebook = 一组围绕主题/场景的 document 源集合，问答与衍生产物的作用域。
+
+notebooks:
+
+  # ── 知识库 1：千里马设计知识库（源全部在仓内，可立即问答） ──
+  - notebook_id: qianlima_design_kb
+    display_name: 千里马设计知识库
+    purpose: 收录千里马计划全部设计规范，可随时问答「这套体系怎么规定的」并出简报
+    scenarios: [all]
+    status: active
+    grounding: strict
+    sources:                       # 引用 data-sources.yaml 里的 document 源
+      - doc_readme
+      - doc_governance_spec
+      - doc_harness_mvp
+      - doc_dataconnector
+      - doc_notebook_spec
+    default_citation_style: inline
+    derived_artifacts: [briefing, faq, timeline]
+    permissions:
+      access_level: suggest_only
+      forbidden_operations: [modify_source, delete_source, external_send]
+    output_trace:
+      must_cite_source: true
+
+  # ── 知识库 2：亚马逊运营知识库（源在父级 Work Space，待整合后激活） ──
+  - notebook_id: amazon_ops_kb
+    display_name: 亚马逊运营知识库
+    purpose: 收录运营 SOP、踩坑日志、历史复盘，供随时问答和出简报
+    scenarios: [ad_ops, keyword_tracking, inventory_monitor, profit_review]
+    status: draft                  # 源标 present:false，待文档纳入仓库后置 active
+    grounding: strict
+    sources:
+      - doc_sop_standard
+      - doc_pitfalls_log
+      - doc_ops_dashboard
+    default_citation_style: inline
+    derived_artifacts: [briefing, faq, timeline]
+    permissions:
+      access_level: suggest_only
+      forbidden_operations: [modify_source, delete_source, external_send]
+    output_trace:
+      must_cite_source: true

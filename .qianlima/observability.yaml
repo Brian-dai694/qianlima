@@ -1,0 +1,66 @@
+observability:
+  version: 1
+  purpose: Track workflow components, experience, decisions, files, and cost.
+
+dimensions:
+  component_observability:
+    description: Track whether each workflow component worked.
+    metrics:
+      - workflow_started
+      - workflow_completed
+      - data_source_available
+      - required_fields_present
+      - report_generated
+      - trace_generated
+      - usage_record_generated
+
+  experience_observability:
+    description: Track reusable lessons from user feedback and repeated runs.
+    metrics:
+      - user_edits_count
+      - accepted_suggestions_count
+      - rejected_suggestions_count
+      - repeated_issue_count
+      - template_change_count
+      - rule_change_count
+
+  decision_observability:
+    description: Track whether recommendations have visible evidence.
+    metrics:
+      - recommendations_with_data_source
+      - recommendations_with_rule_id
+      - recommendations_with_risk_level
+      - recommendations_requiring_confirmation
+
+  file_observability:
+    description: Track source files, generated files, and cross-file calls.
+    metrics:
+      - source_files_registered
+      - output_files_registered
+      - templates_used
+      - overwrite_attempts
+
+  cost_observability:
+    description: Track model, tool, and workflow cost.
+    metrics:
+      - model_calls
+      - input_tokens
+      - output_tokens
+      - tool_calls
+      - rows_read
+      - estimated_cost_usd
+
+default_trace_fields:
+  - run_id
+  - workflow_id
+  - scenario
+  - data_sources
+  - source_files
+  - output_files
+  - rules_applied
+  - decisions
+  - confirmations_required
+  - validation_result
+  - usage_summary
+  - status
+

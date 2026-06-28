@@ -1,0 +1,2 @@
+"""macOS-specific entry points."""
+

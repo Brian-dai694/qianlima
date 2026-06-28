@@ -1,0 +1,47 @@
+rules:
+  - id: W001
+    name: work.ws 必须存在并能被读取
+    severity: high
+  - id: W002
+    name: 每个 workflow 必须绑定至少一个明确数据源或输入来源
+    severity: high
+  - id: W003
+    name: 每个数据源必须声明权限
+    severity: high
+  - id: W004
+    name: 涉及敏感字段的数据源必须声明脱敏规则
+    severity: high
+  - id: W005
+    name: 自动化任务必须记录执行日志和成本日志
+    severity: medium
+  - id: W006
+    name: 高风险动作必须有人工确认点
+    severity: high
+  - id: W007
+    name: 报告类任务必须声明数据日期范围和来源
+    severity: medium
+  - id: W008
+    name: 关键指标必须有计算口径
+    severity: medium
+  - id: W009
+    name: workflow 失败时必须说明失败原因和可恢复动作
+    severity: medium
+  - id: W010
+    name: 月度成本超预算时必须暂停或请求确认
+    severity: medium
+  - id: W011
+    name: 重要输入、输出和模板文件必须登记到 file-registry.yaml
+    severity: medium
+  - id: W012
+    name: 最终报告必须符合固定命名规范
+    severity: medium
+  - id: W013
+    name: workflow 必须声明读取、写入和更新的文件
+    severity: high
+  - id: W014
+    name: 覆盖、删除、移动重要文件必须请求确认
+    severity: high
+  - id: W015
+    name: 报告必须记录来源文件，支持跨文件追溯
+    severity: medium
+

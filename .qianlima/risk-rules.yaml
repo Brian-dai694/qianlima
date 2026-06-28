@@ -1,0 +1,37 @@
+risk_rules:
+  defaults:
+    data_access: read_only
+    auto_write_allowed: false
+    delete_allowed: false
+    external_send_requires_confirmation: true
+
+  high_risk_actions:
+    - id: change_bid
+      name: 修改广告竞价
+      policy: second_confirmation_required
+    - id: change_budget
+      name: 修改广告预算
+      policy: second_confirmation_required
+    - id: delete_data
+      name: 删除数据
+      policy: blocked_by_default
+    - id: send_to_group
+      name: 发送到群聊
+      policy: confirmation_required
+    - id: write_back
+      name: 写回外部系统
+      policy: confirmation_required
+
+  sensitive_data:
+    default_policy: mask_or_aggregate
+    fields:
+      - phone
+      - email
+      - address
+      - api_key
+      - token
+      - password
+      - bank_account
+      - salary
+      - contract_amount
+

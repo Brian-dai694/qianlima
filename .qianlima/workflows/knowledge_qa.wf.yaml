@@ -1,0 +1,147 @@
+# knowledge_qa.wf.yaml — 知识库来源受限问答 Workflow
+# 版本: v1.0 | 创建: 2026-06-23
+# 对齐 Work Scenario Governance Spec §3.2 + Knowledge Notebook Spec §4
+
+workflow:
+  id: knowledge_qa
+  name: 知识库来源受限问答
+  scenario: all
+  status: draft
+  description: 在指定知识库的源范围内回答问题，每条结论带可定位引用，源未覆盖则拒答
+
+  schedule:
+    type: single
+    auto_run: false
+    requires_confirmation: false
+
+  # ── 用户自然语言触发 ──
+  user_intents:
+    - 问一下知识库
+    - 基于这些资料回答
+    - 这份 SOP/合同/复盘里怎么写的
+    - 在我的运营知识库里查
+
+  # ── 输入 ──
+  inputs:
+    parameters:
+      - name: notebook_id
+        type: id
+        required: true
+        description: 目标知识库（见 notebooks.yaml）
+      - name: question
+        type: text
+        required: true
+        description: 用户的问题
+      - name: citation_style
+        type: enum
+        default: inline
+        options: [inline, footnote]
+
+  # ── 执行步骤 ──
+  execution:
+    mode: single
+    steps:
+      - order: 1
+        agent: data_agent
+        action: load_notebook
+        description: 读取 notebooks.yaml，确认知识库状态与绑定的源
+      - order: 2
+        agent: data_agent
+        action: check_freshness
+        description: 源若已更新未重新索引（stale），提示需重新索引后再答
+      - order: 3
+        agent: data_agent
+        action: retrieve_passages
+        description: 仅在该 notebook 绑定的源内检索相关段落
+      - order: 4
+        agent: analysis_agent
+        action: check_coverage
+        description: 判断检索到的段落是否足以回答；不足则进入拒答分支
+      - order: 5
+        agent: analysis_agent
+        action: compose_grounded_answer
+        description: 只用检索到的段落作答，每条结论后挂源文件+段落锚点引用
+      - order: 6
+        agent: audit_agent
+        action: verify_citations
+        description: 审计每条结论是否都有有效且真实存在的引用
+      - order: 7
+        agent: execution_agent
+        action: generate_report
+        description: 按问答模板输出（含未覆盖项与待补充源建议）
+      - order: 8
+        agent: execution_agent
+        action: record_usage
+        description: 记录访问日志、Token、成本
+
+  # ── 质量门（反幻觉核心） ──
+  quality_gates:
+    - check: every_claim_has_citation
+      description: 每条结论都附可定位引用（文件+段落）
+    - check: no_uncited_external_fact
+      description: 不得出现无引用的外部/通用知识
+    - check: citations_resolve
+      description: 引用的文件与段落真实存在且包含该内容
+    - check: refuse_when_uncovered
+      description: 源未覆盖时正确拒答，不编造
+    - check: conflicts_listed
+      description: 源之间矛盾时并列标注，不私自取舍
+    - check: sensitive_masked
+      description: 命中敏感字段按脱敏规则呈现
+
+  # ── 权限 ──
+  permissions:
+    allowed:
+      - read_sources
+      - generate_report
+      - write_local_file
+    requires_confirmation:
+      - send_to_lark_group
+      - send_email
+      - raw_access_sensitive_field
+    forbidden:
+      - modify_source
+      - delete_source
+      - external_send_without_confirmation
+
+  # ── 错误处理 ──
+  error_handling:
+    on_notebook_not_found:
+      action: stop_and_ask
+      user_message: "没找到这个知识库，请先告诉我要收录哪些文档。"
+    on_no_coverage:
+      action: refuse_grounded
+      user_message: "你的这些资料里没有相关内容，我不编造。需要的话可以补充这类源：{suggested_sources}"
+    on_stale_index:
+      action: stop_and_ask
+      user_message: "知识库的源文档更新过但还没重新索引，引用可能失效，要先重新索引吗？"
+    on_sensitive_hit:
+      action: mask_and_note
+      user_message: "命中了敏感字段（{field}），已脱敏展示；需要原文请确认授权。"
+
+  # ── 文件操作 ──
+  file_operations:
+    reads:
+      - notebooks.yaml
+      - data-sources.yaml
+      - file-registry.yaml
+      - templates/knowledge-qa_template.md
+    writes:
+      - reports/{date}_知识库问答_{notebook_id}_V{version}.md
+      - logs/{date}_knowledge_qa_trace.json
+      - usage-ledger/{date}_knowledge_qa_usage.yaml
+    updates:
+      - file-registry.yaml
+
+  # ── 追溯要求 ──
+  trace:
+    must_log:
+      - notebook_id
+      - sources_accessed
+      - passages_retrieved
+      - claims_count
+      - citations_count
+      - refused
+      - sensitive_fields_accessed
+      - token_usage
+      - estimated_cost

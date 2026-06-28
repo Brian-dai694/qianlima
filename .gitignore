@@ -1,0 +1,50 @@
+# ── 本地密钥（飞书 token、ERP 凭证等，切勿提交） ──
+.qianlima/secrets.local.yaml
+*.local.yaml
+*.secret
+.env
+.env.*
+
+# ── 运行数据与产出（含真实业务数据，切勿提交） ──
+.qianlima/inbox/
+.qianlima/working/
+.qianlima/reports/
+.qianlima/exports/
+.qianlima/archive/
+.qianlima/logs/
+.qianlima/usage-ledger/
+.qianlima/feedback/
+# 但保留空目录占位
+!.qianlima/inbox/.gitkeep
+!.qianlima/working/.gitkeep
+!.qianlima/reports/.gitkeep
+!.qianlima/exports/.gitkeep
+!.qianlima/archive/.gitkeep
+!.qianlima/logs/.gitkeep
+!.qianlima/usage-ledger/.gitkeep
+!.qianlima/feedback/.gitkeep
+
+# ── 系统/编辑器 ──
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ── Python（executor 运行时产物） ──
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ── 工作区生成产物（启动时由 bootstrap 自动重生，不入库） ──
+.qianlima/WORKSPACE_INDEX.md
+.qianlima/workspace-index.json
+

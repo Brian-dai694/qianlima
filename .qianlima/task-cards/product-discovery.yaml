@@ -1,0 +1,33 @@
+task_card:
+  id: product_discovery
+  name: 新品机会探索
+  plain_language_trigger:
+    - 帮我找新品
+    - 看看这个品类能不能做
+    - 做一个选品分析
+  when_to_use: 想判断一个品类或产品概念是否值得进入。
+  user_needs_to_provide:
+    - 产品概念或关键词
+    - 目标站点
+    - 目标利润率
+    - 预算或供应链条件，可选
+  agent_will_do:
+    - 看市场容量
+    - 看竞争强度
+    - 看价格带和利润空间
+    - 看风险和进入门槛
+    - 给出进入、不进入或先验证的建议
+  output:
+    type: markdown_report
+    template: templates/product-discovery_template.md
+  must_include:
+    - 市场概览
+    - 竞品结构
+    - 利润空间
+    - 风险
+    - 进入建议
+    - 下一步验证
+  forbidden_actions:
+    - 自动创建产品
+    - 自动下采购单
+

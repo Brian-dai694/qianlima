@@ -1,0 +1,31 @@
+task_card:
+  id: profit_check
+  name: 利润测算
+  plain_language_trigger:
+    - 帮我算利润
+    - 这个产品赚不赚钱
+    - 算一下采购和售价空间
+  when_to_use: 想判断产品是否值得卖，或价格、采购成本、广告费是否健康。
+  user_needs_to_provide:
+    - 目标售价或竞品售价
+    - 采购成本，可选
+    - 站点
+    - FBA 费或产品尺寸重量，可选
+  agent_will_do:
+    - 整理售价、采购成本、平台费用、广告费
+    - 计算毛利率和净利率
+    - 标注不确定项
+    - 给出是否继续推进的建议
+  output:
+    type: markdown_report
+    template: templates/profit-check_template.md
+  must_include:
+    - 成本表
+    - 利润测算
+    - 敏感项
+    - 待验证项
+    - 下一步动作
+  forbidden_actions:
+    - 自动下采购单
+    - 自动改售价
+

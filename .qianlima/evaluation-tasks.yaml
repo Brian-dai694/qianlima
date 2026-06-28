@@ -1,0 +1,58 @@
+evaluation_tasks:
+  - id: eval_daily_ad_report_basic
+    name: Daily ad report basic quality check
+    workflow_id: daily_ad_report
+    frequency: every_run
+    checks:
+      - id: report_exists
+        description: Report file exists.
+        required: true
+      - id: report_has_date
+        description: Report includes target date.
+        required: true
+      - id: report_has_data_source
+        description: Report cites data source.
+        required: true
+      - id: report_has_core_metrics
+        description: Report includes spend, sales, orders, ACoS, CPC, CTR, and CVR.
+        required: true
+      - id: report_has_issue_section
+        description: Report includes issue ad groups.
+        required: true
+      - id: report_has_manual_confirmation_section
+        description: Report states actions that need manual confirmation.
+        required: true
+      - id: report_has_data_quality_section
+        description: Report includes data quality check.
+        required: true
+      - id: report_has_usage_cost_section
+        description: Report includes model, token, tool, and cost usage.
+        required: true
+      - id: trace_exists
+        description: Execution trace exists.
+        required: true
+      - id: usage_record_exists
+        description: Usage ledger entry exists.
+        required: true
+
+  - id: eval_data_connector_safety
+    name: Data connector safety check
+    workflow_id: daily_ad_report
+    frequency: every_run
+    checks:
+      - id: data_source_registered
+        description: Data source is registered in data-sources.yaml.
+        required: true
+      - id: file_registered
+        description: Input file is registered in file-registry.yaml.
+        required: true
+      - id: permissions_read_only
+        description: Data source defaults to read-only or suggest-only.
+        required: true
+      - id: no_forbidden_write
+        description: Workflow did not write back, delete, change bids, or change budgets.
+        required: true
+      - id: sensitive_fields_masked
+        description: Sensitive fields are masked or absent.
+        required: true
+

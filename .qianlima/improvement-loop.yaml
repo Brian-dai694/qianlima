@@ -1,0 +1,77 @@
+improvement_loop:
+  version: 1
+  purpose: Turn workflow failures, user edits, and cost issues into reusable improvements.
+
+cycle:
+  - step: run
+    description: Run workflow and generate outputs, trace, and usage ledger.
+    inputs:
+      - work.ws
+      - workflow-index.yaml
+      - data-sources.yaml
+      - file-registry.yaml
+    outputs:
+      - reports/
+      - logs/
+      - usage-ledger/
+
+  - step: evaluate
+    description: Run evaluation tasks against the output.
+    inputs:
+      - evaluation-tasks.yaml
+      - reports/
+      - logs/
+      - usage-ledger/
+    outputs:
+      - logs/evaluation_result.json
+
+  - step: analyze
+    description: Classify failures, user edits, rejected suggestions, and high-cost runs.
+    failure_categories:
+      - missing_data_source
+      - missing_required_field
+      - bad_file_name
+      - report_missing_source
+      - report_missing_risk
+      - cost_too_high
+      - user_rejected_suggestion
+      - user_changed_template
+
+  - step: improve
+    description: Update configuration, templates, rules, or preferences.
+    allowed_updates:
+      - file-registry.yaml
+      - data-sources.yaml
+      - naming-rules.yaml
+      - user-preferences.yaml
+      - workflows/
+      - templates/
+      - rules/
+    blocked_updates:
+      - delete_source_files
+      - write_external_system_without_confirmation
+      - change_budget_without_confirmation
+      - change_bid_without_confirmation
+
+  - step: record
+    description: Save improvement summary for future runs.
+    outputs:
+      - feedback/
+      - work-hub.ws
+
+policies:
+  auto_apply_low_risk_improvements: true
+  require_confirmation_for_template_rewrite: true
+  require_confirmation_for_permission_change: true
+  require_confirmation_for_external_write: true
+
+examples:
+  - trigger: report_missing_data_source
+    improvement: Add source citation requirement to the report template.
+  - trigger: repeated_missing_field
+    improvement: Add field alias mapping in data-sources.yaml.
+  - trigger: high_cost_run
+    improvement: Reduce query range or aggregate before model analysis.
+  - trigger: user_rejected_bid_suggestion
+    improvement: Adjust diagnosis rule threshold or require stronger evidence.
+
