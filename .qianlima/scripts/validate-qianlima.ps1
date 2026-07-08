@@ -23,6 +23,7 @@ $requiredFiles = @(
   'user-preferences.yaml',
   'risk-rules.yaml',
   'model-adapters.yaml',
+  'world-model.yaml',
   'context-policy.yaml',
   'WORKSPACE_INDEX.md',
   'workspace-index.json',

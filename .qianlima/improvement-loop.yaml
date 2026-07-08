@@ -30,6 +30,7 @@ improvement_loop:
         - reports/
         - usage-ledger/
         - logs/run-{workflow_id}-{timestamp}.json
+        - working/world-state-{workflow_id}-{date}.yaml when world-model.yaml enabled
       collect:
         - metric: execution_time_ms
         - metric: tool_calls_count
@@ -38,6 +39,8 @@ improvement_loop:
         - metric: data_source_hits     # 数据源命中次数
         - metric: data_source_misses   # 数据源未命中次数
         - metric: user_interventions   # 用户中途干预次数
+        - metric: world_model_prediction_hit_rate
+        - metric: world_model_missed_risks
 
     # Step 2: 评估 — 按维度打分
     - step: evaluate
@@ -128,6 +131,7 @@ improvement_loop:
           - "历史成功改进记录"
           - "踩坑日志中的复利点"
           - "work.ws 中的 attention_required"
+          - "world-model.yaml 中的 prediction_hit_or_miss"
         types:
           - type: fix
             description: "修复已知问题（数据源不可用、字段缺失、模板错误）"
@@ -242,6 +246,27 @@ improvement_loop:
             - status: "active | degraded | archived"
           storage: ".qianlima/golden-templates/{skill_id}-{date}.yaml"
 
+        # 🆕 Fast-LeWorldModel 借鉴: 轻量世界模型预测
+        - id: world_model_refinement
+          name: "轻量世界模型校正"
+          applies_to: [data_gap, pattern_inefficiency, quality_drift]
+          method: >
+            借鉴 Fast-LeWorldModel 的快速世界模型思想。
+            每次 workflow 前生成 world_state_prediction：
+            - 预测最可能需要的数据源
+            - 预测可能触发的风险
+            - 预测下一步最省工具调用的执行顺序
+            workflow 后记录 hit/miss，并把连续命中的预测提升为 pattern 或 context_clue。
+          auto_apply: true
+          requires_confirmation: false
+          safety_boundary:
+            - "预测不得替代真实数据"
+            - "预测不得绕过 verification_gates"
+            - "预测不得触发自动调价、调竞价、调预算、采购或写回"
+          storage:
+            prediction: ".qianlima/working/world-state-{workflow_id}-{date}.yaml"
+            feedback: ".qianlima/feedback/world-model-{workflow_id}-{date}.md"
+
       # 🆕 改进效果验证
       validation:
         required_for: [parameter_tuning, ab_experiment, rule_evolution]
@@ -264,6 +289,7 @@ improvement_loop:
         - rules/
         - task-cards/                        # 🆕 v2: 任务卡也可进化
         - harness-health-check.yaml          # 🆕 v2: 健康检查阈值可调
+        - world-model.yaml                   # 🆕 v2.3: 轻量世界模型预测层
 
       blocked_updates:
         - delete_source_files

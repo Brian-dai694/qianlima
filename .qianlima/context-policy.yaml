@@ -115,13 +115,17 @@ context_policy:
   workflow_integration:
     preflight:
       - estimate_needed_context
+      - load_world_model_prediction_when_available
+      - load_conact_memory_fold_when_gui_or_long_task
       - classify_files_by_size_and_relevance
       - choose_compression_level
       - reserve_safety_budget
     execute:
       - read_small_files_directly
       - summarize_large_files_to_working
+      - update_conact_memory_fold_for_gui_steps
       - pass_summary_manifest_between_agents
+      - record_world_model_hit_or_miss_when_used
     verify:
       - check_summary_has_source_paths
       - reload_source_sections_for_high_risk_decisions
@@ -204,6 +208,92 @@ context_policy:
           detect: ".log, run-traces/"
           strategy: "保留 last 50 lines + 所有 ERROR/WARN 行"
 
+    # ── ConAct 记忆折叠 ───────────────────────────────────────
+    # 来源: MemGUI-Agent — Context-as-Action
+    # 理念: "Treat context management as part of the agent action."
+    conact_memory_folding:
+      version: "1.0"
+      source: "SOTA MemGUI-Agent / ConAct"
+      applies_when:
+        - "workflow 涉及 Kimi WebBridge、Chrome DevTools MCP、OfficeCLI 预览或其他 GUI/网页操作"
+        - "单个任务步骤数 > 8"
+        - "同一页面、同一系统或同一文件被反复操作"
+        - "用户要求长周期巡检、录入、改文档、跑报表或跨页面排查"
+
+      purpose: >
+        把上下文管理作为每一步动作的一部分。
+        Agent 每执行一段 GUI/网页/外部系统操作后，不保留完整流水账，
+        而是维护三块稳定记忆：折叠动作历史、折叠界面状态、最近步骤记录。
+
+      memory_fields:
+        folded_action_history:
+          description: "压缩后的历史动作，只保留目标、关键点击/输入、数据来源和决策点。"
+          keep:
+            - "用户目标和当前 workflow_id"
+            - "已访问的系统、页面、文档或文件"
+            - "已完成的关键动作"
+            - "已确认或被推翻的假设"
+            - "失败动作及原因"
+          drop:
+            - "重复导航"
+            - "无信息量截图描述"
+            - "临时 hover、滚动、等待"
+            - "已被后续步骤覆盖的中间观察"
+
+        folded_ui_state:
+          description: "当前可继续操作的界面/文档状态。"
+          keep:
+            - "当前页面/文件/工作表/幻灯片/文档路径"
+            - "当前位置或选中对象"
+            - "关键可见字段及其值"
+            - "未保存变更、弹窗、筛选器、登录状态"
+            - "下一步可行动作入口"
+          confidence: "low | medium | high"
+
+        recent_step_record:
+          description: "最近 3-5 步原始记录，用来防止折叠过度。"
+          max_steps: 5
+          keep:
+            - "step_id"
+            - "tool_or_ui_action"
+            - "observation"
+            - "result"
+            - "next_intent"
+
+      storage:
+        transient: "working/conact-state-{workflow_id}-{date}.yaml"
+        durable_when_useful: "context-summaries/conact-{workflow_id}-{date}.md"
+        feedback_when_failed: "feedback/conact-miss-{workflow_id}-{date}.md"
+
+      update_rules:
+        after_each_gui_action:
+          - "把新观察合并进 folded_ui_state"
+          - "把低价值步骤从 recent_step_record 折叠进 folded_action_history"
+          - "如果当前 UI 状态与历史矛盾，标记 conflict 并优先相信最新观察"
+        before_context_compression:
+          - "保留 folded_action_history 和 folded_ui_state"
+          - "recent_step_record 最多保留 5 步"
+          - "如果步骤涉及高风险动作，保留原始证据路径，不只保留摘要"
+        before_handoff_or_subagent:
+          - "传递三字段摘要，而不是完整浏览器流水账"
+          - "明确 pending_actions、blocked_reason 和 verification_needed"
+
+      safety_rules:
+        - "ConAct 折叠是操作记忆，不是事实来源。正式结论仍需引用数据源或文件。"
+        - "涉及竞价、预算、价格、采购、删除、写回外部系统时，不得只依赖 folded_ui_state。"
+        - "登录态、token、cookie、个人信息不得写入折叠记忆；只记录 '已登录/未登录/权限不足'。"
+        - "截图中出现敏感字段时，只记录脱敏摘要。"
+
+      quality_checks:
+        - check: "resume_ready"
+          description: "另一个 Agent 只读三字段摘要，能否知道下一步该做什么。"
+        - check: "evidence_traceable"
+          description: "所有关键事实是否能追溯到文件、数据源、截图或用户确认。"
+        - check: "no_secret_leakage"
+          description: "折叠记忆中不得出现 token、cookie、密码、API key。"
+        - check: "recent_steps_not_overlong"
+          description: "recent_step_record 不超过 5 步。"
+
     # ── 深度模型适配 ──────────────────────────────────────────
     deep_model_adaptation:
       description: >
@@ -274,4 +364,3 @@ context_policy:
         action: "提高该文件的压缩级别保留度"
         trigger: "如果压缩后 Agent 判断失误"
         action: "标记该文件类型为 '需要更保守的压缩'"
-

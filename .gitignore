@@ -51,6 +51,9 @@ daily-summaries/
 # 上下文摘要
 .qianlima/context-summaries/
 
+# 上下文摘要（根级别）
+context-summaries/
+
 # 归档
 .qianlima/archive/
 
@@ -77,6 +80,9 @@ Thumbs.db
 *~
 
 # Python
+.venv/
+.uv-cache/
+.uv-python/
 __pycache__/
 *.pyc
 
@@ -85,6 +91,8 @@ __pycache__/
 .qianlima/openai-docs-cache/
 
 # 本地缓存（不提交）
+.env
+.env.*
 .npm-cache/
 .agents/
 .learnings/
@@ -97,3 +105,5 @@ working/
 skills-lock.json
 SESSION-STATE.md
 MEMORY.md
+requirements.txt
+*.lock

@@ -65,6 +65,7 @@ $governanceFiles = @(
   'user-preferences.yaml',
   'context-policy.yaml',
   'model-adapters.yaml',
+  'world-model.yaml',
   'observability.yaml',
   'evaluation-tasks.yaml',
   'improvement-loop.yaml'
@@ -119,6 +120,7 @@ $lines.Add('')
 $lines.Add('- Do not read the whole workspace at once.')
 $lines.Add('- Load files by task-card and workflow.')
 $lines.Add('- Compress long files and multi-file tasks using context-policy.yaml.')
+$lines.Add('- Use world-model.yaml predictions only as hypotheses; verify with workflow gates.')
 $lines.Add('- Reload source sections before high-risk decisions.')
 $lines.Add('- Use model-adapters.yaml for DeepSeek, OpenAI, Anthropic, Google, and local models.')
 $lines.Add('')

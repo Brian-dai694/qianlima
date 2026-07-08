@@ -627,6 +627,48 @@ files:
     source: qianlima_model_governance
     can_overwrite: true
     retention: keep
+
+  - file_id: everos_memory_config
+    path: 千里马计划/.qianlima/everos-memory.yaml
+    display_name: EverOS Cloud 记忆层配置
+    scenario: all
+    file_type: governance
+    source: EverOS Cloud v1 docs
+    used_by:
+      - all_agent_workflows
+    can_overwrite: true
+    retention: keep
+
+  - file_id: everos_memory_script
+    path: 千里马计划/.qianlima/scripts/everos_memory.py
+    display_name: EverOS Cloud 记忆层桥接脚本
+    scenario: all
+    file_type: script
+    source: EverOS Cloud Python SDK
+    used_by:
+      - all_agent_workflows
+    can_overwrite: true
+    retention: keep
+
+  - file_id: everos_memory_playbook
+    path: 千里马计划/.qianlima/playbooks/everos-memory-playbook.md
+    display_name: EverOS 记忆层 Playbook
+    scenario: all
+    file_type: playbook
+    source: EverOS Cloud v1 docs
+    used_by:
+      - all_agent_workflows
+    can_overwrite: true
+    retention: keep
+
+  - file_id: python_requirements
+    path: 千里马计划/requirements.txt
+    display_name: Python 依赖清单
+    scenario: all
+    file_type: dependency_manifest
+    source: project_setup
+    can_overwrite: true
+    retention: keep
   - file_id: task_card_keyword_demand_lifecycle_timing
     path: 千里马计划/.qianlima/task-cards/keyword-demand-lifecycle-timing.yaml
     display_name: 关键词需求生命周期与行动时机任务卡

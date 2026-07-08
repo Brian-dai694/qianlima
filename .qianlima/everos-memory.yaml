@@ -1,0 +1,71 @@
+# everos-memory.yaml — EverOS Cloud memory integration
+# Version: v1.0 | Created: 2026-07-08
+
+everos_memory:
+  id: qianlima_everos_cloud
+  version: "1.0"
+  provider: everos_cloud_v1
+  docs: https://docs.evermind.ai/llms-full.txt
+  package: everos-cloud
+  python_import: everos_cloud
+  api_base_url: https://api.evermind.ai
+
+  auth:
+    env_var: EVEROS_API_KEY
+    policy: "Never commit API keys. Use process/user environment variables or a local ignored .env file."
+
+  identity:
+    default_user_id_env: QIANLIMA_EVEROS_USER_ID
+    default_user_id: qianlima_owner
+    default_agent_id_env: QIANLIMA_EVEROS_AGENT_ID
+    default_agent_id: qianlima_agent
+    session_id_prefix: qianlima
+
+  retrieval_defaults:
+    method: hybrid
+    chat_top_k: 5
+    research_top_k: 10
+    memory_types:
+      - episodic_memory
+      - profile
+    agent_memory_types:
+      - agent_memory
+    include_original_data: false
+
+  write_policy:
+    auto_upload_existing_memory: false
+    reason: "Local memory files may contain business-sensitive context. External sends require explicit user confirmation."
+    allowed_without_extra_confirmation:
+      - "Search memories already stored in EverOS for this workspace/user."
+      - "Flush a session after the user asked to store that session."
+    requires_confirmation:
+      - "Import MEMORY.md, SESSION-STATE.md, reports, kw-records, or marketplace data."
+      - "Store API keys, tokens, passwords, cookies, raw customer data, or external account identifiers."
+      - "Delete EverOS memories."
+
+  agent_loop:
+    before_task:
+      - "Search EverOS with the current user request using method=hybrid."
+      - "Treat EverOS results as context hints, not source-of-truth business data."
+      - "Reload local source files for high-risk or evidence-sensitive conclusions."
+    after_task:
+      - "Store a concise user/assistant exchange only when the user asked for persistent memory or the result is a reusable agent lesson."
+      - "Prefer agent memories for workflow lessons, decisions, and quality gates."
+      - "Flush after meaningful task boundaries."
+
+  source_of_truth:
+    local_governance_files: authoritative
+    everos_memories: recall_layer
+    conflict_rule: "If EverOS memory conflicts with current files, trust current local files and record the conflict as pending verification."
+
+  observability:
+    trace_fields:
+      - everos_enabled
+      - everos_operation
+      - user_id_or_agent_id
+      - session_id
+      - retrieval_method
+      - memory_types
+      - top_k
+      - task_id
+      - status

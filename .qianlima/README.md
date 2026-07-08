@@ -30,6 +30,7 @@ Agent 负责维护这些配置文件。
 | `improvement-loop.yaml` | 从失败和反馈到规则改进的闭环 |
 | `context-policy.yaml` | 自动上下文压缩、文件读取上限和安全冗余 |
 | `model-adapters.yaml` | 面向 DeepSeek、OpenAI、Anthropic、Google、本地模型的适配策略 |
+| `world-model.yaml` | 轻量世界模型层：预测数据需求、风险点和下一步动作 |
 
 ## 固定目录
 

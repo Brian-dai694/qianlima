@@ -95,6 +95,7 @@ health_check:
         - ".qianlima/risk-rules.yaml"
         - ".qianlima/context-policy.yaml"
         - ".qianlima/model-adapters.yaml"
+        - ".qianlima/world-model.yaml"
         - ".qianlima/meta-scenario-router.md"
         - ".qianlima/data-sources.yaml"
         - ".qianlima/file-registry.yaml"

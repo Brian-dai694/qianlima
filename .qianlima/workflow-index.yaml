@@ -402,3 +402,51 @@ verification_gates:
         description: "利润对关键变量的敏感度已标注"
         evidence: "'如果退货率 +2%，净利润变为 ___' 等 3 个 what-if 场景"
         blocker: false
+
+  # ── Exploration Engine workflow ─────────────────────
+  - id: strategy_exploration
+    name: 策略探索优化
+    scenario: agent_evolution
+    status: active
+    definition: workflows/strategy_exploration.yaml
+    engine: "agent-components/exploration_engine.py"
+    loop_type: ESX                          # Explore → Score → eXploit
+    loop_source: evolutionary-workflow.yaml
+    description: >
+      在安全边界内自动探索最优运营策略。
+      Shadow Mode 评估不执行实际操作，发现最优策略后注册为 Smart Library 组件。
+    domains:
+      - advertising     # 竞价/预算/关键词策略探索
+      - inventory       # 安全库存/补货策略探索
+      - content         # Listing 关键词策略探索
+    exploration_params:
+      advertising:
+        - bid_adjustment_pct: [-30, 30, 5]
+        - budget_adjustment_pct: [-50, 50, 10]
+        - negative_keyword_count: [0, 20, 2]
+      inventory:
+        - safety_stock_days: [14, 60, 1]
+        - restock_quantity_pct: [60, 150, 5]
+      content:
+        - title_keyword_count: [3, 10, 1]
+        - backend_keyword_bytes: [100, 250, 25]
+    default_trials: 5
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - change_bid
+      - change_budget
+      - write_back
+    evaluation_tasks:
+      - eval_exploration_safety
+      - eval_strategy_quality
+    verification_gates:
+      - gate: firmware_compliant
+        description: "探索参数在 Firmware allow 列表内"
+        evidence: "每个探索参数的约束不超过 Firmware max 值"
+        blocker: true
+      - gate: component_registered
+        description: "最优策略已注册为 Smart Library 组件"
+        evidence: "Smart Library 中存在 explored-* 组件"
+        blocker: false

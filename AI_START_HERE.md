@@ -51,6 +51,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 
 再读取对应 workflow、template、data-sources 和 file-registry。
 
+## 可选：EverOS 记忆层
+
+如果用户要求使用跨会话记忆，读取：
+
+```text
+.qianlima/everos-memory.yaml
+.qianlima/playbooks/everos-memory-playbook.md
+```
+
+EverOS 只作为 recall layer。涉及业务结论、高风险动作或数据出处时，仍必须重新读取本地源文件。
+
 ## 强制规则
 
 - 启动时必须先生成索引。

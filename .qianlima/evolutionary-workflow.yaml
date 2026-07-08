@@ -303,4 +303,38 @@ evolutionary_framework:
       - "新 workflow 首次上线 → 进化算法 (10 代)"
       - "workflow fitness 连续 3 次下降 → 爬山法"
       - "用户反馈 workflow 效果不好 → 贝叶斯优化"
-      - "季度性复查 → 进化算法"
+       - "季度性复查 → 进化算法"
+
+  # ── Exploration Engine 集成 ────────────────────────────
+  # 🆕 基于 EurekAgent: Environment Engineering (arxiv 2606.13662)
+  #     + Survey: Agent-Environment Co-Evolution (arxiv 2606.12191)
+
+  exploration_engine:
+    id: strategy_exploration
+    engine_path: "../agent-components/exploration_engine.py"
+    version: "1.0"
+    principle: >
+      不依赖历史数据回放，通过 Shadow Mode（影子评估）
+      在探索空间中采样策略并评估，发现最优策略后自动注册
+      为 Smart Library 组件。Firmware 约束确保探索安全。
+
+    integration:
+      # 探索发现的策略自动流入 evolutionary-workflow
+      # 作为"初始种群"的种子个体
+      seeding:
+        - "每次 exploration 的最优策略 → evolutionary-workflow 初始候选"
+        - "exploration 发现的参数范围 → evolutionary-workflow 的搜索边界收紧"
+        - "连续 3 次 exploration 的 best params 取均值 → 下一代基线"
+
+      # 触发条件
+      triggers:
+        - "每周自动执行 1 次（周一）"
+        - "workflow fitness 连续下降 3 次 → 触发紧急探索"
+        - "新产品上架 → 触发 content domain 探索"
+        - "ACOS 超过阈值 → 触发 advertising domain 探索"
+
+    # 与 Meta Agents 联动
+    meta_agent_link:
+      - "exploration 产生的经验 → ExperienceLogger → Meta Agent 分析"
+      - "Meta Agent 识别的技能缺口 → 触发新 domain 探索"
+      - "exploration 策略成为 evolve.py 的进化候选"

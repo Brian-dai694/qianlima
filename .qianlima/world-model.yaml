@@ -1,0 +1,158 @@
+# world-model.yaml — 轻量世界模型层
+# 版本: v1.0 | 创建: 2026-07-08
+# 来源: SOTA Fast-LeWorldModel
+# 理念: "Learn the operating state fast, predict the next useful step, then verify."
+#
+# 说明:
+#   Fast-LeWorldModel 本体代码尚未完整发布，不作为依赖安装。
+#   千里马当前只保留其"世界模型 / 强化学习加速"方向作为 P3 研究借鉴。
+#   后续做 Agent 自我规划、策略搜索或强化学习式调参时再重新评估。
+
+world_model:
+  id: qianlima_lightweight_world_model
+  version: "1.0"
+  status: research_backlog
+  priority: P3
+  adoption_phase: future_agent_self_planning
+  purpose: >
+    为未来的 Agent 自我规划任务维护一个轻量、可验证的状态模型设想。
+    每次 workflow 运行前先读取当前状态、历史规律和未验证假设，
+    预测最可能需要的数据源、风险点和下一步动作，再由 verification gates 校验。
+    当前不作为日常运营 workflow 的强制执行层。
+
+  source_inspiration:
+    - name: Fast-LeWorldModel
+      url: "https://sota.jiqizhixin.com/project/fast-leworldmodel"
+      adopted_as: "research_idea_only"
+      install_policy: "do_not_install_until_code_and_usage_are_public"
+      practical_priority: "P3"
+      revisit_when:
+        - "需要 Agent 自主规划多步运营策略"
+        - "需要用历史执行结果加速 workflow 参数搜索"
+        - "Fast-LeWorldModel 完整代码、论文细节和可复现实验公开"
+        - "千里马已有足够 run logs 支撑策略学习"
+
+  current_policy:
+    install: false
+    daily_workflow_required: false
+    use_as: "future_planning_reference"
+    note: "可借鉴方向是世界模型 / 强化学习加速；以后做 Agent 自我规划时再看。"
+
+  state_schema:
+    required_fields:
+      - workflow_id
+      - scenario_id
+      - product_or_keyword_scope
+      - current_state_summary
+      - recent_observations
+      - predicted_next_needs
+      - risk_forecast
+      - confidence
+      - verification_plan
+      - source_refs
+
+    field_notes:
+      current_state_summary: "当前业务状态的一句话结构化摘要，例如库存、排名、广告、利润状态。"
+      recent_observations: "最近运行观察到的事实，必须带来源路径或数据源。"
+      predicted_next_needs: "本轮最可能需要补充的数据，如关键词排名、库存、广告花费、竞品快照。"
+      risk_forecast: "对高风险动作、数据过期、单源误判的预判。"
+      confidence: "low | medium | high；不能因为预测高置信就跳过验证。"
+      verification_plan: "说明用哪些 gates 或数据源验证预测。"
+      source_refs: "文件路径、workflow run id、数据源名称或用户确认记录。"
+
+  runtime_hooks:
+    before_workflow:
+      action: "生成 world_state_prediction"
+      inputs:
+        - work.ws
+        - workflow-index.yaml
+        - improvement-loop.yaml
+        - memory-store.yaml when available
+        - last relevant report or run log when available
+      outputs:
+        - "working/world-state-{workflow_id}-{date}.yaml"
+      rule: "预测只用于排序数据需求，不得替代真实查询。"
+
+    during_workflow:
+      action: "记录 prediction_hit_or_miss"
+      checks:
+        - "预测的数据源是否真的被使用"
+        - "预测的风险是否触发"
+        - "是否出现未预测到的阻塞点"
+
+    after_workflow:
+      action: "更新 world_model_feedback"
+      outputs:
+        - "feedback/world-model-{workflow_id}-{date}.md"
+      promote_to_memory_when:
+        - "同类预测连续 3 次命中"
+        - "用户明确确认预测有帮助"
+        - "预测提前发现了数据缺口或风险"
+
+  workflow_usage:
+    - workflow_id: daily_ad_report
+      predictions:
+        - "今天最可能缺失的广告数据源"
+        - "ACoS 或花费异常的活动范围"
+        - "是否需要竞品快照作为解释证据"
+      verification:
+        - "data_freshness"
+        - "row_completeness"
+        - "cross_source_validation"
+
+    - workflow_id: keyword_rank_scan
+      predictions:
+        - "哪些关键词更可能出现排名异常"
+        - "首选数据源是否可能覆盖不足"
+        - "是否需要 Kimi WebBridge 做第三源裁决"
+      verification:
+        - "dual_source_coverage"
+        - "doubt_pass_cleared"
+        - "trend_annotation"
+
+    - workflow_id: inventory_alert
+      predictions:
+        - "哪些 SKU 可能已经触发补货或售罄风险"
+        - "是否需要读取入仓状态而不只读现货库存"
+      verification:
+        - "source_timestamp_check"
+        - "stock_vs_sales_velocity_check"
+
+    - workflow_id: product_discovery
+      predictions:
+        - "候选品类最可能卡住的成本、竞争或需求变量"
+        - "是否需要先做关键词需求边界再做竞品对比"
+      verification:
+        - "assumption_confirmed"
+        - "multi_source_market_check"
+
+  safety:
+    principles:
+      - "世界模型是预测层，不是事实层。"
+      - "任何涉及竞价、预算、价格、采购、写回外部系统的动作，仍然必须按 risk-rules.yaml 二次确认。"
+      - "低置信预测只能生成待验证项，不能生成行动建议。"
+      - "如果预测与新数据冲突，以新数据为准，并记录 miss。"
+
+    blocked_uses:
+      - "用预测数据替代真实财务、库存、广告或排名数据"
+      - "基于预测自动改价、调竞价、调预算或下采购单"
+      - "把未验证预测写入正式报告的结论区"
+
+  metrics:
+    prediction_hit_rate:
+      description: "预测的数据需求/风险在本轮是否命中"
+      target: ">= 0.60 after 10 runs"
+    avoided_tool_calls:
+      description: "因预测排序减少的无效工具调用"
+      target: "positive trend"
+    missed_risk_count:
+      description: "未预测到但实际触发的风险数"
+      target: "downward trend"
+    verification_override_count:
+      description: "验证数据推翻预测的次数"
+      target: "tracked, not optimized to zero"
+
+  maintenance:
+    review_frequency: weekly
+    archive_condition: "连续 10 次 prediction_hit_rate < 0.40"
+    owner: "Agent with user confirmation for policy changes"
