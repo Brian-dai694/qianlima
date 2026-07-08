@@ -218,6 +218,30 @@ improvement_loop:
           auto_apply: false
           requires_confirmation: true
 
+        # 🆕 Raven 借鉴: Agent Templates 自动模板化
+        - id: template_extraction
+          name: "黄金模板提取"
+          applies_to: [quality_drift, pattern_inefficiency]
+          method: >
+            借鉴 Raven 的 Agent Templates：成功的 workflow 执行自动固化为可复用模板。
+            当同一个 workflow-skill 组合连续 5 次 eval_score ≥ 0.85：
+            - 提取本次运行的参数快照（数据源选择、阈值、Loop 迭代次数等）
+            - 保存为 skill-registry 中的 "黄金模板" (golden_template)
+            - 后续执行优先加载黄金模板参数作为 baseline
+            - 黄金模板每 30 天自动审查：如果最近 3 次使用该模板的 eval_score < 0.7 → 降级
+          auto_apply: true
+          requires_confirmation: false
+          golden_template_schema:
+            - skill_id: "关联的 skill"
+            - template_id: "模板唯一 ID"
+            - extracted_from: "来源 workflow 运行 ID"
+            - parameters_snapshot: "参数快照"
+            - eval_score_avg: "连续 5 次平均分"
+            - extraction_date: "提取日期"
+            - last_validated: "最后验证日期"
+            - status: "active | degraded | archived"
+          storage: ".qianlima/golden-templates/{skill_id}-{date}.yaml"
+
       # 🆕 改进效果验证
       validation:
         required_for: [parameter_tuning, ab_experiment, rule_evolution]

@@ -273,3 +273,32 @@ skill_registry:
       - "用户接受率"
       - "anti_rationalization 触发次数（Agent 试图偷懒被拦截）"
     review_frequency: monthly
+
+  # ── 🆕 黄金模板（Raven Agent Templates 借鉴）─────────────────
+
+  golden_templates:
+    description: >
+      当某个 skill 的 workflow 执行连续 5 次 eval_score ≥ 0.85，
+      自动提取参数快照为"黄金模板"。后续执行优先加载黄金模板参数。
+      模板每 30 天自动审查，效果下降则降级。
+    storage: ".qianlima/golden-templates/{skill_id}-{date}.yaml"
+    auto_extraction: true
+    quality_threshold: 0.85
+    consecutive_runs: 5
+    review_interval_days: 30
+    degradation_threshold: 0.70
+
+  # ── 🆕 主动式 Skill（Raven Proactivity 借鉴）──────────────────
+
+  proactivity:
+    description: >
+      千里马可以主动监控关键指标并在触发条件时自动执行。
+      所有自动操作均为低风险（只读/诊断），高风险操作从不自动执行。
+    source: proactivity.yaml
+
+    triggers:
+      - {id: auto_keyword_scan, condition: "last_scan > 7 days", action: "自动关键词扫描", risk: low}
+      - {id: auto_health_check, condition: "session_start", action: "自动健康检查", risk: low}
+      - {id: auto_memory_audit, condition: "weekly", action: "自动记忆审计", risk: low}
+
+    authorization_required: true  # 首次使用需用户逐条确认

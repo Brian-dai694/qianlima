@@ -25,6 +25,7 @@ router:
         - ".qianlima/naming-rules.yaml"
         - ".qianlima/harness-health-check.yaml"   # 🆕 v1.1: harness 健康自检
         - ".qianlima/loop-engineering.yaml"      # 🆕 v1.2: Loop Engineering 框架
+        - ".qianlima/proactivity.yaml"           # 🆕 v2.3: Raven 主动式监控
         - "全局工作台-工作手册.md"
         - "全局复利踩坑日志.md"
 

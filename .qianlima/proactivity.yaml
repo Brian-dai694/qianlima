@@ -1,0 +1,156 @@
+# proactivity.yaml — 千里马主动式 Agent 模块
+# 版本: v1.0 | 创建: 2026-07-08
+# 来源: Raven (EverMind) — Proactivity feature
+# 理念: "Don't wait for the user to ask. Monitor, alert, and act when it matters."
+
+proactivity:
+  id: qianlima_proactivity
+  version: "1.0"
+  principle: >
+    千里马不应该只被动等用户指令。
+    当关键指标越过红线时，Agent 应主动提醒、建议行动、
+    甚至在用户授权下自动执行低风险操作。
+
+  # ── 监控规则 ──────────────────────────────────────────────
+
+  monitors:
+
+    - id: data_staleness
+      name: "数据腐败监控"
+      description: "关键词/巡检数据过期时主动提醒"
+      check:
+        - metric: "keyword_tracking.last_scan"
+          condition: "距今 > 2 天"
+          action: "提醒用户：关键词排名已过期，建议立即扫描"
+          auto_action: false
+        - metric: "keyword_tracking.last_scan"
+          condition: "距今 > 5 天"
+          action: "⚠️ 严重警告：数据过期 > 5 天，运营决策可能基于过时信息"
+          auto_action: false
+        - metric: "keyword_tracking.last_scan"
+          condition: "距今 > 7 天 AND harness_health == 'yellow' OR 'red'"
+          action: "🔴 自动发起关键词扫描（不调价，仅采集数据）"
+          auto_action: true
+          auto_action_constraint: "只扫描不调价，不写回外部系统"
+
+    - id: rank_collapse
+      name: "排名崩塌预警"
+      description: "主力词排名暴跌时主动预警"
+      check:
+        - metric: "关键词排名变化"
+          condition: "主力 ASIN 核心词 ↓ ≥ 20 位"
+          action: "🔴 立即提醒：{asin} 的 {keyword} 暴跌 {delta} 位，建议检查竞品动态和广告竞价"
+          auto_action: false
+        - metric: "关键词排名变化"
+          condition: "连续 3 天同一词同向下跌 ≥ 5 位/天"
+          action: "⚠️ 趋势预警：{keyword} 连续 3 天下滑，累计 ↓{total_delta} 位，可能形成下跌趋势"
+
+    - id: ad_anomaly
+      name: "广告异常监控"
+      description: "广告花费异常时主动预警"
+      check:
+        - metric: "广告活动 ACoS"
+          condition: "ACoS > 80% AND spend > $10"
+          action: "提醒：{campaign} ACoS {acos}%，花费 ${spend}，建议检查"
+          auto_action: false
+        - metric: "广告活动"
+          condition: "连续 3 天 spend > $5 AND orders = 0"
+          action: "🔴 零转化告警：{campaign} 连续 3 天花 ${total_spend}，0 单"
+
+    - id: inventory_critical
+      name: "库存红线监控"
+      description: "库存低于安全线时主动预警"
+      check:
+        - metric: "产品库存"
+          condition: "inventory < 20 AND stage == 'growth'"
+          action: "⚠️ 低库存预警：{product} 仅剩 {inventory} 套，建议补货"
+        - metric: "产品库存"
+          condition: "inventory == 0 OR inventory < 0"
+          action: "🔴 售罄警报：{product} 已售罄！立即暂停广告，评估补货时间"
+
+    - id: harness_health_decay
+      name: "Harness 健康衰减监控"
+      description: "基础设施健康下降时主动提醒"
+      check:
+        - metric: "harness_health"
+          condition: "从 GREEN 降为 YELLOW"
+          action: "提醒：harness 健康下降，检查具体原因"
+        - metric: "harness_health"
+          condition: "从 YELLOW 降为 RED"
+          action: "🔴 基础设施告警：harness 严重退化，建议立即修复"
+
+  # ── 主动执行策略 ──────────────────────────────────────────
+
+  auto_actions:
+    description: >
+      可在用户预授权下自动执行的低风险操作。
+      高风险操作（调价/预算）绝不自动执行。
+
+    allowed:
+      - id: auto_keyword_scan
+        name: "自动关键词扫描"
+        description: "当数据过期 > 7 天时，自动运行 keyword_rank_scan skill"
+        trigger: "data_staleness > 7 days"
+        scope: "仅 SDR Loop Scan 阶段，不调价"
+        risk: low
+
+      - id: auto_health_check
+        name: "自动健康检查"
+        description: "每次启动时自动运行 harness-health-check"
+        trigger: "session_start"
+        scope: "只读诊断"
+        risk: low
+
+      - id: auto_memory_audit
+        name: "自动记忆审计"
+        description: "每周自动运行 memory_governance.audit"
+        trigger: "weekly"
+        scope: "只读统计"
+        risk: low
+
+    blocked:
+      - "修改广告竞价 (change_bid)"
+      - "修改广告预算 (change_budget)"
+      - "写回外部系统 (write_back)"
+      - "删除数据 (delete_data)"
+
+  # ── 通知渠道 ──────────────────────────────────────────────
+
+  notifications:
+    description: "主动通知的渠道和频率控制"
+
+    channels:
+      - id: console
+        name: "控制台"
+        description: "在 AI 对话中直接输出"
+        use_for: [info, warning, critical]
+
+    rate_limits:
+      - "同一告警类型：每天最多 3 次"
+      - "同一产品/关键词：每天最多 2 次"
+      - "连续相同告警：合并为摘要（不做信息轰炸）"
+
+    quiet_hours:
+      description: "非紧急通知在夜间静默"
+      timezone: Asia/Shanghai
+      quiet_start: "22:00"
+      quiet_end: "08:00"
+      exception: "critical 级别告警不受静默限制"
+
+  # ── 用户授权 ──────────────────────────────────────────────
+
+  authorization:
+    description: >
+      主动执行需要用户预授权。首次使用时列出所有 auto_actions，
+      用户逐条确认或拒绝。授权状态持久化到 user-preferences.yaml。
+
+    format: |
+      千里马可以主动执行以下操作，请逐条确认:
+      
+      1. 自动关键词扫描（数据过期 > 7 天时）
+         风险：低（只读，不调价）
+         [✅ 允许] [❌ 拒绝]
+      
+      2. 自动健康检查（每次启动时）
+         风险：低（只读诊断）
+         [✅ 允许] [❌ 拒绝]
