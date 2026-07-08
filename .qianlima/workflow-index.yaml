@@ -1,6 +1,6 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.1 | 更新: 2026-07-08
-# 变更: 新增 loop_type 字段，关联 loop-engineering.yaml
+# 版本: v2.2 | 更新: 2026-07-08
+# 变更: 新增运行态 workflow 索引、隐私脱敏示例、深度一致性校验适配
 
 workflows:
   - id: daily_ad_report
@@ -26,6 +26,82 @@ workflows:
       - delete
       - change_bid
       - change_budget
+
+  - id: bid_suggestion_review
+    name: 广告竞价建议复核
+    scenario: ad_ops
+    status: draft
+    default_output_path: "reports/{date}_广告竞价建议_{marketplace}_V{version}.md"
+    required_inputs:
+      - marketplace
+      - campaign_or_ad_group
+      - compare_window
+    required_data_sources:
+      - lingsing_ads
+      - lingsing_ad_list
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - change_bid
+      - change_budget
+      - write_back
+
+  - id: sales_ledger
+    name: ASIN 销量台账
+    scenario: sales_tracking
+    status: draft
+    default_output_path: "reports/{date}_ASIN销量台账_{marketplace}_V{version}.md"
+    required_inputs:
+      - marketplace
+      - date
+    required_data_sources:
+      - lingsing_product
+      - lark_asin_sales
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - write_back
+      - delete_data
+
+  - id: inventory_alert
+    name: 库存预警
+    scenario: inventory_monitor
+    status: draft
+    default_output_path: "reports/{date}_库存预警_{marketplace}_V{version}.md"
+    required_inputs:
+      - marketplace
+      - products
+    required_data_sources:
+      - lingsing_product
+      - lark_product_list
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - purchase_order
+      - write_back
+
+  - id: profit_review
+    name: 利润复盘
+    scenario: profit_review
+    status: draft
+    default_output_path: "reports/{date}_利润复盘_{marketplace}_V{version}.md"
+    required_inputs:
+      - marketplace
+      - compare_window
+    required_data_sources:
+      - lark_ads_daily
+      - lark_asin_sales
+      - lark_product_list
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - change_price
+      - purchase_order
+      - write_back
 
   - id: competitor_comparison
     name: 竞品对比
@@ -246,7 +322,7 @@ global_assumption_policy:
 
     - dimension: 退货率
       applies_when: "涉及净利润测算"
-      example: "3.2%（ASIN B0FY5677XC 近 30 天实际值，来源：领星）"
+      example: "3.2%（指定 ASIN 近 30 天实际值，来源：领星）"
 
     - dimension: 时间窗口
       applies_when: "涉及数据查询/对比"
@@ -258,7 +334,7 @@ global_assumption_policy:
 
     - dimension: 库存/FBA 状态
       applies_when: "涉及销量预测或补货建议"
-      example: "第 8 批 350 套到港未入仓；P80 Plasma 仅 17 套"
+      example: "指定批次到港未入仓；指定 SKU 库存低于安全线"
 
   violation_response: "Agent 若跳过假设亮牌直接执行 → 用户追问后重新来过。高风险操作（调价/预算/写回）跳过亮牌 → 视为违反 risk-rules.yaml。"
 

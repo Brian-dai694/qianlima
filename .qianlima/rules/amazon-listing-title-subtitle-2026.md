@@ -1,7 +1,7 @@
 # Amazon Listing 主副标题 2026 新规执行卡
 
 来源：用户提供文档《亚马逊 2026 最新主副标题新规.docx》
-来源路径：`D:/戴晨民/缓存/xwechat_files/wxid_qf5ph36uipdb21_1ed3/msg/file/2026-07/亚马逊 2026 最新主副标题新规.docx`
+来源路径：`external://user-provided/amazon-title-subtitle-rule-2026.docx`
 提取时间：2026-07-08
 适用范围：全类目通用，媒介类除外；最终以 Seller Central 后台提示为准。
 

@@ -79,8 +79,8 @@ $governanceFiles = @(
 
 $indexObject = [PSCustomObject]@{
   generated_at = $generatedAt
-  project_root = $ProjectRoot
-  qianlima_root = $Root
+  project_root = '.'
+  qianlima_root = '.qianlima'
   startup_files = $startup
   governance_files = $governanceFiles
   task_cards = $taskCards

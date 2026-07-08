@@ -339,11 +339,11 @@ files:
     retention: keep
 
   - file_id: external_skill_amazon_keyword_relevance
-    path: D:/戴晨民/缓存/xwechat_files/wxid_qf5ph36uipdb21_1ed3/msg/file/2026-07/amazon-keyword-relevance(1)/amazon-keyword-relevance
+    path: external://user-provided/amazon-keyword-relevance
     display_name: Amazon 关键词相关性分层 Skill 参考源
     scenario: product_selection
     file_type: external_reference
-    source: 用户提供目录 amazon-keyword-relevance(1)
+    source: 用户提供目录（本地隐私路径已脱敏）
     used_by:
       - product_discovery
       - listing_optimization
@@ -351,11 +351,11 @@ files:
     retention: source_reference_only
 
   - file_id: external_skill_asin_classification_report_v2
-    path: D:/戴晨民/缓存/xwechat_files/wxid_qf5ph36uipdb21_1ed3/msg/file/2026-07/asin-classification-report-V2/asin-classification-report-V2
+    path: external://user-provided/asin-classification-report-V2
     display_name: ASIN 产品形态归类报告 Skill 参考源
     scenario: product_selection
     file_type: external_reference
-    source: 用户提供目录 asin-classification-report-V2
+    source: 用户提供目录（本地隐私路径已脱敏）
     used_by:
       - product_discovery
       - competitor_comparison

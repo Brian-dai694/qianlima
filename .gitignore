@@ -7,6 +7,9 @@
 
 # 飞书配置（含 token）
 .qianlima/data-sources.yaml
+.qianlima/*.local.yaml
+.qianlima/*secret*
+.qianlima/*credential*
 
 # 工作状态（含 ASIN/价格/利润）
 .qianlima/work.ws
