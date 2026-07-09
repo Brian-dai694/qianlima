@@ -1,0 +1,32 @@
+name: Qianlima Verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Startup skeleton validation
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
+
+      - name: Strict public-safe verification
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-qianlima.ps1"
+
+      - name: Runtime checks
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase SessionStart -WorkflowId competitor_comparison
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase BeforeToolUse -Action change_bid -Confirmed
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase BeforeToolUse -Action change_bid
+          if ($LASTEXITCODE -eq 0) {
+            throw "Unconfirmed high-risk action was not blocked."
+          }

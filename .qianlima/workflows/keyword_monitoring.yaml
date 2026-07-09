@@ -1,0 +1,130 @@
+workflow:
+  id: keyword_monitoring
+  name: 关键词监控
+  scenario: keyword_tracking
+  status: draft
+  mode: on_demand
+  description: Track keyword rankings, changes, opportunities, and risks while blocking automatic bid or backend writes.
+
+  communication_protocol:
+    policy_file: communication-protocol.yaml
+    default_context_level: L2_summary_manifest
+    scenario_ref: scenario:keyword_tracking
+    required_refs:
+      - file_ref
+      - data_ref
+      - summary_ref
+    creates_refs:
+      - run_ref
+      - file_ref
+      - summary_ref
+    handoff_rules:
+      - pass_source_materials_by_ref
+      - mark_unverified_fields
+      - preserve_public_safe_outputs
+    output_rules:
+      - cite_loaded_refs
+      - register_report_in_file_registry
+      - record_usage_ledger
+
+  user_intents:
+    - 跑一下关键词排名
+    - 看看卡位
+    - 监控这些关键词
+
+  reads:
+    - task-cards/keyword-monitoring.yaml
+    - templates/keyword-monitoring_template.md
+    - data-sources.yaml
+    - file-registry.yaml
+    - risk-rules.yaml
+    - communication-protocol.yaml
+
+  writes:
+    - reports/{date}_关键词监控_{marketplace}_V{version}.md
+    - logs/{date}_keyword_monitoring_trace.json
+    - context-summaries/{date}_keyword_monitoring_summary.yaml
+    - usage-ledger/{date}_keyword_monitoring_usage.yaml
+
+  updates:
+    - file-registry.yaml
+    - work.ws
+
+  required_inputs:
+    - asin
+    - marketplace
+    - keywords
+
+  optional_inputs:
+    - compare_time
+    - historical_rank_file
+    - source_files
+
+  execution:
+    mode: single
+    steps:
+      - order: 1
+        agent: data_agent
+        action: collect_source_refs
+        description: Resolve user-provided inputs, registered files, and allowed data sources.
+      - order: 2
+        agent: data_agent
+        action: normalize_evidence
+        description: Convert source material into a small evidence table with missing fields marked.
+      - order: 3
+        agent: analysis_agent
+        action: evaluate_against_task_card
+        description: Apply the task card checklist and identify risks, opportunities, and assumptions.
+      - order: 4
+        agent: execution_agent
+        action: generate_report
+        description: Render the public-safe markdown report from the template.
+      - order: 5
+        agent: audit_agent
+        action: final_check
+        description: Verify source citations, usage record, risk labels, and forbidden operations.
+
+  validation:
+    required_checks:
+      - keyword_ranking_table_present
+      - trend_changes_labeled
+      - opportunity_keywords_present
+      - risk_keywords_present
+      - no_auto_bid_change
+      - source_citation_present
+      - usage_record_created
+
+  permissions:
+    allowed:
+      - read_data_sources
+      - aggregate
+      - generate_report
+      - write_local_file
+    requires_confirmation:
+      - overwrite_existing_report
+      - send_external
+      - write_back
+    forbidden:
+      - change_bid
+      - change_budget
+      - write_back
+      - update_listing
+
+  risk_policy:
+    default_risk_level: medium
+    confirmation_required_for:
+      - send_external
+      - write_back
+    source_reload_required_for:
+      - financial_decision
+      - high_risk_recommendation
+
+  trace:
+    must_log:
+      - loaded_refs
+      - assumptions
+      - missing_fields
+      - source_citations
+      - risk_checks
+      - token_usage
+      - verification_gates

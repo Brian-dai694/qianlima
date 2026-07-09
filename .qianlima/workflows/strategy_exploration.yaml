@@ -1,0 +1,94 @@
+workflow:
+  id: strategy_exploration
+  name: 策略探索优化
+  scenario: agent_evolution
+  status: active
+  mode: on_demand
+  description: >
+    Public-safe Shadow Mode workflow for exploring candidate advertising,
+    inventory, and content strategies. This definition only produces local
+    recommendations, traces, and component drafts; it never performs external
+    writes or live operational changes.
+
+  engine:
+    path: agent-components/exploration_engine.py
+    required: false
+    fallback: manual_shadow_evaluation
+
+  reads:
+    - work.example.ws
+    - workflow-index.yaml
+    - evolutionary-workflow.yaml
+    - improvement-loop.yaml
+    - risk-rules.yaml
+    - context-policy.yaml
+    - data-sources.example.yaml
+    - file-registry.yaml
+
+  writes:
+    - reports/{date}_策略探索优化_{domain}_V{version}.md
+    - logs/{date}_strategy_exploration_trace.json
+    - context-summaries/strategy_exploration-{date}.md
+    - usage-ledger/{date}_strategy_exploration_usage.yaml
+
+  required_inputs:
+    - domain
+    - objective
+
+  optional_inputs:
+    - workflow_id
+    - baseline_metrics
+    - max_trials
+    - compare_window
+    - candidate_constraints
+
+  permissions:
+    allowed:
+      - read_data_sources
+      - aggregate
+      - generate_report
+      - write_local_file
+    requires_confirmation:
+      - max_trials_above_5
+      - cost_above_baseline_x2
+    forbidden:
+      - change_bid
+      - change_budget
+      - change_price
+      - update_listing
+      - purchase_order
+      - write_back
+      - delete_data
+      - send_external
+
+  shadow_mode:
+    enabled: true
+    default_trials: 5
+    output_only:
+      - candidate_strategy
+      - expected_effect
+      - risk_label
+      - evidence
+      - pending_verification
+
+  validation:
+    required_checks:
+      - startup_index_loaded
+      - risk_rules_loaded
+      - shadow_mode_enabled
+      - candidate_params_in_bounds
+      - report_has_source_citation
+      - report_has_pending_verification
+      - report_has_no_auto_write
+      - usage_record_created
+
+  verification_gates:
+    - gate: firmware_compliant
+      description: Candidate parameters stay within allowed public-safe bounds.
+      blocker: true
+    - gate: source_traceable
+      description: Every recommendation cites source refs or marks pending verification.
+      blocker: true
+    - gate: shadow_only
+      description: No external write, bid, budget, price, purchase, or listing change was executed.
+      blocker: true
