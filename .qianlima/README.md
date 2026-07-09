@@ -26,6 +26,7 @@ Agent 负责维护这些配置文件。
 | `natural-language-router.yaml` | 自然语言触发路由：把普通业务说法映射到 skill、workflow 和 MCP |
 | `user-preferences.yaml` | 用户偏好 |
 | `risk-rules.yaml` | 权限和风险规则 |
+| `rules/cost-savings-principle.md` | 成本节约中心原则 |
 | `rules/compression-attack-defense.md` | 压缩攻击防御规则 |
 | `observability.yaml` | 工作流、经验、决策、文件和成本观测指标 |
 | `evaluation-tasks.yaml` | 每个 workflow 的质量评估任务 |
@@ -95,6 +96,10 @@ NotebookLM 适合先消化长资料，再交给千里马继续做任务卡、报
 Agent 不应该把所有文件一次性塞进模型上下文。遇到长文档、多文件或长任务时，先按 `context-policy.yaml` 自动压缩，只保留必要摘要、来源路径和待验证点，并预留安全上下文给推理、工具结果和最终输出。
 
 v2.6.1 起，压缩摘要被视为安全敏感操作。涉及高风险动作、跨 Agent 交接或长文件摘要时，必须按 `rules/compression-attack-defense.md` 保留约束、来源段落和待验证项；不得仅凭摘要执行高风险动作。
+
+## 成本节约原则
+
+v2.6.2 起，实时显示成本和节约是中心思想。非简单任务必须输出成本状态：本次估算、预算上限、相比基线节约、主要节约来源，以及是否值得继续。详细规则见 `rules/cost-savings-principle.md`。
 
 ## 启动索引
 

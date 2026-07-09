@@ -11,6 +11,13 @@ param(
   [int]$CachedInputTokens = 0,
   [int]$ReasoningTokens = 0,
   [decimal]$EstimatedCost = 0,
+  [decimal]$BaselineCost = 0,
+  [decimal]$EstimatedSavings = 0,
+  [decimal]$SavingsRatePct = 0,
+  [decimal]$CostLimit = 0,
+  [string]$CostStatus = 'estimate',
+  [string]$SavingsSource = 'unknown',
+  [string]$ContinueOrStop = 'continue',
   [switch]$TaskSuccess,
   [switch]$Force
 )
@@ -29,6 +36,24 @@ if ((Test-Path -LiteralPath $path -PathType Leaf) -and (-not $Force)) {
 }
 
 $totalTokens = $InputTokens + $OutputTokens + $CachedInputTokens + $ReasoningTokens
+$computedSavings = $EstimatedSavings
+if (($computedSavings -eq 0) -and ($BaselineCost -gt 0)) {
+  $computedSavings = $BaselineCost - $EstimatedCost
+}
+
+$computedSavingsRate = $SavingsRatePct
+if (($computedSavingsRate -eq 0) -and ($BaselineCost -gt 0)) {
+  $computedSavingsRate = [decimal]::Round(($computedSavings / $BaselineCost) * 100, 2)
+}
+
+$computedCostStatus = $CostStatus
+if (($CostLimit -gt 0) -and ($EstimatedCost -gt $CostLimit)) {
+  $computedCostStatus = 'over_limit'
+  if ($ContinueOrStop -eq 'continue') {
+    $ContinueOrStop = 'needs_confirmation'
+  }
+}
+
 $date = (Get-Date).ToString('yyyy-MM-dd')
 $successValue = if ($TaskSuccess) { 'true' } else { 'false' }
 
@@ -52,7 +77,24 @@ token_usage:
 cost:
   currency: USD
   estimated_cost: $EstimatedCost
+  baseline_cost: $BaselineCost
+  estimated_savings: $computedSavings
+  estimated_savings_rate_pct: $computedSavingsRate
+  cost_limit: $CostLimit
+  cost_status: $computedCostStatus
+  savings_source: $SavingsSource
+  continue_or_stop: $ContinueOrStop
   note: Replace placeholder values when exact model metering is available.
+
+realtime_cost_card:
+  visible_to_user: true
+  current_estimated_cost_usd: $EstimatedCost
+  cost_limit_usd: $CostLimit
+  baseline_cost_usd: $BaselineCost
+  estimated_savings_usd: $computedSavings
+  estimated_savings_rate_pct: $computedSavingsRate
+  primary_savings_source: $SavingsSource
+  continue_or_stop: $ContinueOrStop
 
 context:
   startup_profile: unknown
@@ -65,6 +107,7 @@ result:
   output_file: $OutputFile
   data_sources_used: []
   user_visible_cost_summary: true
+  savings_summary_present: true
   task_success: $successValue
   user_edit_required: unknown
   source_citation_present: unknown
