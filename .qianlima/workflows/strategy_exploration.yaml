@@ -15,6 +15,35 @@ workflow:
     required: false
     fallback: manual_shadow_evaluation
 
+  policy_adapter_contract:
+    version: "v2.6.1"
+    source: "XPolicyLab policy adapter pattern"
+    required: false
+    purpose: >
+      Keep strategy generation, environment data, and action evaluation decoupled.
+      Qianlima uses this as an interface pattern only; it does not import
+      robotics policy code.
+    lifecycle:
+      - reset_context
+      - update_observation
+      - propose_action
+      - score_action
+      - emit_shadow_report
+    observation_schema:
+      - domain
+      - objective
+      - baseline_metrics
+      - constraints
+      - risk_rules
+      - source_refs
+    action_schema:
+      - candidate_strategy
+      - expected_effect
+      - risk_label
+      - required_confirmation
+      - pending_verification
+    hard_rule: "Adapters may propose local shadow recommendations only; external writes remain forbidden."
+
   reads:
     - work.example.ws
     - workflow-index.yaml
@@ -76,6 +105,7 @@ workflow:
       - startup_index_loaded
       - risk_rules_loaded
       - shadow_mode_enabled
+      - policy_adapter_contract_respected
       - candidate_params_in_bounds
       - report_has_source_citation
       - report_has_pending_verification

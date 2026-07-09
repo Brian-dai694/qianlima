@@ -26,6 +26,7 @@ Agent 负责维护这些配置文件。
 | `natural-language-router.yaml` | 自然语言触发路由：把普通业务说法映射到 skill、workflow 和 MCP |
 | `user-preferences.yaml` | 用户偏好 |
 | `risk-rules.yaml` | 权限和风险规则 |
+| `rules/compression-attack-defense.md` | 压缩攻击防御规则 |
 | `observability.yaml` | 工作流、经验、决策、文件和成本观测指标 |
 | `evaluation-tasks.yaml` | 每个 workflow 的质量评估任务 |
 | `improvement-loop.yaml` | 从失败和反馈到规则改进的闭环 |
@@ -92,6 +93,8 @@ NotebookLM 适合先消化长资料，再交给千里马继续做任务卡、报
 ## 自动上下文压缩
 
 Agent 不应该把所有文件一次性塞进模型上下文。遇到长文档、多文件或长任务时，先按 `context-policy.yaml` 自动压缩，只保留必要摘要、来源路径和待验证点，并预留安全上下文给推理、工具结果和最终输出。
+
+v2.6.1 起，压缩摘要被视为安全敏感操作。涉及高风险动作、跨 Agent 交接或长文件摘要时，必须按 `rules/compression-attack-defense.md` 保留约束、来源段落和待验证项；不得仅凭摘要执行高风险动作。
 
 ## 启动索引
 

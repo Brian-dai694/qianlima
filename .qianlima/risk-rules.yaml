@@ -4,6 +4,7 @@ risk_rules:
     auto_write_allowed: false
     delete_allowed: false
     external_send_requires_confirmation: true
+    high_risk_from_compressed_context_allowed: false
 
   high_risk_actions:
     - id: change_bid
@@ -21,6 +22,22 @@ risk_rules:
     - id: write_back
       name: 写回外部系统
       policy: confirmation_required
+    - id: compressed_context_decision
+      name: 仅基于压缩摘要做高影响决策
+      policy: source_reload_required
+
+  compression_security:
+    version: "v2.6.1"
+    rule_file: "rules/compression-attack-defense.md"
+    policy: "Compressed summaries are working memory, not source of truth."
+    blocks:
+      - high_risk_action_from_summary_only
+      - missing_source_sections_in_summary
+      - permissions_loaded_only_from_summary
+    requires:
+      - direct_reload_for_high_risk_actions
+      - explicit_pending_verification_when_source_omitted
+      - second_confirmation_when_summary_conflicts_with_source
 
   sensitive_data:
     default_policy: mask_or_aggregate
