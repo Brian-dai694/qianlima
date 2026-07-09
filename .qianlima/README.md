@@ -118,3 +118,7 @@ v2.6.4 起，通义灵码和 Qoder CN 优先读取根目录 `QODER.md` 与 `LING
 ## LinkAI Cloud 入口
 
 v2.6.5 起，LinkAI Cloud 优先读取根目录 `LINKAI.md`，并使用 `templates/linkai-agent-prompt_template.md` 作为 Agent Prompt。LinkAI 只用于 Git-safe 知识库问答、多渠道入口和安全下一步建议，不用于真实业务写回。
+
+## Obsidian 本地知识库入口
+
+v2.6.6 起，Obsidian 优先读取根目录 `OBSIDIAN.md`，并使用 `rules/obsidian-vault-policy.md`、`templates/obsidian-note_template.md` 和 `templates/obsidian-moc_template.md`。Obsidian 用于本地知识沉淀和双链复盘，不作为真实业务写回执行层。

@@ -1,6 +1,6 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.6.5 | 更新: 2026-07-09
-# 变更: 新增 LinkAI Cloud 发布入口、Agent Prompt 模板、通义灵码 / Qoder CN 专用入口
+# 版本: v2.6.6 | 更新: 2026-07-09
+# 变更: 新增 Obsidian 本地知识库 Vault 适配、LinkAI Cloud 发布入口、Agent Prompt 模板
 
 workflows:
   - id: daily_ad_report
