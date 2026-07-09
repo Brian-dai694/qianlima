@@ -1,5 +1,5 @@
 # 千里马 — 亚马逊运营 AI Agent Harness
-# 版本: v2.6.2 | 2026-07-09
+# 版本: v2.6.3 | 2026-07-09
 
 千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。
 
@@ -8,12 +8,12 @@
 > Harness 不是 prompt 模板，而是运行时系统。  
 > 它观察自己、诊断问题、积累经验，并持续自我改进。
 
-本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.6.2 将“实时显示成本、节约优先”设为中心运行原则。
+本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.6.3 将“实时显示成本、节约优先”落为统一成本卡模板和生成脚本。
 
 ## 架构
 
 ```text
-千里马 Harness v2.6.2
+千里马 Harness v2.6.3
 ├── 场景智能路由      → 按场景精准加载，减少不必要上下文
 ├── 健康自检          → 启动时自动检查骨架、索引和引用
 ├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环
@@ -24,7 +24,7 @@
 ├── Policy Adapter    → 策略生成、环境观测、动作评分解耦
 ├── Skill 注册表      → trigger / scope / capability / quality gate 标准化
 ├── 自然语言路由      → 用户发任务后自动匹配 skill / workflow / MCP
-├── 实时成本卡        → 每个非简单任务显示成本、节约、是否继续
+├── 实时成本卡        → 每个非简单任务显示成本、节约、是否继续，使用统一模板
 ├── KV Cache 优化     → 稳定前缀与缓存命中策略
 └── 配置演化追踪      → forward / rollback / diff / audit 迁移记录
 ```
@@ -146,6 +146,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-usage-record.ps1" -RunId "demo-run" -TaskName "demo" -WorkflowId "knowledge_digest" -EstimatedCost 0.03 -BaselineCost 0.10 -SavingsSource "context_reduction" -TaskSuccess
 ```
 
+生成用户可见的实时成本卡。脚本输出使用 ASCII，避免 Windows PowerShell 编码问题；中文展示格式见 `.qianlima/templates/realtime-cost-card_template.md`：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-cost-card.ps1" -EstimatedCost 0.03 -BaselineCost 0.10 -SavingsSource "context_reduction"
+```
+
 为已确认的高风险动作生成本地 decision log：
 
 ```powershell
@@ -163,6 +169,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-dec
 
 | 版本 | 日期 | 变更 |
 |:--:|------|------|
+| v2.6.3 | 2026-07-09 | 标准化实时成本卡：新增成本卡模板和生成脚本，统一 Agent 输出字段 |
 | v2.6.2 | 2026-07-09 | 实时成本卡和节约中心原则：usage ledger 增加基线成本、节约金额、节约率、成本状态和是否继续 |
 | v2.6.1 | 2026-07-09 | 吸收 XPolicyLab 策略适配器思想；加入 COMA / Comattack 压缩攻击防御、评估门禁和高风险摘要拦截 |
 | v2.6 | 2026-07-09 | 自然语言任务自动匹配：新增 natural-language-router、技能打分、置信度阈值、缺参追问和高风险确认 |

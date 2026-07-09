@@ -1,5 +1,5 @@
 observability:
-  version: "v2.6.2"
+  version: "v2.6.3"
   purpose: Track workflow components, experience, decisions, files, cost, and savings.
   principle: Cost visibility and savings are central runtime signals, not after-run bookkeeping.
 
@@ -60,6 +60,8 @@ dimensions:
 
   realtime_cost_card:
     description: User-visible compact cost and savings summary.
+    template: templates/realtime-cost-card_template.md
+    generator: scripts/new-cost-card.ps1
     required_for:
       - every_non_trivial_workflow
       - before_expensive_tool_calls

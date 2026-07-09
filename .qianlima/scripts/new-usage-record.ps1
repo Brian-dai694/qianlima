@@ -88,6 +88,8 @@ cost:
 
 realtime_cost_card:
   visible_to_user: true
+  template: .qianlima/templates/realtime-cost-card_template.md
+  generator: .qianlima/scripts/new-cost-card.ps1
   current_estimated_cost_usd: $EstimatedCost
   cost_limit_usd: $CostLimit
   baseline_cost_usd: $BaselineCost

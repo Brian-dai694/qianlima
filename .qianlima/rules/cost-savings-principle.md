@@ -1,6 +1,6 @@
 # Cost Savings Principle
 
-Version: v2.6.2
+Version: v2.6.3
 Date: 2026-07-09
 
 Qianlima treats cost visibility and savings as a first-class product principle. Every workflow should make cost visible early, keep it visible while running, and explain whether the result justified the spend.
@@ -32,12 +32,15 @@ Every meaningful workflow response should include a compact cost card:
 
 If exact metering is unavailable, mark the numbers as estimates instead of omitting the card.
 
+Use `.qianlima/templates/realtime-cost-card_template.md` as the canonical display format. Agents and scripts can generate the same format with `.qianlima/scripts/new-cost-card.ps1`.
+
 ## Runtime Rules
 
 - Show cost before expensive steps when cost can exceed the configured limit.
 - Prefer cached context, staged summaries, templates, and targeted reads over full workspace reads.
 - Stop or ask for confirmation when estimated cost exceeds the task value or configured limit.
 - Record estimated cost, baseline cost, savings amount, savings rate, and cost status in usage ledger.
+- Use the canonical realtime cost card template so all agents show the same fields in the same order.
 - Do not hide cost uncertainty. Use `unknown` or `estimate` explicitly.
 
 ## Savings Sources
