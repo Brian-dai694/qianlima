@@ -1,6 +1,6 @@
 # DESKTOP_AGENT_BRIEF — 千里马桌面 Agent 启动简报
 
-适用于豆包桌面端、腾讯 WorkBuddy、通义灵码 / Qoder CN、Manus、Claude Project、ChatGPT Project、Gemini Gem，以及其他不能自动读取仓库入口文件的桌面 Agent。
+适用于豆包桌面端、腾讯 WorkBuddy、通义灵码 / Qoder CN、LinkAI Cloud、Manus、Claude Project、ChatGPT Project、Gemini Gem，以及其他不能自动读取仓库入口文件的桌面 Agent。
 
 把下面这段复制到对应产品的“项目说明 / 自定义指令 / 知识库说明 / Agent 配置”里：
 
@@ -51,6 +51,7 @@
 | 豆包桌面端 | 智能体说明、项目知识库或固定提示词 | 豆包通常不会自动执行仓库脚本，需要把上面的简报作为项目规则 |
 | 腾讯 WorkBuddy | Agent 指令、企业知识库或工作流描述 | 适合把“状态卡 + 任务路由 + 高风险确认”设为团队通用规范 |
 | 通义灵码 / Qoder CN | `QODER.md`、`LINGMA.md` 或项目说明 | 适合维护 Git-safe 公开模板、脚本、CI、规则和成本卡 |
+| LinkAI Cloud | `LINKAI.md` 与 `.qianlima/templates/linkai-agent-prompt_template.md` | 适合发布 Git-safe 知识库问答和多渠道 Agent，不直接执行真实写回 |
 | Manus | `MANUS.md` 与 `.qianlima/MANUS_BOOT.md`，外加本简报 | Manus 能按仓库文件启动时优先读文件，不能时粘贴简报 |
 | Claude Code | `CLAUDE.md`，外加本简报 | Claude Code 会优先识别 `CLAUDE.md` |
 | Codex | `.qianlima/CODEX_BOOT.md` 与 `AGENTS.md`，外加本简报 | Codex 在本目录按启动脚本和索引执行 |

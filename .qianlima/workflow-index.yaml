@@ -1,6 +1,6 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.6.4 | 更新: 2026-07-09
-# 变更: 新增通义灵码 / Qoder CN 专用入口、标准实时成本卡模板和生成脚本
+# 版本: v2.6.5 | 更新: 2026-07-09
+# 变更: 新增 LinkAI Cloud 发布入口、Agent Prompt 模板、通义灵码 / Qoder CN 专用入口
 
 workflows:
   - id: daily_ad_report
