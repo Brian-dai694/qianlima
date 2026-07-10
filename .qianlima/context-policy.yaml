@@ -111,6 +111,39 @@ context_policy:
     - Raw sensitive fields must not be copied into context unless explicitly needed and permitted.
     - If a conclusion depends on omitted content, mark it as pending verification.
     - Before high-risk action, reload the source section instead of relying only on summary.
+    - Treat compression as a security-sensitive transformation; preserve constraints, risk rules, source sections, and open questions.
+    - Before important decisions, check whether compression could have dropped, inverted, or over-weighted a critical fact.
+    - Refusal rules, permission rules, and explicit user confirmations must be loaded directly when they control execution.
+
+  compression_attack_defense:
+    version: "v2.6.1"
+    source: "COMA / Comattack compression attack threat model"
+    rule_file: "rules/compression-attack-defense.md"
+    applies_when:
+      - "summarize_first is used"
+      - "context is handed to another agent"
+      - "conact_memory_folding is used"
+      - "workflow output affects bid, budget, price, purchase, listing content, external send, or write-back"
+    required_summary_fields:
+      - source_path
+      - source_sections
+      - constraints_preserved
+      - facts_omitted_or_uncertain
+      - compression_level
+      - confidence
+      - source_reload_required
+    adversarial_checks:
+      - "Could compression remove a user constraint?"
+      - "Could compression hide a forbidden operation?"
+      - "Could compression suppress a negative fact or failed assumption?"
+      - "Could compression make a low-confidence source look authoritative?"
+    hard_blocks:
+      - condition: "high_risk_action_from_summary_only"
+        response: "reload_source_or_request_user_confirmation"
+      - condition: "summary_without_source_sections"
+        response: "block_decision_until_source_trace_exists"
+      - condition: "risk_rules_or_permissions_only_seen_in_summary"
+        response: "reload_risk_rules_directly"
 
   workflow_integration:
     preflight:
@@ -128,6 +161,8 @@ context_policy:
       - record_world_model_hit_or_miss_when_used
     verify:
       - check_summary_has_source_paths
+      - check_summary_preserves_constraints
+      - check_compression_attack_gates
       - reload_source_sections_for_high_risk_decisions
       - record_context_usage_in_trace
 

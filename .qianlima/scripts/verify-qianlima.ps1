@@ -1,0 +1,93 @@
+param(
+  [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
+  [int]$MaxIndexAgeHours = 24
+)
+
+$ErrorActionPreference = 'Stop'
+
+$ProjectRoot = (Resolve-Path (Join-Path $Root '..')).Path
+$Issues = New-Object System.Collections.Generic.List[string]
+$Warnings = New-Object System.Collections.Generic.List[string]
+
+function Add-Issue([string]$Message) { $Issues.Add($Message) }
+function Add-Warning([string]$Message) { $Warnings.Add($Message) }
+function Test-Leaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $Root $RelativePath) -PathType Leaf }
+function Test-ProjectLeaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $ProjectRoot $RelativePath) -PathType Leaf }
+
+foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws')) {
+  if (-not (Test-Leaf $file)) { Add-Issue "Missing required public-safe Qianlima file: $file" }
+}
+foreach ($file in @('AGENTS.md', 'AI_START_HERE.md', 'start-qianlima.ps1', 'README.md')) {
+  if (-not (Test-ProjectLeaf $file)) { Add-Issue "Missing required project file: $file" }
+}
+foreach ($file in @('work.ws', 'data-sources.yaml', 'work-hub.ws', 'user-preferences.yaml')) {
+  if (Test-Leaf $file) { Add-Warning "Private local file exists; verify it is ignored and not committed: $file" }
+}
+
+$indexPath = Join-Path $Root 'WORKSPACE_INDEX.md'
+if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
+  $indexText = Get-Content -LiteralPath $indexPath -Encoding UTF8 -Raw
+  $generatedLine = ($indexText -split "`r?`n" | Where-Object { $_ -match '^Generated at:' } | Select-Object -First 1)
+  if ($generatedLine -match '^Generated at:\s*(.+)$') {
+    try {
+      $generatedAt = [datetimeoffset]::Parse($Matches[1])
+      $ageHours = ([datetimeoffset]::Now - $generatedAt).TotalHours
+      if ($ageHours -gt $MaxIndexAgeHours) { Add-Warning ("WORKSPACE_INDEX.md is older than {0} hours: {1:N1}h" -f $MaxIndexAgeHours, $ageHours) }
+    } catch { Add-Warning 'Could not parse WORKSPACE_INDEX.md generated timestamp.' }
+  } else { Add-Warning 'WORKSPACE_INDEX.md has no generated timestamp.' }
+}
+
+$workflowIndexPath = Join-Path $Root 'workflow-index.yaml'
+if (Test-Path -LiteralPath $workflowIndexPath -PathType Leaf) {
+  $workflowText = Get-Content -LiteralPath $workflowIndexPath -Encoding UTF8 -Raw
+  foreach ($match in [regex]::Matches($workflowText, 'definition:\s*(?<path>workflows/[^\s"'']+)')) {
+    $relative = $match.Groups['path'].Value -replace '/', [IO.Path]::DirectorySeparatorChar
+    if (-not (Test-Leaf $relative)) { Add-Issue "workflow-index references missing workflow definition: $($match.Groups['path'].Value)" }
+  }
+  foreach ($match in [regex]::Matches($workflowText, '(?m)^\s*(template|task_card):\s*(?<path>[^\s"'']+)')) {
+    $relative = $match.Groups['path'].Value -replace '/', [IO.Path]::DirectorySeparatorChar
+    if (-not (Test-Leaf $relative)) { Add-Issue "workflow-index references missing file: $($match.Groups['path'].Value)" }
+  }
+
+  $taskCardDir = Join-Path $Root 'task-cards'
+  if (Test-Path -LiteralPath $taskCardDir -PathType Container) {
+    Get-ChildItem -LiteralPath $taskCardDir -File -Filter '*.yaml' | ForEach-Object {
+      $taskText = Get-Content -LiteralPath $_.FullName -Encoding UTF8 -Raw
+      $id = $_.BaseName
+      if ($taskText -match '(?m)^\s*id:\s*([^\s]+)') { $id = $Matches[1].Trim() }
+      if ($workflowText -notmatch "(?m)^\s*-\s*id:\s*$([regex]::Escape($id))\s*$") { Add-Warning "Task card has no workflow-index entry: $id" }
+    }
+  }
+}
+
+$secretPatterns = @(
+  'sk-[A-Za-z0-9_-]{20,}',
+  'AKIA[0-9A-Z]{16}',
+  '(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*[''\"]?[A-Za-z0-9_./+=-]{16,}',
+  '(?i)(aws_access_key_id|aws_secret_access_key)\s*[:=]'
+)
+$files = @(git -C $ProjectRoot -c core.quotePath=false ls-files 2>$null)
+foreach ($relative in $files) {
+  if ($relative -match '(^|/)\.qianlima/WORKSPACE_INDEX\.md$|(^|/)\.qianlima/workspace-index\.json$|(^|/)\.qianlima/usage-ledger/|(^|/)\.qianlima/logs/') { continue }
+  $path = Join-Path $ProjectRoot $relative
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+  $item = Get-Item -LiteralPath $path
+  if ($item.Length -gt 1048576) { continue }
+  if ($item.Extension -notin @('.md', '.yaml', '.yml', '.ps1', '.json', '.txt', '.gitignore', '.gitattributes')) { continue }
+  $text = Get-Content -LiteralPath $path -Encoding UTF8 -Raw
+  foreach ($pattern in $secretPatterns) {
+    if ($text -match $pattern) {
+      Add-Issue "Potential secret-like value found in public-safe scan: $relative"
+      break
+    }
+  }
+}
+
+if ($Issues.Count -eq 0) { Write-Host 'Qianlima verification passed.' } else {
+  Write-Host 'Qianlima verification failed.'
+  foreach ($issue in $Issues) { Write-Host "- ERROR: $issue" }
+}
+foreach ($warning in $Warnings) { Write-Host "- WARN: $warning" }
+Write-Host "Issues: $($Issues.Count)"
+Write-Host "Warnings: $($Warnings.Count)"
+if ($Issues.Count -gt 0) { exit 1 }

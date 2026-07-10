@@ -849,3 +849,55 @@ files:
     description: SDR Loop best_effort 扫描 — 5/9 词有数据，4 盲区
     can_overwrite: false
     retention: archive
+  - file_id: github_qianlima_verify_workflow
+    path: .github/workflows/qianlima-verify.yml
+    display_name: Qianlima GitHub verification workflow
+    scenario: all
+    file_type: ci_workflow
+    description: Runs startup validation, strict verification, and runtime checks on push and pull request.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: verify_qianlima_script
+    path: .qianlima/scripts/verify-qianlima.ps1
+    display_name: Strict Qianlima verification script
+    scenario: all
+    file_type: script
+    description: Read-only verification for index freshness, workflow references, runtime hooks, and public-safe secret scan.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: runtime_check_script
+    path: .qianlima/scripts/invoke-runtime-check.ps1
+    display_name: Runtime phase check script
+    scenario: all
+    file_type: script
+    description: Lightweight executable checks for SessionStart, BeforeToolUse, AfterToolUse, and FinalCheck.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: new_usage_record_script
+    path: .qianlima/scripts/new-usage-record.ps1
+    display_name: Usage ledger generator script
+    scenario: all
+    file_type: script
+    description: Creates ignored per-run usage-ledger entries from a standard template.
+    can_overwrite: true
+    retention: keep
+
+  - file_id: new_decision_log_script
+    path: .qianlima/scripts/new-decision-log-entry.ps1
+    display_name: Decision log generator script
+    scenario: all
+    file_type: script
+    description: Creates ignored decision-log entries and blocks high-risk actions without confirmation refs.
+    can_overwrite: true
+    retention: keep
+  - file_id: strategy_exploration_workflow
+    path: .qianlima/workflows/strategy_exploration.yaml
+    display_name: Strategy exploration workflow
+    scenario: agent_evolution
+    file_type: workflow
+    description: Public-safe Shadow Mode workflow for strategy exploration.
+    can_overwrite: true
+    retention: keep

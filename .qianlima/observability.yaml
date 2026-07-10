@@ -1,6 +1,7 @@
 observability:
-  version: 1
-  purpose: Track workflow components, experience, decisions, files, and cost.
+  version: "v2.6.3"
+  purpose: Track workflow components, experience, decisions, files, cost, and savings.
+  principle: Cost visibility and savings are central runtime signals, not after-run bookkeeping.
 
 dimensions:
   component_observability:
@@ -41,7 +42,7 @@ dimensions:
       - overwrite_attempts
 
   cost_observability:
-    description: Track model, tool, and workflow cost.
+    description: Track model, tool, workflow cost, and savings in real time.
     metrics:
       - model_calls
       - input_tokens
@@ -49,6 +50,31 @@ dimensions:
       - tool_calls
       - rows_read
       - estimated_cost_usd
+      - baseline_cost_usd
+      - estimated_savings_usd
+      - estimated_savings_rate_pct
+      - cost_limit_usd
+      - cost_status
+      - savings_source
+      - continue_or_stop_recommendation
+
+  realtime_cost_card:
+    description: User-visible compact cost and savings summary.
+    template: templates/realtime-cost-card_template.md
+    generator: scripts/new-cost-card.ps1
+    required_for:
+      - every_non_trivial_workflow
+      - before_expensive_tool_calls
+      - before_multi_file_summarization
+      - before_high_risk_or_high_cost_actions
+    fields:
+      - current_estimated_cost_usd
+      - cost_limit_usd
+      - baseline_cost_usd
+      - estimated_savings_usd
+      - estimated_savings_rate_pct
+      - primary_savings_source
+      - continue_or_stop
 
   context_observability:
     description: Track context usage, compression level, and safety reserve.
@@ -103,6 +129,8 @@ default_trace_fields:
   - confirmations_required
   - validation_result
   - usage_summary
+  - realtime_cost_card
+  - savings_summary
   - context_budget_summary
   - model_adapter_summary
   - qianlima_eval_summary
