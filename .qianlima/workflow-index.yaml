@@ -1,6 +1,6 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.6.7 | 更新: 2026-07-10
-# 变更: 新增 QianlimaEval 运行质量评估层，保留 Obsidian / LinkAI / Qoder / Lingma 多入口
+# 版本: v2.6.8 | 更新: 2026-07-10
+# 变更: 新增 Browser Task Space 治理层，吸收 ego-lite Space / Snapshot / Skills 设计理念
 
 workflows:
   - id: daily_ad_report
@@ -297,6 +297,36 @@ workflows:
       - change_bid
       - change_budget
       - send_external
+
+  - id: browser_task_space
+    name: Browser Task Space 浏览器任务空间
+    scenario: agent_evolution
+    status: active
+    definition: workflows/browser_task_space.yaml
+    required_rules:
+      - rules/browser-space-policy.md
+      - risk-rules.yaml
+      - rules/cost-savings-principle.md
+    required_inputs:
+      - task_space_name
+      - target_site
+      - user_goal
+      - allowed_actions
+      - forbidden_actions
+    optional_inputs:
+      - browser_tool
+      - login_state
+      - takeover_instruction
+      - cost_limit_usd
+    evaluation_tasks:
+      - eval_browser_space_safety
+      - eval_realtime_cost_savings
+    forbidden_operations:
+      - unconfirmed_submit_or_publish
+      - unconfirmed_financial_or_order_action
+      - account_or_permission_change_without_manual_owner
+      - private_export_committed_to_public_repo
+      - action_from_stale_snapshot
 
   - id: keyword_demand_lifecycle_timing
     name: 关键词三层需求 + 竞争格局

@@ -1,5 +1,5 @@
 observability:
-  version: "v2.6.3"
+  version: "v2.6.8"
   purpose: Track workflow components, experience, decisions, files, cost, and savings.
   principle: Cost visibility and savings are central runtime signals, not after-run bookkeeping.
 
@@ -117,6 +117,27 @@ dimensions:
       - next_optimization_count
       - private_shadow_case_pass_rate
 
+  browser_space_observability:
+    description: Track browser task spaces, semantic snapshots, takeover readiness, and browser cost savings.
+    metrics:
+      - browser_tool
+      - task_space_created_or_reused
+      - logged_in_state
+      - pages_visited
+      - snapshot_count
+      - screenshot_count
+      - raw_dom_read_count
+      - actions_taken
+      - resnapshot_after_state_change_count
+      - stale_reference_or_selector_count
+      - downloads_created
+      - submit_or_write_actions
+      - confirmations_required
+      - confirmations_received
+      - takeover_available
+      - reusable_browser_path_extracted
+      - browser_cost_savings_estimate_usd
+
 default_trace_fields:
   - run_id
   - workflow_id
@@ -134,4 +155,5 @@ default_trace_fields:
   - context_budget_summary
   - model_adapter_summary
   - qianlima_eval_summary
+  - browser_space_summary
   - status
