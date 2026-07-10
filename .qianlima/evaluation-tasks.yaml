@@ -100,3 +100,57 @@ evaluation_tasks:
       - id: high_risk_decisions_reload_source
         description: High-risk decisions reload source sections instead of relying only on summaries.
         required: true
+
+  - id: eval_qianlima_eval_core
+    name: MiniAppBench-style run evaluation
+    workflow_id: all
+    frequency: every_non_simple_run
+    source: qianlima-eval.yaml
+    dimensions:
+      - id: intent_alignment
+        weight: 0.25
+        required: true
+      - id: evidence_static_quality
+        weight: 0.25
+        required: true
+      - id: dynamic_execution_quality
+        weight: 0.25
+        required: true
+      - id: cost_savings_efficiency
+        weight: 0.15
+        required: true
+      - id: risk_control
+        weight: 0.10
+        required: true
+    checks:
+      - id: qianlima_eval_config_loaded
+        description: qianlima-eval.yaml is available for scoring.
+        required: true
+      - id: eval_report_generated
+        description: A QianlimaEval report is generated for the run.
+        required: true
+      - id: weighted_score_recorded
+        description: Weighted score is recorded with pass/review/block status.
+        required: true
+      - id: hard_blocks_checked
+        description: Credentials, unconfirmed write-back, and missing artifacts are checked as hard blocks.
+        required: true
+      - id: next_optimization_recorded
+        description: The eval report lists the next optimization action.
+        required: true
+
+  - id: eval_private_shadow_cases
+    name: Private shadow evaluation cases
+    workflow_id: all
+    frequency: weekly_or_before_release
+    source: qianlima-eval.yaml
+    checks:
+      - id: public_validation_not_enough
+        description: Public validation checks do not replace private business cases.
+        required: true
+      - id: private_case_results_not_pushed
+        description: Private shadow case details stay outside the Git-safe public repository.
+        required: true
+      - id: release_score_threshold_met
+        description: Release candidate score is at least 0.80 unless manually approved.
+        required: true

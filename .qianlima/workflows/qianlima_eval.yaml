@@ -1,0 +1,84 @@
+workflow:
+  id: qianlima_eval
+  name: QianlimaEval 运行质量评估
+  version: v2.6.7
+  status: active
+  scenario: agent_evolution
+  source_inspiration: MiniAppBench / MiniAppEval
+  purpose: >
+    Evaluate a Qianlima workflow run after it produces a report or artifact.
+    The evaluation checks intent alignment, evidence quality, dynamic execution,
+    cost savings, and risk control.
+
+inputs:
+  required:
+    - workflow_id
+    - report_path
+  optional:
+    - user_goal
+    - trace_path
+    - usage_path
+    - estimated_cost_usd
+    - baseline_cost_usd
+    - cost_limit_usd
+    - run_id
+    - output_path
+
+pipeline:
+  - step: generate
+    qianlima_meaning: "Target workflow has already generated report or artifact."
+    evidence:
+      - report_path
+      - output_files
+
+  - step: compile
+    qianlima_meaning: "Assemble source citations, trace file, usage ledger, and risk status."
+    evidence:
+      - trace_path
+      - usage_path
+      - verification_gate_status
+      - cost_card
+
+  - step: evaluate
+    qianlima_meaning: "Score the run using qianlima-eval.yaml."
+    script: scripts/new-qianlima-eval-report.ps1
+    template: templates/qianlima-eval-report_template.md
+    output: "reports/eval-{workflow_id}-{date}.md"
+
+scoring:
+  source: qianlima-eval.yaml
+  dimensions:
+    - intent_alignment
+    - evidence_static_quality
+    - dynamic_execution_quality
+    - cost_savings_efficiency
+    - risk_control
+
+verification_gates:
+  - gate: report_artifact_exists
+    blocker: true
+  - gate: no_credentials_detected
+    blocker: true
+  - gate: high_risk_actions_confirmed
+    blocker: true
+  - gate: weighted_score_at_least_review_threshold
+    threshold: 0.60
+    blocker: true
+  - gate: release_candidate_score_at_least_pass_threshold
+    threshold: 0.80
+    blocker: false
+
+forbidden_operations:
+  - write_back
+  - delete_data
+  - change_bid
+  - change_budget
+  - send_external
+
+cost_policy:
+  default_mode: low_cost_static_eval
+  stronger_model_when:
+    - high_risk_decision
+    - release_candidate
+    - private_shadow_case
+    - business_decision_depends_on_score

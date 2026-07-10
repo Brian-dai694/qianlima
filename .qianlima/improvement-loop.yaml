@@ -489,3 +489,40 @@ improvement_loop:
     - trigger: "harness-health-check 连续 3 天报告 RED"
       strategy: rule_evolution
       improvement: "将数据新鲜度告警阈值从 '被动提示' 升级为 '阻断后续高风险操作'"
+
+miniappbench_eval_optimization:
+  version: v2.6.7
+  source: https://github.com/MiniAppBench/miniappbench
+  purpose: >
+    将 MiniAppEval 的多维评分、轨迹证据、公开验证集/私有隐藏集思想，
+    落地为 QianlimaEval。每个非简单任务不只输出结论，还输出可审计评分。
+
+  adopted_patterns:
+    - pattern: generate_compile_evaluate
+      qianlima_mapping: "execute_workflow -> assemble_evidence_pack -> score_run"
+    - pattern: multidimensional_scoring
+      qianlima_mapping: "intent_alignment + evidence_static_quality + dynamic_execution_quality + cost_savings_efficiency + risk_control"
+    - pattern: trajectory_as_evidence
+      qianlima_mapping: "trace logs, tool results, verification gates, and usage ledger are evaluated as first-class evidence"
+    - pattern: withheld_private_tests
+      qianlima_mapping: "public checks stay in evaluation-tasks.yaml; real business shadow cases stay private"
+    - pattern: separate_generation_and_evaluation_models
+      qianlima_mapping: "low-cost model may generate; stronger model may evaluate high-risk or high-value runs"
+
+  release_gate:
+    default_min_score: 0.80
+    review_score_min: 0.60
+    block_if:
+      - credentials_detected
+      - missing_report_artifact
+      - high_risk_action_without_confirmation
+      - external_write_without_confirmation
+
+  cost_policy:
+    principle: "节约是中心思想，但不能用低成本掩盖低质量。"
+    required_for_non_simple_tasks:
+      - estimated_cost
+      - baseline_cost
+      - estimated_savings
+      - continue_or_stop
+      - model_choice_reason

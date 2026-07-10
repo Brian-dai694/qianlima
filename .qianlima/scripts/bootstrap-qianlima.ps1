@@ -67,6 +67,7 @@ $governanceFiles = @(
   'model-adapters.yaml',
   'world-model.yaml',
   'observability.yaml',
+  'qianlima-eval.yaml',
   'evaluation-tasks.yaml',
   'improvement-loop.yaml'
 ) | ForEach-Object {

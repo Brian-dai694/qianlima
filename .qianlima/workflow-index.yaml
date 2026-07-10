@@ -1,6 +1,6 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.2 | 更新: 2026-07-08
-# 变更: 新增运行态 workflow 索引、隐私脱敏示例、深度一致性校验适配
+# 版本: v2.6.7 | 更新: 2026-07-10
+# 变更: 新增 QianlimaEval 运行质量评估，吸收 MiniAppBench / MiniAppEval 的多维评分和证据轨迹思想
 
 workflows:
   - id: daily_ad_report
@@ -265,6 +265,34 @@ workflows:
     forbidden_operations:
       - write_external_truth
       - send_external
+
+  - id: qianlima_eval
+    name: QianlimaEval 运行质量评估
+    scenario: agent_evolution
+    status: active
+    definition: workflows/qianlima_eval.yaml
+    template: templates/qianlima-eval-report_template.md
+    default_output_path: "reports/eval-{workflow_id}-{date}.md"
+    required_inputs:
+      - workflow_id
+      - report_path
+    optional_inputs:
+      - user_goal
+      - trace_path
+      - usage_path
+      - estimated_cost_usd
+      - baseline_cost_usd
+      - cost_limit_usd
+    evaluation_tasks:
+      - eval_qianlima_eval_core
+      - eval_private_shadow_cases
+    forbidden_operations:
+      - write_back
+      - delete_data
+      - change_bid
+      - change_budget
+      - send_external
+
   - id: keyword_demand_lifecycle_timing
     name: 关键词三层需求 + 竞争格局
     scenario: keyword_tracking

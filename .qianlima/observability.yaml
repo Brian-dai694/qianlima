@@ -75,6 +75,22 @@ dimensions:
       - reasoning_mode_enabled
       - reserve_ratio_used
 
+  qianlima_eval_observability:
+    description: Track MiniAppBench-style run evaluation quality.
+    metrics:
+      - eval_report_generated
+      - eval_weighted_score
+      - eval_status
+      - intent_alignment_score
+      - evidence_static_quality_score
+      - dynamic_execution_quality_score
+      - cost_savings_efficiency_score
+      - risk_control_score
+      - hard_block_count
+      - pending_verification_count
+      - next_optimization_count
+      - private_shadow_case_pass_rate
+
 default_trace_fields:
   - run_id
   - workflow_id
@@ -89,4 +105,5 @@ default_trace_fields:
   - usage_summary
   - context_budget_summary
   - model_adapter_summary
+  - qianlima_eval_summary
   - status
