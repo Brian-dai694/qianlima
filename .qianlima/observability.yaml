@@ -50,6 +50,10 @@ dimensions:
       - tool_calls
       - rows_read
       - estimated_cost_usd
+      - pricing_catalog_version
+      - pricing_source_url
+      - pricing_verified_at
+      - cost_metering_method
       - baseline_cost_usd
       - estimated_savings_usd
       - estimated_savings_rate_pct

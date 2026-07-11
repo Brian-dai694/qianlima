@@ -1,0 +1,19 @@
+task_card:
+  id: skill_evolution
+  name: 技能自进化学习
+  when_to_use: 记录用户纠正、任务失败、重复返工或高价值成功案例，并生成可验证的技能改进候选方案。
+  required_inputs:
+    - skill_id_or_workflow_id
+    - feedback_summary
+  optional_inputs:
+    - run_id
+    - report_or_trace_path
+    - expected_improvement
+  output:
+    - private_feedback_record
+    - candidate_patch_proposal
+    - validation_plan
+  constraints:
+    - 不自动修改生产 skill、路由、权限或外部系统。
+    - 不把私有反馈、截图、数据行或凭证提交到公开仓。
+    - 单次偏好只记录；重复模式或明确纠正才提出候选规则。

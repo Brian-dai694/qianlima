@@ -19,12 +19,15 @@ $ProjectRoot = (Resolve-Path (Join-Path $Root '..')).Path
 $generatedAt = (Get-Date).ToString('o')
 
 $requiredStartupFiles = @(
-  'README.md',
-  'work.ws',
+  'CODEX_BOOT.md',
+  'risk-rules.yaml'
+)
+
+$deferredGovernanceFiles = @(
   'workflow-index.yaml',
-  'risk-rules.yaml',
   'context-policy.yaml',
-  'model-adapters.yaml'
+  'model-adapters.yaml',
+  'work.example.ws'
 )
 
 $startup = foreach ($file in $requiredStartupFiles) {
@@ -84,12 +87,13 @@ $indexObject = [PSCustomObject]@{
   project_root = '.'
   qianlima_root = '.qianlima'
   startup_files = $startup
+  deferred_governance_files = $deferredGovernanceFiles
   governance_files = $governanceFiles
   task_cards = $taskCards
   workflows = $workflows
   templates = $templates
   playbooks = $playbooks
-  startup_instruction = 'Read .qianlima/WORKSPACE_INDEX.md first, then follow startup_files in order.'
+  startup_instruction = 'Read .qianlima/WORKSPACE_INDEX.md first, then follow startup_files. Load deferred governance only when the selected task needs it.'
 }
 
 $jsonPath = Join-Path $Root 'workspace-index.json'
@@ -103,7 +107,7 @@ $lines.Add("Generated at: $generatedAt")
 $lines.Add('')
 $lines.Add('## Startup Order')
 $lines.Add('')
-$lines.Add('A model opening this workspace must generate this index first, read this file, then read the startup files below in order.')
+$lines.Add('A model opening this workspace must generate this index first, read this file, then read the core startup files below. Load task files and deferred governance only when needed.')
 $lines.Add('')
 $lines.Add('Recommended command from project root:')
 $lines.Add('')
@@ -115,6 +119,13 @@ foreach ($item in $startup) {
   $status = if ($item.exists) { 'OK' } else { 'MISSING' }
   $lines.Add("- [$status] $($item.path)")
 }
+$lines.Add('')
+$lines.Add('## Deferred Governance')
+$lines.Add('')
+$lines.Add('- Select a task-card and its workflow before loading workflow-index.yaml in full.')
+$lines.Add('- Load context-policy.yaml only for long or multi-file work.')
+$lines.Add('- Load model-adapters.yaml only when selecting a model or estimating model cost.')
+$lines.Add('- Load work.example.ws or private work.ws only when current business state is needed.')
 $lines.Add('')
 $lines.Add('## Required Rules')
 $lines.Add('')

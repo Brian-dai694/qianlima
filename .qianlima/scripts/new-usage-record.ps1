@@ -15,6 +15,8 @@ param(
   [decimal]$EstimatedSavings = 0,
   [decimal]$SavingsRatePct = 0,
   [decimal]$CostLimit = 0,
+  [string]$Currency = 'USD',
+  [switch]$AutoPrice,
   [string]$CostStatus = 'estimate',
   [string]$SavingsSource = 'unknown',
   [string]$ContinueOrStop = 'continue',
@@ -23,6 +25,31 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+foreach ($value in @($InputTokens, $OutputTokens, $CachedInputTokens, $ReasoningTokens, $EstimatedCost, $BaselineCost, $CostLimit)) {
+  if ($value -lt 0) {
+    throw 'Token counts, EstimatedCost, BaselineCost, and CostLimit must be zero or greater.'
+  }
+}
+
+$pricingCatalogVersion = ''
+$pricingSourceUrl = ''
+$pricingVerifiedAt = ''
+$costMeteringMethod = 'manual_estimate'
+if ($AutoPrice) {
+  $priceScript = Join-Path $PSScriptRoot 'get-model-cost.ps1'
+  $priced = & $priceScript -Provider $ModelProvider -Model $ModelName -InputTokens $InputTokens -OutputTokens $OutputTokens -CachedInputTokens $CachedInputTokens
+  if ($priced.status -ne 'priced') {
+    throw "No verified price for $ModelProvider/$ModelName. Source: $($priced.source_url)"
+  }
+  $EstimatedCost = [decimal]$priced.estimated_cost
+  $Currency = $priced.currency
+  $pricingCatalogVersion = $priced.catalog_version
+  $pricingSourceUrl = $priced.source_url
+  $pricingVerifiedAt = $priced.verified_at
+  $costMeteringMethod = 'official_catalog'
+  $CostStatus = 'exact_catalog_rate'
+}
 
 $ledgerDir = Join-Path $Root 'usage-ledger'
 if (-not (Test-Path -LiteralPath $ledgerDir -PathType Container)) {
@@ -35,7 +62,9 @@ if ((Test-Path -LiteralPath $path -PathType Leaf) -and (-not $Force)) {
   throw "Usage ledger already exists: $path. Re-run with -Force to overwrite."
 }
 
-$totalTokens = $InputTokens + $OutputTokens + $CachedInputTokens + $ReasoningTokens
+# InputTokens and OutputTokens are provider totals. Cached and reasoning tokens are
+# tracked as diagnostic breakdowns and must not be added again.
+$totalTokens = $InputTokens + $OutputTokens
 $computedSavings = $EstimatedSavings
 if (($computedSavings -eq 0) -and ($BaselineCost -gt 0)) {
   $computedSavings = $BaselineCost - $EstimatedCost
@@ -47,8 +76,14 @@ if (($computedSavingsRate -eq 0) -and ($BaselineCost -gt 0)) {
 }
 
 $computedCostStatus = $CostStatus
+$exceedsBaselineGuard = ($BaselineCost -gt 0) -and ($EstimatedCost -gt ($BaselineCost * 2))
 if (($CostLimit -gt 0) -and ($EstimatedCost -gt $CostLimit)) {
   $computedCostStatus = 'over_limit'
+  if ($ContinueOrStop -eq 'continue') {
+    $ContinueOrStop = 'needs_confirmation'
+  }
+} elseif ($exceedsBaselineGuard) {
+  $computedCostStatus = 'over_baseline_guard'
   if ($ContinueOrStop -eq 'continue') {
     $ContinueOrStop = 'needs_confirmation'
   }
@@ -75,7 +110,7 @@ token_usage:
     total_tokens: $totalTokens
 
 cost:
-  currency: USD
+  currency: $Currency
   estimated_cost: $EstimatedCost
   baseline_cost: $BaselineCost
   estimated_savings: $computedSavings
@@ -86,14 +121,21 @@ cost:
   continue_or_stop: $ContinueOrStop
   note: Replace placeholder values when exact model metering is available.
 
+pricing:
+  metering_method: $costMeteringMethod
+  catalog_version: $pricingCatalogVersion
+  source_url: $pricingSourceUrl
+  verified_at: $pricingVerifiedAt
+
 realtime_cost_card:
   visible_to_user: true
   template: .qianlima/templates/realtime-cost-card_template.md
   generator: .qianlima/scripts/new-cost-card.ps1
-  current_estimated_cost_usd: $EstimatedCost
-  cost_limit_usd: $CostLimit
-  baseline_cost_usd: $BaselineCost
-  estimated_savings_usd: $computedSavings
+  currency: $Currency
+  current_estimated_cost: $EstimatedCost
+  cost_limit: $CostLimit
+  baseline_cost: $BaselineCost
+  estimated_savings: $computedSavings
   estimated_savings_rate_pct: $computedSavingsRate
   primary_savings_source: $SavingsSource
   continue_or_stop: $ContinueOrStop

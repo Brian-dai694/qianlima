@@ -328,6 +328,30 @@ workflows:
       - private_export_committed_to_public_repo
       - action_from_stale_snapshot
 
+  - id: skill_evolution
+    name: Skill 自进化学习
+    scenario: agent_evolution
+    status: active
+    definition: workflows/skill_evolution.yaml
+    task_card: task-cards/skill-evolution.yaml
+    required_rules:
+      - skill-evolution.yaml
+      - risk-rules.yaml
+    required_inputs:
+      - skill_id
+      - feedback_summary
+    optional_inputs:
+      - source_run_id
+      - evidence_paths
+      - baseline_metrics
+    evaluation_tasks:
+      - eval_skill_evolution_observe
+    forbidden_operations:
+      - automatic_production_skill_edit
+      - automatic_router_expansion
+      - automatic_permission_change
+      - commit_private_feedback_to_public_repo
+
   - id: keyword_demand_lifecycle_timing
     name: 关键词三层需求 + 竞争格局
     scenario: keyword_tracking

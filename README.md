@@ -1,5 +1,5 @@
 # 千里马 — 亚马逊运营 AI Agent Harness
-# 版本: v2.6.8 | 2026-07-10
+# 版本: v2.6.8 | 2026-07-11
 
 千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。
 
@@ -8,13 +8,14 @@
 > Harness 不是 prompt 模板，而是运行时系统。
 > 它观察自己、诊断问题、积累经验，并持续自我改进。
 
-本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.6.8 新增 Browser Task Space 治理层，吸收 ego-lite 的 Space / Snapshot / Skills 思想：浏览器任务必须有独立任务空间、语义快照、用户接管路径、确认门禁和成本节约记录。
+本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.6.8 新增 Browser Task Space 治理层，吸收 ego-lite 的 Space / Snapshot / Skills 思想：浏览器任务必须有独立任务空间、语义快照、用户接管路径、确认门禁和成本节约记录。2026-07-11 起，启动入口加入指纹缓存和轻量路由索引，避免重复重建工作区。
 
 ## 架构
 
 ```text
 千里马 Harness v2.6.8
 ├── 场景智能路由      → 按场景精准加载，减少不必要上下文
+├── 热启动与快速路由  → 配置未变时复用校验结果，低风险任务只查紧凑路由索引
 ├── 健康自检          → 启动时自动检查骨架、索引和引用
 ├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环
 ├── QianlimaEval      → Intent / Evidence / Dynamic / Cost / Risk 多维评分
@@ -26,6 +27,8 @@
 ├── Skill 注册表      → trigger / scope / capability / quality gate 标准化
 ├── 自然语言路由      → 用户发任务后自动匹配 skill / workflow / MCP
 ├── 实时成本卡        → 每个非简单任务显示成本、节约、是否继续，使用统一模板
+├── 官方计费目录      → 按模型官方价格计算输入、缓存命中和输出成本
+├── Skill 自进化      → 反馈脱敏、三层归因、候选 Patch、验证后人工发布
 ├── 浏览器任务空间    → 登录态浏览器任务的独立空间、语义快照、接管路径和确认门禁
 ├── 多 Agent 入口     → Codex / Claude / Manus / Qoder CN / Lingma / LinkAI / Obsidian / 桌面端
 ├── 本地知识库        → Obsidian Vault、MOC、笔记模板、公私知识分离
@@ -67,9 +70,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 ```text
 .qianlima/WORKSPACE_INDEX.md
 .qianlima/workspace-index.json
+.qianlima/codex-router.json
 ```
 
-Agent 进入本仓库后，应先读取 `.qianlima/WORKSPACE_INDEX.md`，再按索引加载最小启动包。
+首次启动、配置变更或 `-Force` 会完整重建和校验；其他启动复用指纹缓存。普通聊天不加载运营配置，高风险和歧义任务仍回读完整风险规则与任务卡。
+
+Agent 进入本仓库后，应先读取 `.qianlima/WORKSPACE_INDEX.md`、`.qianlima/CODEX_BOOT.md` 和 `.qianlima/risk-rules.yaml`，再选择任务卡并按需加载 workflow、模板、数据和治理文件。不要在启动阶段读取完整工作区。
 
 不同 Agent 可使用专用入口：
 
@@ -205,7 +211,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-dec
 
 | 版本 | 日期 | 变更 |
 |:--:|------|------|
-| v2.6.8 | 2026-07-10 | 新增 Browser Task Space：吸收 ego-lite 的 Space / Snapshot / Skills 思想，约束登录态浏览器任务、接管路径、快照追踪和成本节约 |
+| v2.6.8 | 2026-07-11 | 强化成本节约中心：新增官方模型价格目录、自动计费、零/未知用量阻断、成本超基线确认门禁、QianlimaEval 证据一致性检查、Skill 自进化第一步和 Browser Task Space；新增启动指纹缓存与低风险快速路由 |
 | v2.6.7 | 2026-07-10 | 新增 QianlimaEval 运行质量评估层：多维评分、硬阻断、成本节约评分和评估报告脚本 |
 | v2.6.6 | 2026-07-09 | 新增 Obsidian 本地知识库适配：Vault 策略、笔记模板、MOC 模板和 Git-safe 导出脚本 |
 | v2.6.5 | 2026-07-09 | 新增 LinkAI Cloud 发布入口和 Agent Prompt 模板，限定为 Git-safe 知识库问答与多渠道入口 |

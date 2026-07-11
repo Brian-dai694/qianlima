@@ -14,8 +14,11 @@ function Add-Warning([string]$Message) { $Warnings.Add($Message) }
 function Test-Leaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $Root $RelativePath) -PathType Leaf }
 function Test-ProjectLeaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $ProjectRoot $RelativePath) -PathType Leaf }
 
-foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws')) {
+foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'CODEX_BOOT.md', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'model-pricing.json', 'skill-evolution.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws', 'scripts/get-model-cost.ps1', 'scripts/new-skill-feedback-record.ps1', 'scripts/new-skill-patch-proposal.ps1', 'workflows/skill_evolution.yaml', 'task-cards/skill-evolution.yaml', 'templates/token-usage-record_template.yaml')) {
   if (-not (Test-Leaf $file)) { Add-Issue "Missing required public-safe Qianlima file: $file" }
+}
+foreach ($dir in @('logs', 'usage-ledger')) {
+  if (-not (Test-Path -LiteralPath (Join-Path $Root $dir) -PathType Container)) { Add-Issue "Missing required runtime directory: $dir" }
 }
 foreach ($file in @('AGENTS.md', 'AI_START_HERE.md', 'start-qianlima.ps1', 'README.md')) {
   if (-not (Test-ProjectLeaf $file)) { Add-Issue "Missing required project file: $file" }

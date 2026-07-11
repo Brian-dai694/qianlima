@@ -50,6 +50,19 @@ function Format-Status([bool]$Value) {
   return 'missing'
 }
 
+function Test-FileReferencesReport([string]$EvidencePath, [string]$ReportPath) {
+  if (-not (Test-Path -LiteralPath $EvidencePath -PathType Leaf)) { return $false }
+  $reportName = [IO.Path]::GetFileName($ReportPath)
+  if ([string]::IsNullOrWhiteSpace($reportName)) { return $false }
+  $text = Get-Content -LiteralPath $EvidencePath -Encoding UTF8 -Raw
+  return $text -match [regex]::Escape($reportName)
+}
+
+function Test-UsageMetering([string]$UsageText) {
+  $requiredPatterns = @('(?m)^\s*input_tokens:\s*\d+', '(?m)^\s*output_tokens:\s*\d+', '(?m)^\s*estimated_cost:\s*\d+')
+  return @($requiredPatterns | Where-Object { $UsageText -notmatch $_ }).Count -eq 0
+}
+
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $qianlimaRoot = Join-Path $projectRoot '.qianlima'
 $today = Get-Date -Format 'yyyy-MM-dd'
@@ -76,9 +89,18 @@ $content = ''
 if ($reportExists) {
   $content = Get-Content -LiteralPath $reportFullPath -Encoding UTF8 -Raw
 }
+$usageContent = ''
+if ($usageExists) {
+  $usageContent = Get-Content -LiteralPath $usageFullPath -Encoding UTF8 -Raw
+}
+$traceReferencesReport = $traceExists -and (Test-FileReferencesReport $traceFullPath $reportFullPath)
+$usageReferencesReport = $usageExists -and (Test-FileReferencesReport $usageFullPath $reportFullPath)
+$usageHasMetering = $usageExists -and (Test-UsageMetering $usageContent)
+$traceEvidenceMismatch = $traceExists -and (-not $traceReferencesReport)
+$usageEvidenceMismatch = $usageExists -and (-not $usageReferencesReport)
 
 $hasGoal = (-not [string]::IsNullOrWhiteSpace($UserGoal)) -or (Test-AnyPattern $content @('\u76ee\u6807', '\u4efb\u52a1', '\u9700\u6c42', 'User Goal', 'Goal'))
-$hasWorkflow = ($content -match [regex]::Escape($WorkflowId)) -or (-not [string]::IsNullOrWhiteSpace($WorkflowId))
+$hasWorkflow = $content -match [regex]::Escape($WorkflowId)
 $hasAssumption = Test-AnyPattern $content @('\u5047\u8bbe', '\u524d\u63d0', '\u5f85\u786e\u8ba4', '\u5f85\u9a8c\u8bc1', 'Assumption', 'Pending')
 $hasAnswer = Test-AnyPattern $content @('\u7ed3\u8bba', '\u6458\u8981', '\u5efa\u8bae', '\u4e0b\u4e00\u6b65', '\u884c\u52a8', 'Conclusion', 'Recommendation', 'Next')
 
@@ -112,8 +134,8 @@ $writeBackWithoutConfirmation = $highRiskMentioned -and (-not $hasConfirmation)
 
 $intentScore = Get-Ratio @($reportExists, $hasGoal, $hasWorkflow, $hasAssumption, $hasAnswer)
 $staticScore = Get-Ratio @($reportExists, $hasStructure, $hasTableOrList, $hasSource, $hasPending, (-not $credentialsDetected))
-$dynamicScore = Get-Ratio @($traceExists, $hasGate, $hasFailureRecord, $hasToolEvidence, $hasResumeState)
-$costScore = Get-Ratio @($hasCost, $underLimit, $hasSavings, $hasContextPolicy)
+$dynamicScore = Get-Ratio @($traceExists, $usageExists, $traceReferencesReport, $usageReferencesReport, $hasGate, $hasFailureRecord, $hasToolEvidence, $hasResumeState)
+$costScore = Get-Ratio @($hasCost, $usageHasMetering, $underLimit, $hasSavings, $hasContextPolicy)
 $riskScore = Get-Ratio @(((-not $highRiskMentioned) -or $hasConfirmation), (-not $writeBackWithoutConfirmation), (-not $credentialsDetected), $hasPending)
 
 $weightedScore = [Math]::Round(
@@ -129,6 +151,8 @@ $hardBlocks = New-Object System.Collections.Generic.List[string]
 if (-not $reportExists) { $hardBlocks.Add('missing_report_artifact') }
 if ($credentialsDetected) { $hardBlocks.Add('credentials_detected') }
 if ($writeBackWithoutConfirmation) { $hardBlocks.Add('high_risk_action_without_confirmation') }
+if ($traceEvidenceMismatch) { $hardBlocks.Add('trace_does_not_reference_report') }
+if ($usageEvidenceMismatch) { $hardBlocks.Add('usage_ledger_does_not_reference_report') }
 
 $status = 'pass'
 if ($hardBlocks.Count -gt 0) {
@@ -142,6 +166,9 @@ if ($hardBlocks.Count -gt 0) {
 $pendingItems = New-Object System.Collections.Generic.List[string]
 if (-not $traceExists) { $pendingItems.Add('Trace file missing or not provided.') }
 if (-not $usageExists) { $pendingItems.Add('Usage ledger file missing or not provided.') }
+if ($usageExists -and (-not $usageHasMetering)) { $pendingItems.Add('Usage ledger has no parseable token or cost metering.') }
+if ($traceEvidenceMismatch) { $pendingItems.Add('Trace does not reference the evaluated report.') }
+if ($usageEvidenceMismatch) { $pendingItems.Add('Usage ledger does not reference the evaluated report.') }
 if (-not $hasSource) { $pendingItems.Add('Source or evidence section is missing.') }
 if (-not $hasCost) { $pendingItems.Add('Cost card is missing.') }
 if ($pendingItems.Count -eq 0) { $pendingItems.Add('None.') }
@@ -190,6 +217,7 @@ $UserGoal
 | Report | $reportFullPath | $(Format-Status $reportExists) |
 | Trace | $traceFullPath | $(Format-Status $traceExists) |
 | Usage | $usageFullPath | $(Format-Status $usageExists) |
+| Evidence consistency | trace=$traceReferencesReport; usage=$usageReferencesReport | $(Format-Status ((-not $traceEvidenceMismatch) -and (-not $usageEvidenceMismatch))) |
 | Cost | $costValue | $costStatus |
 
 ## Scores
@@ -198,8 +226,8 @@ $UserGoal
 |---|---:|---:|---|
 | Intent Alignment | 0.25 | $intentScore | goal=$hasGoal; assumptions=$hasAssumption; answer=$hasAnswer |
 | Evidence / Static Quality | 0.25 | $staticScore | headings=$headingCount; source=$hasSource; credentials_detected=$credentialsDetected |
-| Dynamic Execution Quality | 0.25 | $dynamicScore | trace=$traceExists; gate=$hasGate; resume=$hasResumeState |
-| Cost Savings / Efficiency | 0.15 | $costScore | cost_card=$hasCost; under_limit=$underLimit; savings=$hasSavings |
+| Dynamic Execution Quality | 0.25 | $dynamicScore | trace=$traceExists; usage=$usageExists; trace_refs_report=$traceReferencesReport; usage_refs_report=$usageReferencesReport; gate=$hasGate; resume=$hasResumeState |
+| Cost Savings / Efficiency | 0.15 | $costScore | cost_card=$hasCost; metering=$usageHasMetering; under_limit=$underLimit; savings=$hasSavings |
 | Risk Control | 0.10 | $riskScore | high_risk=$highRiskMentioned; confirmation=$hasConfirmation |
 
 ## Hard Blocks

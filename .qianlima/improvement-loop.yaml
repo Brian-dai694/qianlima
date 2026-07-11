@@ -526,3 +526,19 @@ miniappbench_eval_optimization:
       - estimated_savings
       - continue_or_stop
       - model_choice_reason
+
+skill_evolution_overlay:
+  version: v2.6.8
+  source: skill-evolution.yaml
+  purpose: "Map feedback to routing, instruction, or resource changes before any production skill is edited."
+  flow:
+    - private_feedback_record
+    - trajectory_evidence
+    - layer_classification
+    - candidate_patch_only
+    - held_out_validation
+    - human_promote_or_rollback
+  promotion_policy:
+    auto_apply: false
+    requires_human_approval: true
+    rollback_required: true

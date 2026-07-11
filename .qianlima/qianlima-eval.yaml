@@ -1,5 +1,5 @@
 qianlima_eval:
-  version: v2.6.7
+  version: v2.6.8
   updated: 2026-07-10
   purpose: >
     Add a MiniAppBench-inspired evaluation layer for Qianlima workflow runs.
@@ -65,11 +65,12 @@ qianlima_eval:
       name: "Dynamic Execution Quality"
       weight: 0.25
       checks:
-        - trace_or_run_log_exists
+      - trace_or_run_log_exists
         - verification_gates_are_checked
         - edge_cases_or_failures_are_recorded
-        - tool_results_support_conclusions
-        - resume_state_is_clear
+      - tool_results_support_conclusions
+      - resume_state_is_clear
+      - trace_and_usage_reference_the_same_report
 
     - id: cost_savings_efficiency
       name: "Cost Savings / Efficiency"
@@ -78,8 +79,9 @@ qianlima_eval:
         - cost_card_is_visible
         - model_choice_matches_task_value
         - context_policy_was_used_for_large_inputs
-        - estimated_cost_is_under_limit
-        - savings_vs_baseline_is_reported
+      - estimated_cost_is_under_limit
+      - savings_vs_baseline_is_reported
+      - usage_ledger_has_parseable_token_or_cost_metering
 
     - id: risk_control
       name: "Risk Control"

@@ -28,6 +28,8 @@ $requiredPublicFiles = @(
   'workflow-index.yaml',
   'risk-rules.yaml',
   'model-adapters.yaml',
+  'model-pricing.json',
+  'skill-evolution.yaml',
   'world-model.yaml',
   'context-policy.yaml',
   'WORKSPACE_INDEX.md',
@@ -36,7 +38,14 @@ $requiredPublicFiles = @(
   'workflows/daily_ad_report.yaml',
   'playbooks/context-compression-playbook.yaml',
   'scripts/bootstrap-qianlima.ps1',
-  'templates/ad-ops_daily-report_template.md'
+  'scripts/get-model-cost.ps1',
+  'scripts/new-skill-feedback-record.ps1',
+  'scripts/new-skill-patch-proposal.ps1',
+  'workflows/skill_evolution.yaml',
+  'task-cards/skill-evolution.yaml',
+  'templates/ad-ops_daily-report_template.md',
+  'templates/token-usage-record_template.yaml',
+  'CODEX_BOOT.md'
 )
 
 $optionalPrivateFiles = @(

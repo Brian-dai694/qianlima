@@ -8,6 +8,7 @@ param(
   [string]$RunId = '',
   [string]$UsageLedgerPath = '',
   [string]$DecisionLogPath = '',
+  [switch]$AllowUnmeteredUsage,
   [switch]$Confirmed
 )
 
@@ -39,6 +40,20 @@ function Find-UsageLedgerByRunId([string]$RunIdValue) {
   $match = Get-ChildItem -LiteralPath $ledgerDir -File -Filter "*$RunIdValue*.yaml" -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($match) { return $match.FullName }
   return ''
+}
+function Test-UsageLedger([string]$PathValue) {
+  $text = Get-Content -LiteralPath $PathValue -Encoding UTF8 -Raw
+  $required = @('run_id:', 'workflow_id:', 'input_tokens:', 'output_tokens:', 'estimated_cost:', 'cost_status:', 'continue_or_stop:')
+  $missing = @($required | Where-Object { $text -notmatch [regex]::Escape($_) })
+  $zeroUsage = ($text -match '(?m)^\s*model_provider:\s*unknown\s*$') -and
+    ($text -match '(?m)^\s*input_tokens:\s*0\s*$') -and
+    ($text -match '(?m)^\s*output_tokens:\s*0\s*$') -and
+    ($text -match '(?m)^\s*estimated_cost:\s*0(?:\.0+)?\s*$')
+  [PSCustomObject]@{
+    Valid = ($missing.Count -eq 0)
+    Missing = $missing
+    Unmetered = $zeroUsage
+  }
 }
 
 switch ($Phase) {
@@ -84,6 +99,10 @@ switch ($Phase) {
       Add-Issue 'Usage ledger is required for FinalCheck. Pass -UsageLedgerPath or -RunId.'
     } elseif (-not (Test-Path -LiteralPath $ledgerFullPath -PathType Leaf)) {
       Add-Issue "Usage ledger does not exist: $UsageLedgerPath"
+    } else {
+      $ledgerCheck = Test-UsageLedger $ledgerFullPath
+      if (-not $ledgerCheck.Valid) { Add-Issue "Usage ledger is missing required fields: $($ledgerCheck.Missing -join ', ')" }
+      if ($ledgerCheck.Unmetered -and (-not $AllowUnmeteredUsage)) { Add-Issue 'Usage ledger has zero or unknown metering. Add measured usage or explicitly pass -AllowUnmeteredUsage.' }
     }
 
     if ($Action -and ($Action -in @('change_bid', 'change_budget', 'delete_data', 'send_to_group', 'write_back', 'change_price', 'purchase_order', 'update_listing'))) {

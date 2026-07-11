@@ -13,6 +13,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+foreach ($value in @($EstimatedCost, $BaselineCost, $CostLimit)) {
+  if ($value -lt 0) {
+    throw 'EstimatedCost, BaselineCost, and CostLimit must be zero or greater.'
+  }
+}
+
 $computedSavings = $EstimatedSavings
 if (($computedSavings -eq 0) -and ($BaselineCost -gt 0)) {
   $computedSavings = $BaselineCost - $EstimatedCost
@@ -25,8 +31,14 @@ if (($computedSavingsRate -eq 0) -and ($BaselineCost -gt 0)) {
 
 $computedCostStatus = $CostStatus
 $computedContinueOrStop = $ContinueOrStop
+$exceedsBaselineGuard = ($BaselineCost -gt 0) -and ($EstimatedCost -gt ($BaselineCost * 2))
 if (($CostLimit -gt 0) -and ($EstimatedCost -gt $CostLimit)) {
   $computedCostStatus = 'over_limit'
+  if ($computedContinueOrStop -eq 'continue') {
+    $computedContinueOrStop = 'needs_confirmation'
+  }
+} elseif ($exceedsBaselineGuard) {
+  $computedCostStatus = 'over_baseline_guard'
   if ($computedContinueOrStop -eq 'continue') {
     $computedContinueOrStop = 'needs_confirmation'
   }

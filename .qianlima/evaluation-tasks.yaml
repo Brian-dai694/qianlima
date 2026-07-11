@@ -185,6 +185,9 @@ evaluation_tasks:
       - id: hard_blocks_checked
         description: Credentials, unconfirmed write-back, and missing artifacts are checked as hard blocks.
         required: true
+      - id: evidence_pack_consistent
+        description: Trace and usage ledger reference the same report artifact being evaluated.
+        required: true
       - id: next_optimization_recorded
         description: The eval report lists the next optimization action.
         required: true
@@ -228,4 +231,23 @@ evaluation_tasks:
         required: true
       - id: browser_cost_savings_visible
         description: Output shows whether snapshots, task-space reuse, batching, or reusable workflows reduced cost.
+        required: true
+
+  - id: eval_skill_evolution_observe
+    name: Skill evolution observation safety check
+    workflow_id: skill_evolution
+    frequency: every_run
+    source: skill-evolution.yaml
+    checks:
+      - id: feedback_redacted
+        description: Feedback record excludes credentials and direct personal contact information.
+        required: true
+      - id: layer_explicit
+        description: Candidate identifies routing, instruction, or resource as its target layer.
+        required: true
+      - id: proposal_has_evidence_metric_rollback
+        description: Candidate proposal cites evidence, a success metric, and a rollback plan.
+        required: true
+      - id: no_auto_production_edit
+        description: Workflow does not edit a production skill, router, permission, or external system automatically.
         required: true

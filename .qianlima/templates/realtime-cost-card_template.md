@@ -18,7 +18,7 @@
 |---|---|
 | `estimated_cost` | 当前任务或当前步骤的估算成本 |
 | `currency` | 币种，默认 USD |
-| `cost_status` | `estimate`、`exact`、`unknown`、`over_limit` |
+| `cost_status` | `estimate`、`exact`、`unknown`、`over_limit`、`over_baseline_guard` |
 | `cost_limit` | 预算上限；未设置时写 `未设置` |
 | `estimated_savings` | 相比基线节约金额 |
 | `estimated_savings_rate_pct` | 相比基线节约比例 |
@@ -31,4 +31,5 @@
 - 非简单任务必须输出成本卡。
 - 执行高成本工具、长文件摘要、跨 Agent 分派前，先输出成本卡或成本预估。
 - 超过预算上限时，`continue_or_stop` 必须为 `需要确认` 或 `停止`。
+- 当前估算超过基线 2 倍时，`continue_or_stop` 必须为 `需要确认` 或 `停止`。
 - 没有精确计费时，不得省略成本卡；应将 `cost_status` 标为 `estimate` 或 `unknown`。

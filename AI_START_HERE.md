@@ -18,38 +18,48 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 .qianlima/WORKSPACE_INDEX.md
 .qianlima/workspace-index.json
 .qianlima/logs/bootstrap-qianlima-latest.json
+.qianlima/codex-router.json
 ```
+
+首次启动、配置变更或使用 `-Force` 时会重建并校验。未改配置时会显示 `Startup mode: cached`，直接复用已验证的索引和轻量路由，不再重复做完整启动。
 
 ## 第二步：先读索引
 
-索引生成后，必须先读：
+完整启动后，必须先读：
 
 ```text
 .qianlima/WORKSPACE_INDEX.md
 ```
 
-然后再按索引里的顺序读取：
+然后只读取核心启动包：
 
 ```text
-.qianlima/README.md
-.qianlima/work.ws
-.qianlima/workflow-index.yaml
+.qianlima/CODEX_BOOT.md
 .qianlima/risk-rules.yaml
-.qianlima/context-policy.yaml
-.qianlima/model-adapters.yaml
 ```
+
+缓存启动且任务低风险时，可先读取：
+
+```text
+.qianlima/CODEX_BOOT.md
+.qianlima/codex-router.json
+```
+
+普通聊天不需要加载运营工作区。高风险、歧义或跨系统任务必须回读完整索引与风险规则。
 
 ## 第三步：按任务加载文件
 
 不要一次性读取整个工作区。
 
-根据用户说的话选择对应任务卡：
+根据用户说的话选择对应任务卡，再按需读取对应 workflow、template 与治理文件：
 
 ```text
 .qianlima/task-cards/
 ```
 
-再读取对应 workflow、template、data-sources 和 file-registry。
+- 长文件或多文件：读取 `context-policy.yaml`。
+- 需要模型选择或成本预估：读取 `model-adapters.yaml`。
+- 需要真实业务状态或数据：读取私有 `work.ws`、`data-sources.yaml` 和 `file-registry.yaml`。
 
 ## 可选：EverOS 记忆层
 
