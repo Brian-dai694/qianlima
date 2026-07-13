@@ -273,6 +273,23 @@ loop_engineering:
       on_loop_exhausted: "达到 max_iterations 仍未收敛 → 降级输出，标注 'best_effort'"
       on_loop_blocked: "关键数据源不可用 → 暂停循环，通知用户，等待恢复"
 
+  # ── 运行时驱动 ──────────────────────────────────────────────
+
+  runtime:
+    driver: scripts/invoke-qianlima-loop.ps1
+    description: >
+      数据驱动的循环状态机，四种 loop 共用一套引擎，转移表镜像本文件的 loop_types。
+      Start 在 loop 首阶段建状态；Advance 按 Outcome 转移，retry 类 Outcome 递增
+      iteration 并在达到 max_iterations 时冻结；Status 报告当前状态。
+    state_file: ".qianlima/run-traces/loop-{run_id}.json"
+    terminal_states: [completed, failed, frozen, stopped]
+    outcomes_by_loop:
+      SDR: [scan_complete, doubt_complete, reconcile_ok, reconcile_blind_spots, stop]
+      EVR: [execute_complete, verify_pass, verify_issues, verify_critical, refine_complete, stop]
+      PBV: [plan_ready, build_complete, verify_pass, verify_issues, verify_critical, stop]
+      EDA: [explore_complete, decide_ok, decide_low_confidence, act_complete, observe_complete, stop]
+    tested_by: tests/invoke-qianlima-loop.Tests.ps1
+
   # ── Workflow 映射 ──────────────────────────────────────────
 
   workflow_loop_mapping:
