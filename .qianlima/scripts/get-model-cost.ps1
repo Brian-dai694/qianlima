@@ -1,3 +1,26 @@
+<#
+.SYNOPSIS
+  Compute the cost of a model call from the pricing catalog.
+.DESCRIPTION
+  Looks up (Provider, Model) in model-pricing.json and computes cost from input,
+  output, and cached-input token counts. Validates that token counts are
+  non-negative and that cached input does not exceed total input. Throws when the
+  catalog is missing or the model is not found. Can emit JSON with -AsJson.
+.PARAMETER Provider
+  Model provider (e.g. anthropic). Mandatory.
+.PARAMETER Model
+  Model id (e.g. claude-opus-4-8). Mandatory.
+.PARAMETER InputTokens
+  Total input tokens (includes any cached input).
+.PARAMETER CachedInputTokens
+  Portion of input tokens served from cache; must be <= InputTokens.
+.PARAMETER CatalogPath
+  Path to the pricing catalog. Defaults to ..\model-pricing.json.
+.PARAMETER AsJson
+  Emit the result as JSON instead of a formatted summary.
+.EXAMPLE
+  ...get-model-cost.ps1 -Provider anthropic -Model claude-opus-4-8 -InputTokens 9000 -OutputTokens 1500
+#>
 param(
   [Parameter(Mandatory = $true)]
   [string]$Provider,

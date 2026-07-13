@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+  Render a user-facing realtime cost card.
+.DESCRIPTION
+  Computes savings and savings rate from an estimated cost against a baseline
+  cost, then prints an ASCII cost card (cost, baseline, savings, savings source,
+  cost status, continue-or-stop). Uses ASCII output to avoid Windows PowerShell
+  encoding issues. Throws if any cost value is negative. Savings and savings rate
+  are auto-derived from BaselineCost when not supplied.
+.PARAMETER EstimatedCost
+  Estimated cost of the task (>= 0).
+.PARAMETER BaselineCost
+  Reference/naive baseline cost used to compute savings (>= 0).
+.PARAMETER SavingsSource
+  Short label for where the savings come from (e.g. context_reduction).
+.PARAMETER ContinueOrStop
+  Recommendation string surfaced on the card: continue | stop.
+.EXAMPLE
+  ...new-cost-card.ps1 -EstimatedCost 0.03 -BaselineCost 0.10 -SavingsSource context_reduction
+#>
 param(
   [decimal]$EstimatedCost = 0,
   [decimal]$BaselineCost = 0,

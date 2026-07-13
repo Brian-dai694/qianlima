@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+  Runtime safety gate for Qianlima workflow phases.
+.DESCRIPTION
+  Enforces runtime policy at each lifecycle phase. Blocks high-risk actions
+  (e.g. change_bid, change_budget) unless -Confirmed is passed, validates source
+  citation, and checks usage-ledger / decision-log requirements. Exits non-zero
+  when a gate fails; CI relies on this to assert unconfirmed high-risk actions
+  are blocked.
+.PARAMETER Phase
+  Lifecycle phase: SessionStart | BeforeToolUse | AfterToolUse | FinalCheck.
+.PARAMETER Action
+  The action about to run (e.g. change_bid); high-risk actions require -Confirmed.
+.PARAMETER Confirmed
+  Marks a high-risk action as explicitly user-confirmed, allowing it to pass.
+.PARAMETER WorkflowId
+  Workflow being executed, used for policy lookup.
+.EXAMPLE
+  ...invoke-runtime-check.ps1 -Phase BeforeToolUse -Action change_bid -Confirmed
+#>
 param(
   [ValidateSet('SessionStart', 'BeforeToolUse', 'AfterToolUse', 'FinalCheck')]
   [string]$Phase,

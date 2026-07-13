@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+  Strict public-safe verification for the Qianlima workspace.
+.DESCRIPTION
+  Checks that required public-safe files, runtime directories, and project files
+  exist; that the workspace index is fresh; that workflow-index references resolve
+  and every task-card id has a matching workflow-index entry. Warns (does not fail)
+  when private local files are present so you can confirm they stay gitignored.
+  Exits non-zero when any Issue is found; used locally before commit and in CI.
+.PARAMETER Root
+  The .qianlima workspace root. Defaults to the parent of this script's folder.
+.PARAMETER MaxIndexAgeHours
+  Maximum allowed age of the generated workspace index before it is flagged stale.
+.EXAMPLE
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\.qianlima\scripts\verify-qianlima.ps1
+.OUTPUTS
+  Human-readable pass/fail summary with Issues and Warnings counts.
+#>
 param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
   [int]$MaxIndexAgeHours = 24
