@@ -6,6 +6,12 @@ Claude Code 进入本目录后，先执行：
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 ```
 
+macOS / Linux（需先装 PowerShell 7）：
+
+```bash
+./start-qianlima.sh
+```
+
 然后读取：
 
 ```text

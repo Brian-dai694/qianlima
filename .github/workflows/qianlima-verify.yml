@@ -48,3 +48,27 @@ jobs:
           $cfg.Run.Exit = $true
           $cfg.Output.Verbosity = 'Detailed'
           Invoke-Pester -Configuration $cfg
+
+  verify-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Startup via pwsh -File (index + validation)
+        shell: bash
+        run: |
+          pwsh -NoProfile -File ./start-qianlima.ps1
+          test -f .qianlima/WORKSPACE_INDEX.md
+          test -f .qianlima/workspace-index.json
+
+      - name: Startup via bash wrapper
+        shell: bash
+        run: |
+          chmod +x ./start-qianlima.sh
+          ./start-qianlima.sh -SkipValidation
+
+      - name: Strict public-safe verification (pwsh)
+        shell: bash
+        run: |
+          pwsh -NoProfile -File ./.qianlima/scripts/verify-qianlima.ps1

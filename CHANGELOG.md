@@ -2,6 +2,13 @@
 
 本项目遵循语义化版本。日期为公开模板仓的发布日。
 
+## [v2.7.2] - 2026-07-14
+- 跨平台启动：新增 `start-qianlima.sh`（macOS/Linux 入口，检测 `pwsh`、缺失即明确报错，不谎报成功；透传 `-SkipValidation`/`-Force`/`-Quiet`）
+- 文档补 macOS/Linux 命令（README/AGENTS/CLAUDE/AI_START_HERE）
+- CI 新增 `verify-macos` job：`pwsh -File` + `.sh` wrapper + 严格公开校验
+- `.gitattributes` 固定 `*.sh`/`*.command` 为 LF，防 CRLF 破坏 shebang
+- 说明：`start-qianlima.ps1` 已用 `Invoke-QianlimaScript`（`& $Path` 同进程调用），本身即 pwsh 兼容，无需改动
+
 ## [v2.7.1] - 2026-07-13
 - 公开 harness 版本号对齐 v2.7.1；补齐分层启动、运行时策略、命令安全、评估、观测、记忆卡、子代理分工与状态化 Loop 的安全模板
 - 新增安全 agent harness 运行时（runtime-protocol / task-runtime）

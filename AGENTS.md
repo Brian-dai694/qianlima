@@ -20,11 +20,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\qianlim
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 ```
 
+   macOS / Linux（需先装 PowerShell 7）：`./start-qianlima.sh`
+
 4. L4、高风险任务、规则或目录变更时运行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1" -Force
 ```
+
+   macOS / Linux：`./start-qianlima.sh -Force`
 
 5. 查看启动结果：
 

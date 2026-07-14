@@ -10,6 +10,12 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 ```
 
+macOS / Linux（需先装 PowerShell 7）：
+
+```bash
+./start-qianlima.sh
+```
+
 普通用户也可以使用中文入口：`启动千里马计划.ps1`。
 
 这个脚本会自动生成：
