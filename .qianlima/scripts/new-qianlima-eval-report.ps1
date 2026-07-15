@@ -1,16 +1,40 @@
+<#
+.SYNOPSIS
+Score a workflow run report across intent, quality, execution, cost and risk.
+.DESCRIPTION
+Inspects a report artifact plus optional trace and usage ledger files, scans the
+content for goals, structure, sources, cost cards and high-risk actions, then
+computes a weighted score. Applies hard blocks for missing artifacts, detected
+credentials or unconfirmed high-risk actions, and writes a Markdown eval report
+with a pass, review or blocked status.
+.PARAMETER WorkflowId
+Workflow identifier used to name the run and output report.
+.PARAMETER ReportPath
+Path to the report artifact to evaluate (required for context levels above L0).
+.PARAMETER ContextLevel
+Context depth L0-L4 that adjusts required evidence and latency targets (default L2).
+.PARAMETER EstimatedCostUsd
+Estimated run cost in USD; compared against baseline and limit when provided.
+.EXAMPLE
+.\new-qianlima-eval-report.ps1 -WorkflowId daily_ad_report -ReportPath .\reports\report.md
+#>
 param(
   [Parameter(Mandatory = $true)]
   [string]$WorkflowId,
 
-  [Parameter(Mandatory = $true)]
-  [string]$ReportPath,
+  [string]$ReportPath = '',
 
   [string]$UserGoal = '',
+  [ValidateSet('L0', 'L1', 'L2', 'L3', 'L4')]
+  [string]$ContextLevel = 'L2',
+  [string]$DirectAnswer = '',
   [string]$TracePath = '',
   [string]$UsagePath = '',
   [double]$EstimatedCostUsd = -1,
   [double]$BaselineCostUsd = -1,
   [double]$CostLimitUsd = -1,
+  [double]$FirstUsefulOutputMs = -1,
+  [double]$TotalDurationSeconds = -1,
   [string]$RunId = '',
   [string]$OutputPath = ''
 )
@@ -68,19 +92,37 @@ $traceFullPath = Get-ResolvedOrOriginal $TracePath
 $usageFullPath = Get-ResolvedOrOriginal $UsagePath
 $outputFullPath = Get-ResolvedOrOriginal $OutputPath
 
-$reportExists = Test-Path -LiteralPath $reportFullPath -PathType Leaf
+$reportExists = (-not [string]::IsNullOrWhiteSpace($reportFullPath)) -and (Test-Path -LiteralPath $reportFullPath -PathType Leaf)
 $traceExists = (-not [string]::IsNullOrWhiteSpace($TracePath)) -and (Test-Path -LiteralPath $traceFullPath -PathType Leaf)
 $usageExists = (-not [string]::IsNullOrWhiteSpace($UsagePath)) -and (Test-Path -LiteralPath $usageFullPath -PathType Leaf)
 
 $content = ''
 if ($reportExists) {
   $content = Get-Content -LiteralPath $reportFullPath -Encoding UTF8 -Raw
+} elseif ($ContextLevel -eq 'L0') {
+  $content = $DirectAnswer
 }
+
+$reportArtifactRequired = $ContextLevel -ne 'L0'
+$reportArtifactSatisfied = (-not $reportArtifactRequired) -or $reportExists
+$ledgerRequired = $ContextLevel -ne 'L0'
+$ledgerSatisfied = (-not $ledgerRequired) -or $usageExists
+$latencyTargetMs = switch ($ContextLevel) {
+  'L0' { 3000 }
+  'L1' { 8000 }
+  'L2' { 8000 }
+  default { 3000 }
+}
+$latencyMeasured = $FirstUsefulOutputMs -ge 0
+$latencyWithinTarget = $latencyMeasured -and $FirstUsefulOutputMs -le $latencyTargetMs
 
 $hasGoal = (-not [string]::IsNullOrWhiteSpace($UserGoal)) -or (Test-AnyPattern $content @('\u76ee\u6807', '\u4efb\u52a1', '\u9700\u6c42', 'User Goal', 'Goal'))
 $hasWorkflow = ($content -match [regex]::Escape($WorkflowId)) -or (-not [string]::IsNullOrWhiteSpace($WorkflowId))
 $hasAssumption = Test-AnyPattern $content @('\u5047\u8bbe', '\u524d\u63d0', '\u5f85\u786e\u8ba4', '\u5f85\u9a8c\u8bc1', 'Assumption', 'Pending')
 $hasAnswer = Test-AnyPattern $content @('\u7ed3\u8bba', '\u6458\u8981', '\u5efa\u8bae', '\u4e0b\u4e00\u6b65', '\u884c\u52a8', 'Conclusion', 'Recommendation', 'Next')
+if ($ContextLevel -eq 'L0' -and -not [string]::IsNullOrWhiteSpace($DirectAnswer)) {
+  $hasAnswer = $true
+}
 
 $headingCount = ([regex]::Matches($content, '(?m)^#{1,6}\s+')).Count
 $hasStructure = $headingCount -ge 3
@@ -110,11 +152,23 @@ $highRiskMentioned = Test-AnyPattern $content @('\u8c03\u4ef7', '\u7ade\u4ef7', 
 $hasConfirmation = Test-AnyPattern $content @('\u786e\u8ba4', '\u4e8c\u6b21\u786e\u8ba4', 'manual confirmation', 'approval', 'confirmed')
 $writeBackWithoutConfirmation = $highRiskMentioned -and (-not $hasConfirmation)
 
-$intentScore = Get-Ratio @($reportExists, $hasGoal, $hasWorkflow, $hasAssumption, $hasAnswer)
-$staticScore = Get-Ratio @($reportExists, $hasStructure, $hasTableOrList, $hasSource, $hasPending, (-not $credentialsDetected))
-$dynamicScore = Get-Ratio @($traceExists, $hasGate, $hasFailureRecord, $hasToolEvidence, $hasResumeState)
-$costScore = Get-Ratio @($hasCost, $underLimit, $hasSavings, $hasContextPolicy)
-$riskScore = Get-Ratio @(((-not $highRiskMentioned) -or $hasConfirmation), (-not $writeBackWithoutConfirmation), (-not $credentialsDetected), $hasPending)
+$intentScore = if ($ContextLevel -eq 'L0') {
+  Get-Ratio @($hasGoal, $hasAnswer)
+} else {
+  Get-Ratio @($reportArtifactSatisfied, $hasGoal, $hasWorkflow, $hasAssumption, $hasAnswer)
+}
+$staticScore = if ($ContextLevel -eq 'L0') {
+  Get-Ratio @($hasAnswer, (-not $credentialsDetected))
+} else {
+  Get-Ratio @($reportArtifactSatisfied, $hasStructure, $hasTableOrList, (($ContextLevel -in @('L1')) -or $hasSource), (($ContextLevel -in @('L1')) -or $hasPending), (-not $credentialsDetected))
+}
+$dynamicScore = if ($ContextLevel -eq 'L0') {
+  Get-Ratio @($latencyWithinTarget)
+} else {
+  Get-Ratio @((($ContextLevel -in @('L1')) -or $traceExists), $hasGate, $hasFailureRecord, $hasToolEvidence, $hasResumeState, $ledgerSatisfied, $latencyWithinTarget)
+}
+$costScore = if ($ContextLevel -eq 'L0') { 1.0 } else { Get-Ratio @($hasCost, $underLimit, $hasSavings, $hasContextPolicy) }
+$riskScore = if ($ContextLevel -eq 'L0') { Get-Ratio @((-not $credentialsDetected)) } else { Get-Ratio @(((-not $highRiskMentioned) -or $hasConfirmation), (-not $writeBackWithoutConfirmation), (-not $credentialsDetected), $hasPending) }
 
 $weightedScore = [Math]::Round(
   ($intentScore * 0.25) +
@@ -126,7 +180,8 @@ $weightedScore = [Math]::Round(
 )
 
 $hardBlocks = New-Object System.Collections.Generic.List[string]
-if (-not $reportExists) { $hardBlocks.Add('missing_report_artifact') }
+if (-not $reportArtifactSatisfied) { $hardBlocks.Add('missing_report_artifact') }
+if (-not $ledgerSatisfied) { $hardBlocks.Add('missing_usage_ledger') }
 if ($credentialsDetected) { $hardBlocks.Add('credentials_detected') }
 if ($writeBackWithoutConfirmation) { $hardBlocks.Add('high_risk_action_without_confirmation') }
 
@@ -140,18 +195,21 @@ if ($hardBlocks.Count -gt 0) {
 }
 
 $pendingItems = New-Object System.Collections.Generic.List[string]
-if (-not $traceExists) { $pendingItems.Add('Trace file missing or not provided.') }
-if (-not $usageExists) { $pendingItems.Add('Usage ledger file missing or not provided.') }
-if (-not $hasSource) { $pendingItems.Add('Source or evidence section is missing.') }
-if (-not $hasCost) { $pendingItems.Add('Cost card is missing.') }
+if ($ContextLevel -ne 'L0' -and -not $traceExists) { $pendingItems.Add('Trace file missing or not provided.') }
+if ($ContextLevel -ne 'L0' -and -not $usageExists) { $pendingItems.Add('Usage ledger file missing or not provided.') }
+if (-not $latencyMeasured) { $pendingItems.Add('First useful output latency is missing.') }
+elseif (-not $latencyWithinTarget) { $pendingItems.Add("First useful output exceeded ${latencyTargetMs}ms.") }
+if ($ContextLevel -notin @('L0', 'L1') -and -not $hasSource) { $pendingItems.Add('Source or evidence section is missing.') }
+if ($ContextLevel -ne 'L0' -and -not $hasCost) { $pendingItems.Add('Cost card is missing.') }
 if ($pendingItems.Count -eq 0) { $pendingItems.Add('None.') }
 
 $nextItems = New-Object System.Collections.Generic.List[string]
 if ($intentScore -lt 0.8) { $nextItems.Add('Restate user goal, assumptions, and the workflow match.') }
-if ($staticScore -lt 0.8) { $nextItems.Add('Add source citations, pending verification, and a clearer report structure.') }
-if ($dynamicScore -lt 0.8) { $nextItems.Add('Attach trace logs and verification gate results.') }
-if ($costScore -lt 0.8) { $nextItems.Add('Add visible cost card and savings versus baseline.') }
-if ($riskScore -lt 0.8) { $nextItems.Add('List high-risk actions and confirmation status explicitly.') }
+if ($ContextLevel -ne 'L0' -and $staticScore -lt 0.8) { $nextItems.Add('Add source citations, pending verification, and a clearer report structure.') }
+if ($ContextLevel -ne 'L0' -and $dynamicScore -lt 0.8) { $nextItems.Add('Attach trace logs and verification gate results.') }
+if (-not $latencyWithinTarget) { $nextItems.Add('Record and reduce first useful output latency for the selected context level.') }
+if ($ContextLevel -ne 'L0' -and $costScore -lt 0.8) { $nextItems.Add('Add visible cost card and savings versus baseline.') }
+if ($ContextLevel -ne 'L0' -and $riskScore -lt 0.8) { $nextItems.Add('List high-risk actions and confirmation status explicitly.') }
 if ($nextItems.Count -eq 0) { $nextItems.Add('Keep as baseline candidate for future private shadow evaluation.') }
 
 $hardBlockText = if ($hardBlocks.Count -gt 0) {
@@ -191,6 +249,8 @@ $UserGoal
 | Trace | $traceFullPath | $(Format-Status $traceExists) |
 | Usage | $usageFullPath | $(Format-Status $usageExists) |
 | Cost | $costValue | $costStatus |
+| Context level | $ContextLevel | ok |
+| First useful output | $(if ($latencyMeasured) { "$FirstUsefulOutputMs ms" } else { 'not provided' }) | $(Format-Status $latencyWithinTarget) |
 
 ## Scores
 
@@ -198,7 +258,7 @@ $UserGoal
 |---|---:|---:|---|
 | Intent Alignment | 0.25 | $intentScore | goal=$hasGoal; assumptions=$hasAssumption; answer=$hasAnswer |
 | Evidence / Static Quality | 0.25 | $staticScore | headings=$headingCount; source=$hasSource; credentials_detected=$credentialsDetected |
-| Dynamic Execution Quality | 0.25 | $dynamicScore | trace=$traceExists; gate=$hasGate; resume=$hasResumeState |
+| Dynamic Execution Quality | 0.25 | $dynamicScore | trace=$traceExists; gate=$hasGate; ledger=$ledgerSatisfied; latency=$latencyWithinTarget |
 | Cost Savings / Efficiency | 0.15 | $costScore | cost_card=$hasCost; under_limit=$underLimit; savings=$hasSavings |
 | Risk Control | 0.10 | $riskScore | high_risk=$highRiskMentioned; confirmation=$hasConfirmation |
 

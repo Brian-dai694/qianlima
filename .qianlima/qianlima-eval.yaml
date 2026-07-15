@@ -1,6 +1,6 @@
 qianlima_eval:
-  version: v2.6.7
-  updated: 2026-07-10
+  version: v2.7.1
+  updated: 2026-07-13
   purpose: >
     Add a MiniAppBench-inspired evaluation layer for Qianlima workflow runs.
     The goal is to score whether an agent run understood the task, produced
@@ -123,6 +123,18 @@ qianlima_eval:
       purpose: "Real business cases and withheld references; never push to Git-safe public repo."
     rule: "Do not tune a workflow only to pass public checks. Private cases decide production reliability."
 
+  evolution_promotion:
+    policy: .qianlima/evolution/policy.yaml
+    suite_manifest: .qianlima/evolution/eval-cases/manifest.yaml
+    required_suites: [update_validation, id_holdout, ood_holdout, replay]
+    required_results:
+      - same_domain_quality_not_lower
+      - replay_has_no_regression
+      - L4_gate_is_not_weakened
+      - first_useful_output_is_not_slower
+      - tested_with_is_recorded
+    rule: "An evaluation result may approve or reject a candidate, but never edits production rules by itself."
+
   output_contract:
     eval_report_template: ".qianlima/templates/qianlima-eval-report_template.md"
     eval_script: ".qianlima/scripts/new-qianlima-eval-report.ps1"
@@ -139,3 +151,6 @@ qianlima_eval:
       - weighted_score
       - status
       - next_optimization
+      - context_level
+      - latency_gate
+      - ledger_gate

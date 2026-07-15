@@ -9,6 +9,42 @@ workflow:
   status: draft
   description: 每天读取昨日广告数据，计算核心指标，识别异常，生成结构化日报
 
+  runtime_policy:
+    source: agent-runtime-policy.yaml
+    context_level: L3
+    budget_profile: default_budgets
+    state_machine: agent_runtime_policy.state_machine
+    first_delivery: status_card_then_preliminary_judgment
+
+  subagent_plan:
+    source: subagent-orchestration.yaml
+    pattern: build_verify_pair
+    budget:
+      max_children: 3
+      max_concurrent: 2
+    stages:
+      - id: fetch_ad_data
+        role: explore
+        permissions: [read_data_sources]
+        output: normalized_ad_data_summary
+      - id: generate_report
+        role: maker
+        maps_to: implementer
+        input_from: fetch_ad_data
+        permissions: [write_local_report]
+        output: report_draft
+      - id: verify_report
+        role: checker
+        maps_to: verifier
+        input_from: report_draft
+        context_isolation: required
+        permissions: [read_report, read_source_summary]
+        output: verification_result
+    parent_rules:
+      - "Only the parent can mark the workflow completed."
+      - "Checker cannot perform report writes or external actions."
+      - "A failed checker result returns the draft to the maker or freezes the run."
+
   schedule:
     type: daily
     time: "09:30"
@@ -157,8 +193,9 @@ workflow:
     auxiliary:
       - format: json
         path: logs/{date}_daily_ad_report_trace.json
-      - format: yaml
-        path: usage-ledger/{date}_daily_ad_report_usage.yaml
+      - format: jsonl
+        path: usage-ledger/runs.jsonl
+        write_mode: append_only
 
   # ── 质量门 ──
   quality_gates:
@@ -217,7 +254,7 @@ workflow:
     writes:
       - reports/{date}_广告运营_日报_{marketplace}_V{version}.md
       - logs/{date}_daily_ad_report_trace.json
-      - usage-ledger/{date}_daily_ad_report_usage.yaml
+      - usage-ledger/runs.jsonl
     updates:
       - file-registry.yaml
       - work.ws
@@ -238,6 +275,8 @@ workflow:
   loop:
     type: EVR                              # Execute → Verify → Refine
     source: loop-engineering.yaml
+    runner: scripts/invoke-qianlima-loop.ps1
+    runner_mode: stateful_local_trace
 
     # 将原有 8 步映射到 EVR 阶段
     phases:

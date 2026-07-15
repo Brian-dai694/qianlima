@@ -1,0 +1,92 @@
+name: Qianlima Verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Startup skeleton validation
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
+
+      - name: Strict public-safe verification
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-qianlima.ps1"
+
+      - name: Evolution policy regression
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-evolution-policy.ps1"
+
+      - name: Runtime checks
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase SessionStart -WorkflowId competitor_comparison
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase BeforeToolUse -Action change_bid -Confirmed
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-runtime-check.ps1" -Phase BeforeToolUse -Action change_bid
+          if ($LASTEXITCODE -eq 0) {
+            throw "Unconfirmed high-risk action was not blocked."
+          }
+
+          Write-Host "Unconfirmed high-risk action was blocked as expected."
+          $global:LASTEXITCODE = 0
+
+      - name: Pester unit tests
+        shell: powershell
+        run: |
+          Import-Module Pester -MinimumVersion 5.0 -ErrorAction Stop
+          Write-Host ("Pester " + (Get-Module Pester).Version)
+          $cfg = New-PesterConfiguration
+          $cfg.Run.Path = '.\tests'
+          $cfg.Run.Exit = $true
+          $cfg.Output.Verbosity = 'Detailed'
+          Invoke-Pester -Configuration $cfg
+
+  verify-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PowerShell 7
+        shell: bash
+        run: |
+          if ! command -v pwsh >/dev/null 2>&1; then
+            brew install --cask powershell
+          fi
+          pwsh --version
+
+      - name: Startup via pwsh -File (index + validation)
+        shell: bash
+        run: |
+          pwsh -NoProfile -File ./start-qianlima.ps1
+          test -f .qianlima/WORKSPACE_INDEX.md
+          test -f .qianlima/workspace-index.json
+
+      - name: Startup via bash wrapper
+        shell: bash
+        run: |
+          chmod +x ./start-qianlima.sh
+          ./start-qianlima.sh -SkipValidation
+
+      - name: Strict public-safe verification (pwsh)
+        shell: bash
+        run: |
+          pwsh -NoProfile -File ./.qianlima/scripts/verify-qianlima.ps1
+
+      - name: Evolution policy regression (pwsh)
+        shell: bash
+        run: |
+          pwsh -NoProfile -File ./.qianlima/scripts/test-evolution-policy.ps1

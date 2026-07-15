@@ -51,6 +51,11 @@ daily-summaries/
 # 反馈
 .qianlima/feedback/
 
+# Evolution experiments may contain real-task feedback. Keep only public templates and decisions.
+.qianlima/evolution/candidates/*
+!.qianlima/evolution/candidates/README.md
+!.qianlima/evolution/candidates/candidate-template.yaml
+
 # 评估结果
 .qianlima/evaluations/
 

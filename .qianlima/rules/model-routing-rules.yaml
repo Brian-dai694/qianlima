@@ -1,0 +1,221 @@
+# model-routing-rules.yaml — 模型分级路由规则
+# 版本: v1.0 | 创建: 2026-07-11
+# 用途: 按任务复杂度自动匹配模型 tier，避免"大炮打蚊子"
+# 设计参考: Datadog 2026 State of AI Engineering — model routing by task complexity
+#           agent-skills Progressive Disclosure — 按场景只加载相关组件
+
+model_routing:
+  version: "1.0"
+  principle: >
+    不是所有任务都需要 Pro 模型。简单任务用轻量模型，
+    复杂任务用深度模型。路由决策透明，不回退到更低质量。
+
+  # ── 模型 Tier 定义 ────────────────────────────────────────────
+
+  tiers:
+    - id: L0
+      name: "零模型 / 脚本直出"
+      description: "不经过 LLM，直接用脚本/MCP/CLI 完成"
+      model_requirement: none
+      cost_multiplier: 0
+      decision_rule: "任务可被纯脚本逻辑表达（读写、计算、格式转换）"
+      examples:
+        - "lark-cli api GET/PUT 飞书表格"
+        - "PowerShell 正则提取/CSV 聚合"
+        - "Pangolinfo MCP 关键词排名直出"
+
+    - id: L1
+      name: "轻量 / Flash 级"
+      description: "模板填充、简单判断、格式校验 — 小模型足够"
+      model_suggestion:
+        anthropic: "claude-haiku-4-5"
+        deepseek: "deepseek-chat (flash)"
+        openai: "gpt-4o-mini"
+        google: "gemini-flash"
+      cost_multiplier: 0.05        # 相对 L2 的成本比例
+      decision_rule: "任务逻辑简单、无多步推理、无竞品对比、无策略判断"
+      max_input_tokens: 8000
+      examples:
+        - "填入日报模板（数据已有）"
+        - "库存 = 在手/日均 → < 安全线? → 告警"
+        - "利润 = 售价 × (1-佣金%) - FBA - 成本"
+        - "启动 bootstrap 文件读取"
+        - "关键词排名简单对比（昨天 vs 今天）"
+
+    - id: L2
+      name: "标准 / 主力模型"
+      description: "广告分析、关键词归因、Listing 诊断 — 主力模型"
+      model_suggestion:
+        anthropic: "claude-sonnet-4-6"
+        deepseek: "deepseek-v4-pro"
+        openai: "gpt-4o"
+        google: "gemini-pro"
+      cost_multiplier: 1.0         # 基线
+      decision_rule: "需要分析推理、多源交叉验证、或生成诊断建议"
+      max_input_tokens: 30000
+      examples:
+        - "广告日报（读多源 → 分析 ACoS/CVR/CTR → 生成报告 + 建议）"
+        - "关键词排名变动归因（为什么跌？竞品？广告？自然？）"
+        - "Listing 标题/五点/描述诊断 + 优化建议"
+        - "资料消化（外部文档 → 摘要 → 提炼行动项）"
+        - "流量异常诊断（多源交叉验证 + 根因分析）"
+
+    - id: L3
+      name: "深度 / Pro 级"
+      description: "竞品矩阵、选品决策、多维度复盘 — 最强模型"
+      model_suggestion:
+        anthropic: "claude-opus-4-8"
+        deepseek: "deepseek-v4-pro (reasoning mode)"
+        openai: "gpt-4o / o1"
+        google: "gemini-ultra"
+      cost_multiplier: 4.0         # 相对 L2 的成本比例
+      decision_rule: "涉及多维度权衡、不确定性高、商业决策后果大"
+      max_input_tokens: 80000
+      examples:
+        - "竞品矩阵对比（5+ ASIN 多维：价格/评分/关键词/广告/Listing 质量）"
+        - "新品选品完整评估（市场容量 + 竞争格局 + 利润模型 + 差异化 + 风险评估）"
+        - "PD/大促后全面复盘 + 策略调整建议"
+        - "Exploration Engine 多 trial 策略探索"
+
+  # ── Workflow → Tier 映射 ─────────────────────────────────────
+
+  workflow_tier_map:
+    # L0: 零模型
+    - workflow_id: sales_ledger
+      tier: L1
+      l0_capable: true
+      note: "纯数据读写场景可跳过 LLM 直接走脚本；套模板场景用 L1"
+
+    # L1: 轻量
+    - workflow_id: inventory_alert
+      tier: L1
+      note: "简单阈值判断，不需要深度推理"
+
+    - workflow_id: profit_check
+      tier: L1
+      note: "数学公式计算，需加载费率假设"
+
+    - workflow_id: startup_bootstrap
+      tier: L1
+      note: "文件读取 + 索引生成，无推理需求"
+
+    # L2: 标准
+    - workflow_id: daily_ad_report
+      tier: L2
+      note: "多源分析 + 诊断建议，需要 L2 推理能力"
+
+    - workflow_id: keyword_rank_scan
+      tier: L2
+      note: "SDR Loop 需要 Doubt Pass 推理"
+
+    - workflow_id: keyword_monitoring
+      tier: L2
+      note: "排名变动归因需要推理"
+
+    - workflow_id: listing_optimization
+      tier: L2
+      note: "需引用规则文件 + 竞品关键词分析"
+
+    - workflow_id: traffic_anomaly_diagnosis
+      tier: L2
+      note: "根因分析需要多源交叉验证推理"
+
+    - workflow_id: knowledge_digest
+      tier: L2
+      note: "理解外部资料 + 提炼行动项"
+
+    - workflow_id: profit_review
+      tier: L2
+      note: "多月度对比 + what-if 分析"
+
+    - workflow_id: keyword_demand_lifecycle_timing
+      tier: L2
+      note: "三层需求分析需要推理"
+
+    # L3: 深度
+    - workflow_id: competitor_comparison
+      tier: L3
+      note: "多 ASIN 多维对比，商业决策后果大"
+
+    - workflow_id: product_discovery
+      tier: L3
+      note: "全维度选品评估，不确定性高"
+
+    - workflow_id: strategy_exploration
+      tier: L3
+      note: "多 trial 策略探索，需要深度推理"
+
+  # ── 路由决策流程 ──────────────────────────────────────────────
+
+  routing_decision_flow:
+    steps:
+      - step: 1
+        action: "识别 workflow_id"
+        description: "根据用户意图 + natural-language-router 匹配 workflow"
+
+      - step: 2
+        action: "查 workflow_tier_map"
+        description: "获取该 workflow 的默认 tier"
+
+      - step: 3
+        action: "检查升级/降级条件"
+        description: "特殊情况可覆盖默认 tier"
+
+      - step: 4
+        action: "执行 + 记录"
+        description: "usage-ledger 记录实际使用的 tier 和 estimated_cost"
+
+  # ── 升级/降级条件 ──────────────────────────────────────────────
+
+  upgrade_conditions:
+    - condition: "用户明确要求深度分析"
+      action: "tier +1（如 L2 → L3）"
+      example: "'帮我深度分析这个竞品' → competitor_comparison 从 L2 升 L3"
+
+    - condition: "涉及高金额决策（预算调整 > $100、选品投入 > $5000）"
+      action: "tier +1"
+      example: "'这批货要不要备 500 套' → 自动升级到 L3"
+
+    - condition: "数据源质量差（多源矛盾、关键数据缺失）"
+      action: "tier +1（需要更强推理来弥补数据质量）"
+      example: "Pangolinfo 截断 + Sorftime 不可用 → 升级推理"
+
+  downgrade_conditions:
+    - condition: "连续 3 次实际成本 < baseline * 0.5"
+      action: "建议降 tier 并等待用户确认"
+      example: "daily_ad_report 连续 3 次 $0.40 → 建议降到 L1"
+
+    - condition: "用户指令明确简单（'只查一个数''只对比两个值'）"
+      action: "tier -1"
+      example: "'帮我看看库存还剩多少' → L1"
+
+    - condition: "纯数据查询无分析需求"
+      action: "直接 L0"
+      example: "'把飞书 Ad Daily 表的最新 3 行读给我' → L0"
+
+  # ── 回退策略 ──────────────────────────────────────────────────
+
+  fallback:
+    on_l0_failure: "自动升级到 L1"
+    on_l1_failure: "自动升级到 L2"
+    on_l2_failure: "提示用户：当前模型无法完成任务，是否升级到 L3？"
+    on_l3_failure: "提示用户：任务可能超出当前能力范围，建议拆分或降低期望"
+    max_auto_upgrade: 1
+    note: "最多自动升级 1 级，L2→L3 必须用户确认"
+
+  # ── 成本预估公式 ──────────────────────────────────────────────
+
+  cost_estimation:
+    formula: >
+      estimated_cost = (input_tokens × input_price + output_tokens × output_price)
+      × provider_multiplier × cache_hit_discount
+    cache_hit_discount: 0.10      # 缓存命中时输入 token 成本打 1 折
+    provider_multipliers:
+      deepseek: 0.15               # DeepSeek 相对 Anthropic 的价格比例
+      openai: 0.80
+      anthropic: 1.00              # 基准
+      google: 0.60
+    note: >
+      精确计费数据从 API response 的 usage 字段提取。
+      无法获取时使用 (typical_input_tokens × input_price + typical_output_tokens × output_price) 作为估计。
+      价格变动时参考 model-adapters.yaml 的最新价格表。

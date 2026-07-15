@@ -4,6 +4,8 @@ risk_rules:
     auto_write_allowed: false
     delete_allowed: false
     external_send_requires_confirmation: true
+    sandbox_policy: agent-runtime-policy.yaml
+    source_data_overwrite_allowed: false
 
   high_risk_actions:
     - id: change_bid
@@ -14,6 +16,15 @@ risk_rules:
       policy: second_confirmation_required
     - id: delete_data
       name: 删除数据
+      policy: command_safety_check_and_second_confirmation_required
+    - id: recursive_delete
+      name: 递归删除文件
+      policy: command_safety_check_and_second_confirmation_required
+    - id: overwrite_existing_files
+      name: 覆盖已有文件
+      policy: command_safety_check_and_confirmation_required
+    - id: move_outside_workspace
+      name: 移动文件到工作区外
       policy: blocked_by_default
     - id: send_to_group
       name: 发送到群聊
@@ -21,6 +32,12 @@ risk_rules:
     - id: write_back
       name: 写回外部系统
       policy: confirmation_required
+    - id: purchase_order
+      name: 创建采购订单
+      policy: second_confirmation_required
+    - id: change_price
+      name: 修改商品价格
+      policy: second_confirmation_required
 
   sensitive_data:
     default_policy: mask_or_aggregate
@@ -34,4 +51,3 @@ risk_rules:
       - bank_account
       - salary
       - contract_amount
-

@@ -1,0 +1,43 @@
+evolution_policy:
+  version: 1
+  purpose: "Validate small harness improvements before a human promotes them to production."
+  separation:
+    production_runtime:
+      reads_from: [AGENTS.md, CODEX_BOOT.md, task-cards, workflows, risk-rules.yaml, scripts]
+      must_not_read: [.qianlima/evolution/candidates]
+      rule: "Only approved, versioned production files may affect a live task."
+    experiment_runtime:
+      candidate_root: .qianlima/evolution/candidates
+      write_scope: [.qianlima/evolution/candidates, .qianlima/evolution/promotion-log.jsonl]
+      rule: "A candidate may be replayed or shadow-scored, but may not modify production files."
+  protected_targets:
+    require_human_approval: [AGENTS.md, .qianlima/CODEX_BOOT.md, .qianlima/risk-rules.yaml, .qianlima/agent-runtime-policy.yaml, .qianlima/scripts, start-qianlima.ps1]
+    never_auto_modify: [AGENTS.md, .qianlima/risk-rules.yaml, .qianlima/agent-runtime-policy.yaml, .qianlima/scripts]
+  candidate_contract:
+    required_fields: [candidate_id, target_layer, target_files, hypothesis, expected_benefit, tested_with, baseline_version, rollback_plan]
+    one_target_layer_per_candidate: true
+    allowed_target_layers: [entry_rule, task_card, workflow, skill, router, middleware, runtime]
+    forbidden_content: [credentials, raw_private_data, customer_identifiers, browser_exports]
+  evaluation_suites:
+    manifest: .qianlima/evolution/eval-cases/manifest.yaml
+    required: [update_validation, id_holdout, ood_holdout, replay]
+    speed_regression_metrics: [first_useful_output_ms, startup_ms, routing_ms, context_load_ms, tool_calls_count, usage_ledger_blocking_ms]
+    hard_failures: [L4_route_downgraded, L4_confirmation_missing, external_write_without_confirmation, destructive_guard_weakened, replay_case_regressed]
+  promotion_gate:
+    require_human_approval: true
+    require_all_suites_to_pass: true
+    require_same_domain_improvement: true
+    require_no_high_risk_regression: true
+    require_first_useful_output_not_slower: true
+    allow_equal_speed_when_quality_improves: true
+    reject_when: [protected_target_auto_modified, tested_with_missing, evidence_is_private_or_unredacted, model_compatibility_unknown]
+    decision_log: .qianlima/evolution/promotion-log.jsonl
+  model_compatibility:
+    required_field: tested_with
+    minimum_fields: [provider_or_agent, model_or_version, test_date, result]
+    rule: "A model-specific workaround must not become a global rule without cross-model evidence."
+  operating_mode:
+    frequency: low_batch
+    max_candidates_per_review: 3
+    automatic_promotion: false
+    automatic_rollback_of_production: false

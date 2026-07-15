@@ -1,0 +1,205 @@
+# Qianlima staged response policy
+# Version: v2.7.0 | Updated: 2026-07-11
+# Purpose: Deliver useful stage results quickly without weakening evidence or confirmation gates.
+
+response_policy:
+  version: "2.7.0"
+  principle: >
+    Every user-visible stage must add a fact, an exclusion, or an actionable judgment.
+    Progress-only messages are not stage delivery. Fast answers must expose their evidence grade.
+
+  service_levels:
+    - id: L0
+      name: direct_answer
+      applies_to: "Greeting, explanation, simple instruction, or non-business chat."
+      first_delivery: "Direct answer. Do not load the operations workspace or create a trace."
+      evidence_default: C
+      audit: none
+
+    - id: L1
+      name: known_context_answer
+      applies_to: "A low-risk question answerable from the current session state or a task memory card."
+      first_delivery: "State the known fact, its freshness, and the next check only if needed."
+      evidence_default: B
+      audit: minimal
+
+    - id: L2
+      name: routed_low_risk_task
+      applies_to: "A clearly routed read-only analysis or local draft."
+      first_delivery: "Name the route, the current working judgment, and the missing evidence."
+      evidence_default: C
+      audit: minimal
+
+    - id: L3
+      name: evidence_task
+      applies_to: "A task that needs external data, multiple sources, or a decision-quality recommendation."
+      first_delivery: "Name the route, the most relevant existing signal, and the evidence being collected."
+      evidence_default: C
+      audit: staged
+
+    - id: L4
+      name: controlled_action
+      applies_to: "Any price, bid, budget, purchase, deletion, external write, send, publish, or permission action."
+      first_delivery: "State that execution is blocked pending explicit confirmation; provide the proposed action and evidence needed."
+      evidence_default: A
+      audit: full
+      confirmation_required: true
+
+  time_budgets:
+    first_delivery_target_ms: 3000
+    route_target_ms: 1000
+    hot_state_lookup_target_ms: 500
+    data_fetch_timeout_ms: 10000
+    rule: "If evidence collection exceeds its budget, deliver a provisional judgment with evidence grade and pending checks."
+
+  evidence_grades:
+    A:
+      label: "实时数据"
+      meaning: "The source was read or verified during the current task."
+    B:
+      label: "近期缓存"
+      meaning: "A dated session state, task memory card, or daily snapshot was reused within its freshness policy."
+    C:
+      label: "历史记录或假设"
+      meaning: "The result is a route, prior context, historical record, or assumption and is not decision-final."
+
+  staged_delivery:
+    stage_0:
+      name: quick_classification
+      required_fields: [service_level, route, risk_status, next_action]
+    stage_1:
+      name: initial_judgment
+      required_fields: [known_fact_or_exclusion, evidence_grade, freshness, missing_evidence]
+    stage_2:
+      name: evidence_update
+      required_fields: [new_evidence, changed_judgment, sources, pending_checks]
+    stage_3:
+      name: decision_delivery
+      required_fields: [conclusion, evidence, risk, next_action]
+    stage_4:
+      name: execution_gate
+      required_fields: [proposed_action, confirmation_required, execution_status]
+
+  hot_state:
+    storage: "working/session-state-{session_id}.json"
+    task_memory_storage: "working/task-memory-{object_id}.json"
+    store_only:
+      - selected_route
+      - service_level
+      - evidence_grade
+      - source_refs
+      - freshness
+      - pending_checks
+      - last_action_summary
+    never_store:
+      - user_request_raw
+      - token
+      - cookie
+      - password
+      - private_url
+      - account_id
+      - customer_data
+    refresh_when:
+      - "session starts"
+      - "router or governance configuration changes"
+      - "a high-risk action reaches confirmation"
+      - "the referenced source is stale"
+
+  audit_escalation:
+    minimal_trace_for: [L1, L2]
+    staged_trace_for: [L3]
+    full_trace_for: [L4]
+    upgrade_when:
+      - "User requests a report, export, or decision package."
+      - "A result changes a business decision."
+      - "The task needs external data or multiple sources."
+      - "The task contains a high-risk action."
+
+  data_execution:
+    rules:
+      - "Filter, aggregate, and summarize in the execution environment before returning data to the model."
+      - "Load only the selected route and its required tools; do not preload every tool definition."
+      - "Reuse fresh snapshots before querying external systems."
+      - "Run independent read-only data fetches in parallel when tools allow it."
+
+  reliability_modes:
+    quick:
+      purpose: "Give a bounded provisional judgment without claiming decision-final evidence."
+      default_service_levels: [L0, L1, L2]
+      time_budget_seconds: 3
+      allowed_evidence: [B, C]
+      output: "Conclusion or route, evidence grade, freshness, and the one next check that would change the result."
+    evidence:
+      purpose: "Collect the minimum evidence set required for an operating decision."
+      default_service_levels: [L2, L3]
+      time_budget_seconds: 30
+      allowed_evidence: [A, B, C]
+      output: "Decision package with conclusion, source references, uncertainty, and next action."
+    execute:
+      purpose: "Prepare a controlled action after evidence and confirmation gates are satisfied."
+      default_service_levels: [L4]
+      time_budget_seconds: 90
+      required_evidence: [A]
+      output: "Proposed action, confirmation state, and execution status."
+
+  snapshot_swr:
+    principle: "Serve a qualified recent snapshot immediately, then refresh only when its result could change the conclusion."
+    snapshot_template: templates/operational-snapshot_template.json
+    default_ttl_seconds: 900
+    stale_while_revalidate_seconds: 3600
+    require_quality_status: passed
+    decision_rules:
+      - "Fresh qualified snapshot: return B-grade initial judgment and schedule a non-blocking refresh."
+      - "Stale but within SWR window: return C-grade provisional judgment, label it stale, and refresh before a decision-final claim."
+      - "Missing, failed, or expired snapshot: do not reuse it; collect the minimum live evidence."
+      - "If refresh does not change the conclusion, do not send a redundant update."
+
+  task_budget_contract:
+    contract_storage: "working/task-contract-{request_id}.json"
+    default_freeze_action: conclusion_only
+    result_freeze_rule: "When time or evidence budget expires, freeze the current conclusion and list unfinished verification as pending checks."
+    minimum_evidence_sets:
+      replenishment: [inventory_on_hand, sales_7d_or_30d, inbound_qty, lead_time]
+      advertising_diagnosis: [spend, sales, acos_or_roas, date_range]
+      keyword_diagnosis: [keyword, current_rank, prior_rank_or_baseline, source_timestamp]
+      profit_check: [price, fees, ad_rate, date_or_assumption_source]
+
+  interruptibility:
+    controls: [continue, conclusion_only, stop_deep_dive, report]
+    rule: "Every long task must honor the latest control before beginning another external read."
+
+  tool_health:
+    storage: "working/tool-health.json"
+    fields: [success_rate, average_duration_ms, completeness_pct, timeout_count, health_tier]
+    tiers:
+      primary: "success rate >= 0.90, completeness >= 0.80, and duration is within route budget."
+      fallback: "usable but slower, incomplete, or less reliable."
+      avoid: "repeated timeout, success rate < 0.60, or completeness < 0.50."
+    routing_rule: "Use primary sources first; do not wait on an avoid-tier source when an eligible fallback exists."
+
+  local_aggregation:
+    rule: "Aggregate raw tables locally before model review. Return counts, missing fields, numeric summaries, and bounded group anomalies instead of raw rows."
+    script: scripts/summarize-csv.ps1
+
+  quality_dashboard:
+    event_template: templates/experience-event_template.json
+    storage: "logs/experience-events.jsonl"
+    dashboard_output: "working/quality-dashboard.json"
+    metrics:
+      - first_useful_output_ms
+      - final_delivery_ms
+      - evidence_completeness_rate
+      - user_adoption_rate
+      - snapshot_hit_rate
+      - tool_health_tier
+      - latency_by_component
+
+  non_negotiable_boundaries:
+    - "Speed optimization may change loading and presentation order, never the evidence requirement for a high-risk decision."
+    - "A snapshot or memory card is an initial-judgment aid, never an execution authority."
+    - "Before price, bid, budget, purchase, deletion, external write, publish, or send: reload the relevant live source and require the existing confirmation gate."
+    - "Every memory card must carry source references, update time, and freshness; stale memory is evidence grade C."
+    - "Every local aggregation must preserve the raw input path, formula version, missing fields, and a rerun command."
+    - "A frozen or cancelled task records acquired evidence and pending checks; it must not be reported as completed."
+    - "Link batching is opt-in only for consecutive same-topic links. A request to process items separately disables batching."
+    - "Initial, verified, and final language must remain distinct in every user-visible result."

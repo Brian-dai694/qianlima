@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Generates an empty traffic-anomaly snapshot JSON template for an ASIN.
+.DESCRIPTION
+    Builds a blank snapshot skeleton for one ASIN and marketplace on a given
+    date, with empty product, traffic_terms, keyword_rank_history, and
+    serp_competitors sections. Each supplied keyword (comma-separated values
+    are split) seeds one row in each keyword section for later manual fill-in.
+.PARAMETER Asin
+    Target ASIN; upper-cased and used in the default output file name.
+.PARAMETER Marketplace
+    Marketplace code (default US).
+.PARAMETER Keywords
+    Keywords to scaffold; comma-separated entries are split into individual rows.
+.PARAMETER OutputPath
+    Destination JSON path; defaults to a snapshot file under traffic-history.
+.EXAMPLE
+    ./new-traffic-anomaly-snapshot-template.ps1 -Asin B0XXXXXXXX -Keywords "pet bottle","dog water"
+#>
 param(
     [Parameter(Mandatory = $true)]
     [string]$Asin,

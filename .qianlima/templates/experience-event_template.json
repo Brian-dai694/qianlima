@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "run_id": "example-run",
+  "event_type": "first_delivery",
+  "component": "routing",
+  "latency_ms": 850,
+  "evidence_complete": false,
+  "user_adopted": null,
+  "snapshot_hit": false,
+  "recorded_at": "2026-07-11T00:00:00Z"
+}

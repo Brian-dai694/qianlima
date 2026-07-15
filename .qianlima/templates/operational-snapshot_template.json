@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-11T00:00:00Z",
+  "ttl_seconds": 900,
+  "route": "daily_ad_report",
+  "quality_status": "passed",
+  "evidence_grade": "B",
+  "facts": [
+    "Replace this public placeholder with a sanitized operating fact."
+  ],
+  "anomalies": [],
+  "source_refs": [
+    "sanitized-source-reference"
+  ]
+}

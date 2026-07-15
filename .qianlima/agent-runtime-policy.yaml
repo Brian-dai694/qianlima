@@ -146,6 +146,13 @@ agent_runtime_policy:
     terminal_states: [completed, failed, frozen, stopped]
     frozen_result_required: [partial_result, pending_verification, recovery_action]
 
+  harness_evolution:
+    policy: evolution/policy.yaml
+    production_rule: "Live tasks use approved harness files only; candidate directories are excluded from normal context loading."
+    candidate_rule: "Experiments may write only sanitized candidate artifacts and promotion decisions."
+    promotion_rule: "A human-approved promotion with passing replay, OOD, latency, and L4 safety gates is required before production edits."
+    prohibited: [automatic_production_rule_change, automatic_risk_rule_change, automatic_script_change]
+
   memory_cards:
     policy: memory-cards-policy.yaml
     load_for: [L2, L3, L4]

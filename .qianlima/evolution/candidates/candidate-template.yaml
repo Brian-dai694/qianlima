@@ -1,0 +1,21 @@
+candidate:
+  candidate_id: "YYYY-MM-DD_short-description"
+  status: draft
+  target_layer: router
+  target_files: []
+  hypothesis: "State the expected improvement and why it should work."
+  expected_benefit:
+    quality: "no regression"
+    latency: "first useful output is not slower"
+    cost: "tool or context use does not increase without a measured benefit"
+  baseline_version: "git commit or release version"
+  tested_with:
+    - provider_or_agent: Codex
+      model_or_version: "record actual version"
+      test_date: "YYYY-MM-DD"
+      result: pending
+  evaluation_plan:
+    required_suites: [update_validation, id_holdout, ood_holdout, replay]
+    L4_gate_check: required
+  rollback_plan: "Reject this candidate or revert the promoted production commit."
+  privacy_check: "No credentials, raw business data, or user identifiers included."

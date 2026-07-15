@@ -1,0 +1,69 @@
+workflow:
+  id: skill_evolution
+  name: Skill 自进化观察与候选 Patch
+  version: v2.6.8
+  status: active
+  scenario: agent_evolution
+  purpose: Collect feedback, attach execution evidence, and produce a reversible candidate skill patch.
+
+inputs:
+  required:
+    - skill_id
+    - feedback_summary
+  optional:
+    - source_run_id
+    - evidence_paths
+    - user_accepted_output
+    - baseline_metrics
+
+steps:
+  - id: record_feedback
+    action: write_private_feedback_record
+    script: scripts/new-skill-feedback-record.ps1
+    output: feedback/skill-evolution/{date}-{skill_id}.yaml
+
+  - id: classify_layer
+    action: map_feedback_to_routing_instruction_or_resource
+    decision_rules:
+      - "Wrong or missing task match -> routing."
+      - "Wrong sequence, judgment, or quality gate -> instruction."
+      - "Recurring niche constraint, example, or deterministic operation -> resource."
+
+  - id: abstract_rule
+    action: derive_general_rule_from_evidence
+    constraints:
+      - do_not_copy_private_raw_data
+      - do_not_promote_one_off_preference_without_evidence
+
+  - id: propose_patch
+    action: create_candidate_only
+    script: scripts/new-skill-patch-proposal.ps1
+    output: feedback/skill-evolution/{date}-{skill_id}-proposal.md
+
+  - id: validate_candidate
+    action: compare_baseline_and_candidate_on_held_out_cases
+    blockers:
+      - risk_gate_regression
+      - missing_evidence
+      - cost_increase_over_20_percent
+
+  - id: human_promote_or_rollback
+    action: wait_for_human_approval
+    forbidden:
+      - auto_edit_production_skill
+
+verification_gates:
+  - gate: feedback_is_redacted
+    blocker: true
+  - gate: layer_is_explicit
+    blocker: true
+  - gate: proposal_has_metric_and_rollback
+    blocker: true
+  - gate: no_auto_promotion
+    blocker: true
+
+forbidden_operations:
+  - automatic_production_skill_edit
+  - automatic_router_expansion
+  - automatic_permission_change
+  - commit_private_feedback_to_public_repo

@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+Import a traffic snapshot JSON into local traffic-history CSV files.
+.DESCRIPTION
+Reads a snapshot JSON and appends rows to asin_snapshot_daily.csv,
+traffic_terms_snapshot.csv, keyword_rank_history.csv and
+serp_competitor_snapshot.csv under HistoryDir, creating headers when files are
+missing or empty. Requires date and asin, CSV-escapes all values, and returns a
+JSON summary of how many rows were written to each file.
+.PARAMETER InputJson
+Path to the snapshot JSON file to import.
+.PARAMETER HistoryDir
+Directory holding the traffic-history CSV files (default .qianlima/local-data/traffic-history).
+.EXAMPLE
+.\import-traffic-anomaly-snapshot.ps1 -InputJson .\snapshots\2026-07-13.json
+#>
 param(
     [Parameter(Mandatory = $true)]
     [string]$InputJson,

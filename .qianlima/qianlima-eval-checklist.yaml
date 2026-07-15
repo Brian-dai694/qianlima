@@ -1,0 +1,28 @@
+qianlima_eval_checklist:
+  version: 1
+  purpose: "Reusable acceptance gates for every Qianlima task result."
+  checks:
+    - id: context_level_declared
+      required_for: [L0, L1, L2, L3, L4]
+      pass_when: "Context level is explicitly classified."
+    - id: intent_alignment
+      required_for: [L0, L1, L2, L3, L4]
+      pass_when: "Response answers the user goal and lists material assumptions."
+    - id: source_traceability
+      required_for: [L2, L3, L4]
+      pass_when: "Sources or data files are cited and pending verification is explicit."
+    - id: context_minimality
+      required_for: [L1, L2, L3, L4]
+      pass_when: "Loaded files match the context level; no full-workspace read is used."
+    - id: latency_experience
+      required_for: [L1, L2, L3, L4]
+      pass_when: "First useful output meets the level target or is marked pending measurement."
+    - id: ledger_written
+      required_for: [L1, L2, L3, L4]
+      pass_when: "Usage ledger entry exists with only verifiable cost and token values."
+    - id: risk_control
+      required_for: [L3, L4]
+      pass_when: "Risk level and manual confirmation requirements are visible."
+    - id: l4_confirmation
+      required_for: [L4]
+      pass_when: "No external write, deletion, price, bid, budget, or purchase action occurs before explicit second confirmation."

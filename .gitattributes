@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.sh text eol=lf
+*.command text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.ws text eol=lf
+
+# Language classification (GitHub Linguist)
+# .ws are YAML-like workspace-state files, not Witcher Script — fix misdetection.
+*.ws linguist-language=YAML
+*.ws linguist-detectable=true
+# Keep docs and sample data out of the repo language stats.
+*.md linguist-documentation=true

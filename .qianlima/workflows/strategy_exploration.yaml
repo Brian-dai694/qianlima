@@ -1,0 +1,236 @@
+# strategy_exploration.yaml — 策略探索优化 Workflow
+# 版本: v1.0 | 创建: 2026-07-08
+# 定位: Exploration Engine 的安全 workflow 定义；默认 Shadow Mode，不执行实际运营动作。
+
+workflow:
+  id: strategy_exploration
+  name: 策略探索优化
+  scenario: agent_evolution
+  status: active
+  mode: on_demand
+  description: >
+    在广告、库存和内容三个运营域内做影子评估，探索候选策略并打分。
+    本 workflow 只产出候选建议、日志和可注册组件草案，不自动修改竞价、预算、价格、
+    库存、Listing 或外部系统。
+
+  runtime_policy:
+    source: agent-runtime-policy.yaml
+    context_level: L3
+    budget_profile: default_budgets
+    state_machine: agent_runtime_policy.state_machine
+    first_delivery: status_card_then_preliminary_judgment
+
+  subagent_plan:
+    source: subagent-orchestration.yaml
+    pattern: explore_then_decide
+    budget:
+      max_children: 5
+      max_concurrent: 3
+    stages:
+      - id: collect_domain_evidence
+        role: explorer
+        maps_to: explore
+        permissions: [read_data_sources, aggregate]
+        output: evidence_summary
+      - id: propose_shadow_strategy
+        role: maker
+        maps_to: plan
+        input_from: collect_domain_evidence
+        permissions: [suggest_only]
+        output: candidate_strategy
+      - id: challenge_strategy
+        role: checker
+        maps_to: verifier
+        input_from: candidate_strategy
+        context_isolation: required
+        permissions: [read_only]
+        output: challenge_result
+    parent_rules:
+      - "Explorer and checker cannot write operational settings."
+      - "Parent retains L4 confirmation and all external write decisions."
+      - "Checker rejection freezes the candidate until evidence is refreshed."
+
+  engine:
+    path: agent-components/exploration_engine.py
+    required: false
+    fallback: manual_shadow_evaluation
+    notes: >
+      如果本地 engine 尚未实现，Agent 按本文件的 shadow_mode、firmware_constraints
+      和 verification_gates 手工执行小规模评估，不阻塞启动索引。
+
+  user_intents:
+    - 探索广告策略
+    - 优化运营策略
+    - 跑一次策略探索
+    - 评估 Agent 自我进化策略
+
+  reads:
+    - work.ws
+    - workflow-index.yaml
+    - evolutionary-workflow.yaml
+    - improvement-loop.yaml
+    - risk-rules.yaml
+    - context-policy.yaml
+    - data-sources.yaml
+    - file-registry.yaml
+    - logs/evolution-{workflow_id}-{timestamp}.json
+
+  writes:
+    - reports/{date}_策略探索优化_{domain}_V{version}.md
+    - logs/{date}_strategy_exploration_trace.json
+    - context-summaries/strategy_exploration-{date}.md
+
+  updates:
+    - file-registry.yaml
+    - work.ws
+
+  required_inputs:
+    - domain
+    - objective
+
+  optional_inputs:
+    - workflow_id
+    - baseline_metrics
+    - max_trials
+    - compare_window
+    - candidate_constraints
+
+  required_permissions:
+    - read
+    - aggregate
+
+  forbidden_operations:
+    - change_bid
+    - change_budget
+    - change_price
+    - update_listing
+    - purchase_order
+    - write_back
+    - delete_data
+    - send_external
+
+  shadow_mode:
+    enabled: true
+    default_trials: 5
+    max_trials_without_confirmation: 5
+    output_only:
+      - candidate_strategy
+      - expected_effect
+      - risk_label
+      - evidence
+      - pending_verification
+    rule: >
+      所有候选策略只能作为建议进入报告或 Smart Library 草案。
+      用户明确二次确认前，不得执行任何实际运营变更。
+
+  domains:
+    advertising:
+      objective_examples:
+        - 降低 ACoS
+        - 提高有效点击占比
+        - 减少无效词花费
+      allowed_parameters:
+        bid_adjustment_pct: {min: -30, max: 30, step: 5, shadow_only: true}
+        budget_adjustment_pct: {min: -50, max: 50, step: 10, shadow_only: true}
+        negative_keyword_count: {min: 0, max: 20, step: 2, shadow_only: true}
+
+    inventory:
+      objective_examples:
+        - 优化安全库存天数
+        - 降低断货风险
+        - 控制补货压力
+      allowed_parameters:
+        safety_stock_days: {min: 14, max: 60, step: 1, shadow_only: true}
+        restock_quantity_pct: {min: 60, max: 150, step: 5, shadow_only: true}
+
+    content:
+      objective_examples:
+        - 优化标题关键词覆盖
+        - 提升 Listing 相关性
+        - 规划 backend keywords
+      allowed_parameters:
+        title_keyword_count: {min: 3, max: 10, step: 1, shadow_only: true}
+        backend_keyword_bytes: {min: 100, max: 250, step: 25, shadow_only: true}
+
+  loop:
+    type: ESX
+    source: evolutionary-workflow.yaml
+    phases:
+      - {phase: explore, order: 1, description: "生成候选参数组合，并检查约束边界"}
+      - {phase: score, order: 2, description: "按正确性、完整性、效率、可操作性和用户价值打分"}
+      - {phase: exploit, order: 3, description: "输出最高分策略和可注册组件草案"}
+      - {phase: verify, order: 4, description: "复核风险规则、来源证据和待验证项"}
+
+  scoring:
+    minimum_viable_score: 0.60
+    dimensions:
+      correctness: 0.30
+      completeness: 0.25
+      efficiency: 0.15
+      actionability: 0.15
+      user_satisfaction: 0.15
+    reject_when:
+      - missing_source_evidence
+      - violates_risk_rules
+      - exceeds_firmware_constraints
+      - requires_external_write_without_confirmation
+
+  firmware_constraints:
+    hard_limits:
+      - 参数必须落在 domains.allowed_parameters 的 min/max 范围内。
+      - 候选策略不得绕过 risk-rules.yaml。
+      - 成本预估不得超过 baseline 的 2 倍，除非用户明确确认。
+      - 数据不足时只能输出 pending_verification，不得输出确定性执行建议。
+    source_reload_required_for:
+      - change_bid
+      - change_budget
+      - change_price
+      - purchase_order
+      - write_back
+
+  validation:
+    required_checks:
+      - startup_index_loaded
+      - workflow_definition_loaded
+      - risk_rules_loaded
+      - shadow_mode_enabled
+      - candidate_params_in_bounds
+      - report_has_source_citation
+      - report_has_pending_verification
+      - report_has_no_auto_write
+      - trace_created
+
+  verification_gates:
+    - gate: firmware_compliant
+      description: 探索参数在允许范围内，且未触发硬约束。
+      evidence: 每个参数的 min/max/step 检查记录。
+      blocker: true
+    - gate: source_traceable
+      description: 每个结论都能追溯到本地文件、数据源或用户确认。
+      evidence: 报告中的 source_citation 和 trace 文件。
+      blocker: true
+    - gate: shadow_only
+      description: 未执行任何外部写回、竞价、预算、价格或 Listing 修改。
+      evidence: trace 中 forbidden_operations 全部为 skipped。
+      blocker: true
+    - gate: component_registered
+      description: 最高分策略可选注册为 Smart Library 组件草案。
+      evidence: 组件草案路径或 pending_registration 标记。
+      blocker: false
+
+  trace:
+    template: run-traces/RUN_TRACE_TEMPLATE.yaml
+    default_output_path: logs/{date}_strategy_exploration_trace.json
+
+  risk_policy:
+    default_risk_level: low
+    escalation_when:
+      - candidate_requires_real_bid_change
+      - candidate_requires_budget_change
+      - candidate_requires_listing_update
+      - candidate_requires_purchase_order
+      - candidate_requires_external_write
+    confirmation_required_for:
+      - any_real_operation
+      - max_trials_above_5
+      - cost_above_baseline_x2

@@ -1,0 +1,79 @@
+{
+  "catalog_version": "v2.6.8",
+  "updated": "2026-07-10",
+  "unit": "currency per 1000000 tokens",
+  "rules": {
+    "input_tokens_include_cached_input": true,
+    "reasoning_tokens_are_output_breakdown": true,
+    "source_only_models_must_not_return_exact_cost": true
+  },
+  "models": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "currency": "CNY",
+      "status": "verified",
+      "source_url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 1.0, "cached_input": 0.02, "output": 2.0 }
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "currency": "CNY",
+      "status": "verified",
+      "source_url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 3.0, "cached_input": 0.025, "output": 6.0 }
+    },
+    {
+      "provider": "zhipu",
+      "model": "glm-5.2",
+      "currency": "CNY",
+      "status": "verified",
+      "source_url": "https://bigmodel.cn/pricing",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 8.0, "cached_input": 2.0, "output": 28.0 }
+    },
+    {
+      "provider": "zhipu",
+      "model": "glm-4.7-flashx",
+      "currency": "CNY",
+      "status": "verified",
+      "source_url": "https://bigmodel.cn/pricing",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 0.5, "cached_input": 0.1, "output": 3.0 }
+    },
+    {
+      "provider": "mimo",
+      "model": "mimo-v2.5-pro",
+      "currency": "USD",
+      "status": "verified",
+      "source_url": "https://www.mimo-v2.com/docs/pricing",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 0.435, "cached_input": 0.0036, "output": 0.87 }
+    },
+    {
+      "provider": "mimo",
+      "model": "mimo-v2.5",
+      "currency": "USD",
+      "status": "verified",
+      "source_url": "https://www.mimo-v2.com/docs/pricing",
+      "verified_at": "2026-07-10",
+      "pricing_per_million_tokens": { "input": 0.14, "cached_input": 0.0028, "output": 0.28 }
+    }
+  ],
+  "source_only_providers": [
+    { "provider": "openai", "source_url": "https://openai.com/api/pricing/" },
+    { "provider": "anthropic", "source_url": "https://www.anthropic.com/pricing#anthropic-api" },
+    { "provider": "google", "source_url": "https://ai.google.dev/gemini-api/docs/pricing" },
+    { "provider": "qwen", "source_url": "https://help.aliyun.com/zh/model-studio/user-guide/model-pricing" },
+    { "provider": "doubao", "source_url": "https://www.volcengine.com/docs/82379/1544106" },
+    { "provider": "moonshot", "source_url": "https://platform.moonshot.cn/docs/pricing/chat" },
+    { "provider": "baidu", "source_url": "https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Blfmc9dlf" },
+    { "provider": "tencent", "source_url": "https://cloud.tencent.com/document/product/1729" },
+    { "provider": "xai", "source_url": "https://docs.x.ai/docs/models" },
+    { "provider": "mistral", "source_url": "https://mistral.ai/pricing#api-pricing" },
+    { "provider": "cohere", "source_url": "https://cohere.com/pricing" }
+  ]
+}

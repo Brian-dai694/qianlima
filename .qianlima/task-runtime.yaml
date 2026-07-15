@@ -1,0 +1,50 @@
+# Qianlima lightweight task runtime
+# Version: v2.7.0 | Updated: 2026-07-11
+# Design references: LangGraph state/checkpoint, Mem0 retrieval memory,
+# Langfuse observability, and LiteLLM routing tiers. No external runtime required.
+
+task_runtime:
+  version: "2.7.0"
+  state_machine:
+    checkpoints:
+      storage: "working/task-contract-{request_id}.json"
+      states:
+        - classify
+        - initial_judgment
+        - evidence_collection
+        - decision_delivery
+        - confirmation_gate
+        - completed
+        - frozen
+        - cancelled
+      transitions:
+        - "classify -> initial_judgment"
+        - "initial_judgment -> evidence_collection | decision_delivery | confirmation_gate"
+        - "evidence_collection -> decision_delivery | frozen | cancelled"
+        - "decision_delivery -> confirmation_gate | completed"
+        - "confirmation_gate -> completed | cancelled"
+      invariant: "A controlled action cannot transition to completed without explicit confirmation."
+
+  memory:
+    session_state: "working/session-state-{session_id}.json"
+    task_memory: "working/task-memory-{object_id}.json"
+    retrieval_rule: "Retrieve a relevant fresh card; never preload all historical state."
+
+  observability:
+    event_log: "logs/experience-events.jsonl"
+    tool_health: "working/tool-health.json"
+    dashboard: "working/quality-dashboard.json"
+    required_latency_components: [startup, routing, snapshot, tool, aggregation, model, final_delivery]
+
+  model_path:
+    deterministic_first:
+      - route matching
+      - file existence checks
+      - snapshot freshness
+      - metric aggregation
+      - risk keyword checks
+    escalate_only_when:
+      - "semantic ambiguity remains after routing"
+      - "sources conflict"
+      - "tradeoff reasoning is required"
+      - "a high-risk decision package needs review"

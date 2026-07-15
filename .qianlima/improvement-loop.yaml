@@ -1,19 +1,24 @@
 # improvement-loop.yaml — 进化式反馈闭环
-# 版本: v2.0 | 更新: 2026-07-08
+# 版本: v2.1 | 更新: 2026-07-11
 # 来源: Lilian Weng "Harness Engineering for Self-Improvement" (2026-07-04)
 # 理念: "Evolve the harness through experimentation, not just bug fixing."
 #
-# v1→v2 核心变更:
-#   - 从线性修复（fix only）变为进化式多分支（fix + explore + optimize）
-#   - 新增实验框架：A/B 变体 + 效果验证 + 经验固化
-#   - 新增经验自动提取：从每次运行中学习，无需手动记录
-#   - 新增改进历史：追踪每个改进的「为什么」和「效果如何」
+# v2→v2.1 核心变更:
+#   - 新增 cost_baseline 记忆类型
+#   - 新增 model_downgrade 改进策略
+#   - 新增 cost_spike 触发示例
+#   - 引用 rules/cost-baselines.yaml 和 rules/model-routing-rules.yaml
 
 improvement_loop:
   version: "2.0"
   purpose: >
     不只是在出错时修 bug，而是持续地从每次运行中学习，
     探索更好的 harness 配置，验证改进效果，并将成功经验固化为规则。
+
+  evolution_boundary:
+    policy: evolution/policy.yaml
+    rule: "运行反馈只能生成候选改动；候选必须通过回放评测并经人工批准，才可修改正式 Harness。"
+    production_protection: [AGENTS.md, CODEX_BOOT.md, risk-rules.yaml, agent-runtime-policy.yaml, scripts]
 
   # ── 核心循环（v2 扩展）──────────────────────────────────────
 
@@ -176,8 +181,9 @@ improvement_loop:
           name: "直接修复"
           applies_to: [data_gap, harness_decay]
           method: "修改配置文件/模板/数据源注册表"
-          auto_apply: true           # 低风险修复自动执行
-          requires_confirmation: false
+          auto_apply: false
+          requires_confirmation: true
+          candidate_only: true
 
         - id: parameter_tuning
           name: "参数调优"
@@ -206,10 +212,11 @@ improvement_loop:
           method: >
             从本轮运行中提取可复用的经验：
             - 新发现的踩坑 → 追加到 全局复利踩坑日志
-            - 新发现的规则 → 追加到 risk-rules.yaml
-            - 新发现的最佳实践 → 更新 work.ws 的 attention_required
-          auto_apply: true
-          requires_confirmation: false
+            - 新发现的规则 -> 创建 risk-rules.yaml 候选改动
+            - 新发现的最佳实践 -> 创建工作状态或任务卡候选改动
+          auto_apply: false
+          requires_confirmation: true
+          candidate_only: true
 
         - id: rule_evolution
           name: "规则进化"
@@ -222,6 +229,22 @@ improvement_loop:
           auto_apply: false
           requires_confirmation: true
 
+        # v2.1: 模型降级策略
+        - id: model_downgrade
+          name: "模型降级建议"
+          applies_to: [cost_spike, pattern_inefficiency]
+          method: >
+            当同一个 workflow 连续 3 次实际成本低于 baseline × 0.5：
+            提示用户可以降级到更低的模型 tier（如 L2→L1）。
+            当成本持续低于基线但质量没有下降时，用更便宜的模型是安全的。
+          auto_apply: false
+          requires_confirmation: true
+          downgrade_conditions:
+            - "连续 3 次 estimated_cost < baseline_cost × 0.5"
+            - "eval_score 没有下降 > 5%"
+            - "用户没有报告质量不满意"
+          source_file: "rules/model-routing-rules.yaml"
+
         # 🆕 Raven 借鉴: Agent Templates 自动模板化
         - id: template_extraction
           name: "黄金模板提取"
@@ -233,8 +256,9 @@ improvement_loop:
             - 保存为 skill-registry 中的 "黄金模板" (golden_template)
             - 后续执行优先加载黄金模板参数作为 baseline
             - 黄金模板每 30 天自动审查：如果最近 3 次使用该模板的 eval_score < 0.7 → 降级
-          auto_apply: true
-          requires_confirmation: false
+          auto_apply: false
+          requires_confirmation: true
+          candidate_only: true
           golden_template_schema:
             - skill_id: "关联的 skill"
             - template_id: "模板唯一 ID"
@@ -257,8 +281,9 @@ improvement_loop:
             - 预测可能触发的风险
             - 预测下一步最省工具调用的执行顺序
             workflow 后记录 hit/miss，并把连续命中的预测提升为 pattern 或 context_clue。
-          auto_apply: true
-          requires_confirmation: false
+          auto_apply: false
+          requires_confirmation: true
+          candidate_only: true
           safety_boundary:
             - "预测不得替代真实数据"
             - "预测不得绕过 verification_gates"
@@ -269,14 +294,14 @@ improvement_loop:
 
       # 🆕 改进效果验证
       validation:
-        required_for: [parameter_tuning, ab_experiment, rule_evolution]
+        required_for: [direct_fix, parameter_tuning, ab_experiment, knowledge_extraction, rule_evolution, model_downgrade, template_extraction, world_model_refinement]
         method: >
           改进应用后，在后续 1-3 次执行中监控:
           - eval_score 是否提升
           - 是否引入新问题
           - 用户是否接受
-        rollback_condition: "如果 eval_score 下降 > 5% 或引入新问题，回滚改进"
-        rollback_method: "从 git log 或备份恢复修改前的文件"
+        rollback_condition: "如果评测回归、首次有效输出变慢或安全门禁弱化，拒绝候选；已晋升改动才允许从 Git 回滚。"
+        rollback_method: "候选直接标记 rejected；已批准生产改动从 Git 版本回滚。"
 
       # 可更新的目标
       allowed_updates:
@@ -358,6 +383,15 @@ improvement_loop:
         lifecycle: {create: instant, validate: "被命中 ≥ 3 次", decay_days: 30}
         quality_min: 0.4
         example: "用户说 '崩盘' 时，80% 情况是 tig welding accessories 排名暴跌"
+
+      # v2.1: 成本基线记忆
+      - type: cost_baseline
+        description: "workflow 的成本基线数据（P50 实测成本）"
+        lifecycle: {create: "跑满 calibrate_after_runs 次后由 measured 升级", validate: "连续 5 次校准波动 < 20%", decay_days: 60}
+        quality_min: 0.7
+        example: "daily_ad_report 的 P50 实测成本为 $1.32（DeepSeek V4 Pro，2026-06-24 校准）"
+        source_file: "rules/cost-baselines.yaml"
+        note: "模型价格变动或 workflow 逻辑变更时必须重新校准；超过 30 天未校准从 measured 降级为 estimated"
 
     # ── 记忆生命周期 ──────────────────────────────────────────
 
@@ -445,7 +479,9 @@ improvement_loop:
   # ── 配置 ────────────────────────────────────────────────────
 
   policies:
-    auto_apply_low_risk_improvements: true
+    auto_apply_low_risk_improvements: false
+    candidate_only_until_promoted: true
+    promotion_policy: evolution/policy.yaml
     require_confirmation_for_template_rewrite: true
     require_confirmation_for_permission_change: true
     require_confirmation_for_external_write: true
@@ -490,39 +526,15 @@ improvement_loop:
       strategy: rule_evolution
       improvement: "将数据新鲜度告警阈值从 '被动提示' 升级为 '阻断后续高风险操作'"
 
-miniappbench_eval_optimization:
-  version: v2.6.7
-  source: https://github.com/MiniAppBench/miniappbench
-  purpose: >
-    将 MiniAppEval 的多维评分、轨迹证据、公开验证集/私有隐藏集思想，
-    落地为 QianlimaEval。每个非简单任务不只输出结论，还输出可审计评分。
+    # v2.1 新增示例
+    - trigger: "单次 daily_ad_report 成本 > $2.64（baseline × 2）"
+      strategy: parameter_tuning
+      improvement: "检查是否加载了不必要的文件；检查是否可以用 L1 模型替代；触发 ConAct 折叠"
 
-  adopted_patterns:
-    - pattern: generate_compile_evaluate
-      qianlima_mapping: "execute_workflow -> assemble_evidence_pack -> score_run"
-    - pattern: multidimensional_scoring
-      qianlima_mapping: "intent_alignment + evidence_static_quality + dynamic_execution_quality + cost_savings_efficiency + risk_control"
-    - pattern: trajectory_as_evidence
-      qianlima_mapping: "trace logs, tool results, verification gates, and usage ledger are evaluated as first-class evidence"
-    - pattern: withheld_private_tests
-      qianlima_mapping: "public checks stay in evaluation-tasks.yaml; real business shadow cases stay private"
-    - pattern: separate_generation_and_evaluation_models
-      qianlima_mapping: "low-cost model may generate; stronger model may evaluate high-risk or high-value runs"
+    - trigger: "连续 3 次 daily_ad_report 成本 < $0.66（baseline × 0.5）且质量无下降"
+      strategy: model_downgrade
+      improvement: "建议将 daily_ad_report 从 L2 降级到 L1（Flash 模型），预估月省 $25+"
 
-  release_gate:
-    default_min_score: 0.80
-    review_score_min: 0.60
-    block_if:
-      - credentials_detected
-      - missing_report_artifact
-      - high_risk_action_without_confirmation
-      - external_write_without_confirmation
-
-  cost_policy:
-    principle: "节约是中心思想，但不能用低成本掩盖低质量。"
-    required_for_non_simple_tasks:
-      - estimated_cost
-      - baseline_cost
-      - estimated_savings
-      - continue_or_stop
-      - model_choice_reason
+    - trigger: "weekly_cost 接近 cost_limit"
+      strategy: parameter_tuning
+      improvement: "暂停低优先级的 strategy_exploration 和 knowledge_digest，仅保留日报/关键词/台账等核心 workflow"

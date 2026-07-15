@@ -1,5 +1,5 @@
 context_policy:
-  version: 1
+  version: 1.1
   purpose: Control how agents read, compress, and carry file context safely.
   model_adapter_file: model-adapters.yaml
 
@@ -111,6 +111,39 @@ context_policy:
     - Raw sensitive fields must not be copied into context unless explicitly needed and permitted.
     - If a conclusion depends on omitted content, mark it as pending verification.
     - Before high-risk action, reload the source section instead of relying only on summary.
+    - Treat compression as a security-sensitive transformation; preserve constraints, risk rules, source sections, and open questions.
+    - Before important decisions, check whether compression could have dropped, inverted, or over-weighted a critical fact.
+    - Refusal rules, permission rules, and explicit user confirmations must be loaded directly when they control execution.
+
+  compression_attack_defense:
+    version: "v2.6.1"
+    source: "COMA / Comattack compression attack threat model"
+    rule_file: "rules/compression-attack-defense.md"
+    applies_when:
+      - "summarize_first is used"
+      - "context is handed to another agent"
+      - "conact_memory_folding is used"
+      - "workflow output affects bid, budget, price, purchase, listing content, external send, or write-back"
+    required_summary_fields:
+      - source_path
+      - source_sections
+      - constraints_preserved
+      - facts_omitted_or_uncertain
+      - compression_level
+      - confidence
+      - source_reload_required
+    adversarial_checks:
+      - "Could compression remove a user constraint?"
+      - "Could compression hide a forbidden operation?"
+      - "Could compression suppress a negative fact or failed assumption?"
+      - "Could compression make a low-confidence source look authoritative?"
+    hard_blocks:
+      - condition: "high_risk_action_from_summary_only"
+        response: "reload_source_or_request_user_confirmation"
+      - condition: "summary_without_source_sections"
+        response: "block_decision_until_source_trace_exists"
+      - condition: "risk_rules_or_permissions_only_seen_in_summary"
+        response: "reload_risk_rules_directly"
 
   workflow_integration:
     preflight:
@@ -128,6 +161,8 @@ context_policy:
       - record_world_model_hit_or_miss_when_used
     verify:
       - check_summary_has_source_paths
+      - check_summary_preserves_constraints
+      - check_compression_attack_gates
       - reload_source_sections_for_high_risk_decisions
       - record_context_usage_in_trace
 
@@ -212,18 +247,39 @@ context_policy:
     # 来源: MemGUI-Agent — Context-as-Action
     # 理念: "Treat context management as part of the agent action."
     conact_memory_folding:
-      version: "1.0"
+      version: "1.1"
       source: "SOTA MemGUI-Agent / ConAct"
       applies_when:
         - "workflow 涉及 Kimi WebBridge、Chrome DevTools MCP、OfficeCLI 预览或其他 GUI/网页操作"
         - "单个任务步骤数 > 8"
         - "同一页面、同一系统或同一文件被反复操作"
         - "用户要求长周期巡检、录入、改文档、跑报表或跨页面排查"
+        - "对话累计 > 50 句且当前任务非高风险操作"        # v1.1
+        - "estimated_context_tokens > 60% context_budget"  # v1.1
 
       purpose: >
         把上下文管理作为每一步动作的一部分。
         Agent 每执行一段 GUI/网页/外部系统操作后，不保留完整流水账，
         而是维护三块稳定记忆：折叠动作历史、折叠界面状态、最近步骤记录。
+
+      # v1.1: 自动触发阈值
+      triggers:
+        conversation_length:
+          description: "对话轮数超过阈值时自动触发折叠"
+          threshold_turns: 50
+          action: "压缩中间流水账 → folded_action_history，保留最近 5 轮在 recent_step_record"
+        context_budget:
+          description: "上下文占用超过预算 60% 时触发"
+          threshold_pct: 60
+          action: "将 non-critical 文件的压缩级别提升一级（L0→L1, L1→L2, L2→L3）"
+        workflow_type:
+          description: "已知会产生长对话的 workflow 在启动时即启用折叠"
+          applicable:
+            - daily_ad_report
+            - keyword_rank_scan
+            - competitor_comparison
+            - product_discovery
+            - knowledge_digest
 
       memory_fields:
         folded_action_history:

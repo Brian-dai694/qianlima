@@ -1,0 +1,4 @@
+date,campaign,spend,sales,orders
+2026-07-10,example-exact,10.00,50.00,2
+2026-07-10,example-broad,25.00,20.00,1
+2026-07-10,example-exact,12.00,72.00,3

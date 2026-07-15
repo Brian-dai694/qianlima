@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+Diagnose Amazon traffic-anomaly risk from local CSV snapshots.
+.DESCRIPTION
+Reads traffic-history CSV snapshots for a given ASIN, marketplace and date, then
+computes organic and sponsored visibility proxies using CTR and freshness weights
+and scores SERP Top-10 competitor pressure. Classifies risk (organic, sponsored,
+seasonal or competitor) and writes a Markdown diagnosis report, printing its path.
+.PARAMETER Asin
+Target product ASIN to diagnose.
+.PARAMETER Marketplace
+Marketplace code such as US (default US).
+.PARAMETER Date
+Snapshot date to analyze, yyyy-MM-dd (default today).
+.PARAMETER HistoryDir
+Directory of traffic-history CSVs (default .qianlima/local-data/traffic-history).
+.EXAMPLE
+.\invoke-traffic-anomaly-replica.ps1 -Asin B0ABCDE123 -Marketplace US -Date 2026-07-13
+#>
 param(
     [Parameter(Mandatory = $true)]
     [string]$Asin,

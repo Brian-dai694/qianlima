@@ -1,0 +1,162 @@
+workflow:
+  id: browser_task_space
+  name: Browser Task Space
+  version: v2.6.8
+  status: active
+  scenario: agent_evolution
+  description: >
+    Public-safe governance workflow for logged-in browser and desktop-agent tasks.
+    It adapts ego-lite style Space, Snapshot, one-pass browser action, user takeover,
+    and experience accumulation ideas without requiring ego-lite itself.
+
+intent:
+  user_value:
+    - Keep the user's own browser work uninterrupted.
+    - Make browser automation visible, stoppable, and resumable.
+    - Reduce token and tool-call cost through semantic snapshots and reusable paths.
+    - Prevent unconfirmed writes in logged-in sessions.
+  default_mode: read_or_prepare_only
+
+runtime:
+  supported_tools:
+    - kimi_webbridge
+    - chrome_devtools
+    - ego_lite
+    - desktop_agent
+    - manual_browser_trace
+  task_space_required: true
+  semantic_snapshot_preferred: true
+  screenshot_allowed_when_snapshot_insufficient: true
+  raw_dom_allowed_when_snapshot_insufficient: true
+  reusable_experience_output: playbook_or_workflow_patch
+
+required_inputs:
+  - task_space_name
+  - target_site
+  - user_goal
+  - allowed_actions
+  - forbidden_actions
+
+optional_inputs:
+  - expected_result_shape
+  - cost_limit_usd
+  - browser_tool
+  - login_state
+  - takeover_instruction
+
+steps:
+  - id: declare_space
+    name: Declare task space and boundaries
+    output:
+      - task_space_name
+      - target_site
+      - allowed_actions
+      - forbidden_actions
+      - takeover_path
+
+  - id: observe_state
+    name: Read semantic snapshot before action
+    prefer:
+      - semantic_snapshot
+      - accessibility_tree
+      - structured_page_summary
+    fallback:
+      - screenshot
+      - targeted_dom_extract
+
+  - id: plan_one_pass
+    name: Batch safe browser steps
+    rule: "Navigation, extraction, filtering, aggregation, and output should be planned together when safe."
+    blocks:
+      - unconfirmed_write
+      - stale_snapshot_action
+      - unknown_login_state_write
+
+  - id: act_or_pause
+    name: Execute safe actions or pause for confirmation
+    safe_actions:
+      - read
+      - search
+      - filter
+      - sort
+      - open
+      - download_after_confirmation_when_private
+    confirmation_actions:
+      - submit
+      - publish
+      - send
+      - save
+      - delete
+      - purchase
+      - change_bid
+      - change_budget
+      - change_price
+      - account_or_permission_change
+
+  - id: resnapshot_and_trace
+    name: Re-read state and update trace
+    triggers:
+      - navigation
+      - modal
+      - form_fill
+      - filter_change
+      - submit_attempt
+      - dynamic_rerender
+      - download
+    output:
+      - pages_visited
+      - actions_taken
+      - current_page_or_tab
+      - pending_action
+      - confirmations_required
+
+  - id: extract_experience
+    name: Save repeated successful path as reusable knowledge
+    condition: "same_site_or_same_flow_seen_more_than_once"
+    output:
+      - playbook_patch
+      - workflow_patch
+      - site_skill_candidate
+
+verification_gates:
+  - gate: task_space_declared
+    blocker: true
+  - gate: boundaries_declared
+    blocker: true
+  - gate: snapshot_before_action
+    blocker: true
+  - gate: resnapshot_after_change
+    blocker: true
+  - gate: no_unconfirmed_write
+    blocker: true
+  - gate: trace_resume_ready
+    blocker: true
+  - gate: cost_card_visible
+    blocker: true
+
+observability:
+  trace_fields:
+    - browser_tool
+    - task_space_name
+    - target_site
+    - logged_in_state
+    - pages_visited
+    - snapshot_count
+    - screenshot_count
+    - raw_dom_read_count
+    - actions_taken
+    - downloads_created
+    - submit_or_write_actions
+    - confirmations_required
+    - confirmations_received
+    - takeover_available
+    - current_page_or_tab
+    - pending_action
+    - cost_card
+
+forbidden_operations:
+  - unconfirmed_submit_or_publish
+  - unconfirmed_financial_or_order_action
+  - account_or_permission_change_without_manual_owner
+  - private_export_committed_to_public_repo
+  - action_from_stale_snapshot

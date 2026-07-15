@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Orchestrates import and replica-report generation for a traffic snapshot.
+.DESCRIPTION
+    Reads a snapshot JSON, validates its date and asin, then invokes the
+    importer (unless -SkipImport) to store it in the history directory and the
+    reporter to build the traffic-anomaly replica report. Emits a JSON summary
+    of the input, whether it imported, the import result, and the report path.
+.PARAMETER InputJson
+    Path to the snapshot JSON file to process (must exist).
+.PARAMETER HistoryDir
+    Traffic history directory passed to the importer and reporter.
+.PARAMETER OutputDir
+    Directory where the replica report is written.
+.PARAMETER SkipImport
+    Skip the import step and only regenerate the report.
+.EXAMPLE
+    ./run-traffic-anomaly-replica.ps1 -InputJson snapshot-2026-07-13-B0XXXX.json -OutputDir reports
+#>
 param(
     [Parameter(Mandatory = $true)]
     [string]$InputJson,

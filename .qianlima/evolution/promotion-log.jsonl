@@ -1,0 +1,1 @@
+{"record_type":"schema","schema_version":1,"required_fields":["timestamp","candidate_id","decision","reviewer","tested_with","suite_results","latency_comparison","risk_gate_result","reason"],"allowed_decisions":["approved","rejected","rolled_back"]}

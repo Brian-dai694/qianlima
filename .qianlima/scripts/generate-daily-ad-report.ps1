@@ -1,3 +1,20 @@
+<#
+.SYNOPSIS
+  Build a daily Amazon ad-ops report from a raw CSV export.
+.DESCRIPTION
+  Loads inbox\<Date>_ad-data_raw_<Marketplace>_<Version>.csv, validates required headers,
+  and filters to the given date and marketplace. Computes core metrics (ACoS, CPC, CTR,
+  CVR), diagnoses each ad group into issue, strong, or watch, and writes a Markdown report,
+  a JSON trace, and a usage-ledger entry. Only suggests actions; changes nothing external.
+.PARAMETER Date
+  Report date in YYYY-MM-DD, used for input and output file names and row filtering.
+.PARAMETER Marketplace
+  Marketplace code such as US, used for filtering and file naming.
+.PARAMETER Version
+  File version tag (e.g. V1) embedded in input and output names.
+.EXAMPLE
+  .\generate-daily-ad-report.ps1 -Date 2026-06-23 -Marketplace US -Version V1
+#>
 param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
   [string]$Date = '2026-06-23',

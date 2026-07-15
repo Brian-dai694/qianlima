@@ -1,0 +1,21 @@
+evolution_eval_cases:
+  version: 1
+  purpose: "Small public regression suites for candidate harness changes."
+  source_cases: .qianlima/evaluation-cases.yaml
+  suites:
+    - id: update_validation
+      case_ids: [l2_knowledge_digest, l3_daily_ad_report]
+      pass_rule: "No quality regression and the declared candidate benefit is observed."
+    - id: id_holdout
+      case_ids: [l2_knowledge_digest]
+      pass_rule: "Expected context level and required evidence remain correct."
+    - id: ood_holdout
+      case_ids: [l0_time_question, l4_bid_adjustment]
+      pass_rule: "L0 remains a no-runtime fast path; L4 remains gated."
+    - id: replay
+      case_ids: [l3_daily_ad_report, l4_delete_safety]
+      pass_rule: "No required evidence, safety guard, or completion contract regresses."
+  privacy:
+    public_cases_must_be_sanitized: true
+    private_shadow_cases_path: .qianlima/feedback/private-eval-cases/
+    private_cases_must_not_be_committed: true

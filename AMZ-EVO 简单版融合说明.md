@@ -4,7 +4,7 @@
 
 本次参考本地目录：
 
-`C:\Users\UEFR\Desktop\Work Space\amz-evo-harness`
+`<local-amz-evo-harness-path>`
 
 该目录是一个较简单的 Amazon Operations Harness，包含：
 

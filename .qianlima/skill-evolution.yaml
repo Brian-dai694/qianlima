@@ -1,0 +1,84 @@
+skill_evolution:
+  version: v2.6.8
+  mode: observe_then_propose
+  purpose: >
+    Turn real user feedback into traceable, small, and reversible skill improvements.
+    Phase one records evidence and drafts candidate patches; it never edits a production skill automatically.
+
+  three_layers:
+    routing:
+      targets:
+        - natural-language-router.yaml
+        - skill-registry.yaml
+      use_when: "The wrong skill was selected, a trigger was missed, or a trigger was too broad."
+    instruction:
+      targets:
+        - task-cards/
+        - workflows/
+        - templates/
+      use_when: "The selected skill followed an incomplete, unstable, or unsafe workflow."
+    resource:
+      targets:
+        - rules/
+        - playbooks/
+        - scripts/
+      use_when: "A recurring specialized constraint, example, or deterministic operation is needed."
+
+  feedback_record:
+    private_storage: feedback/skill-evolution/
+    required_fields:
+      - skill_id
+      - layer_candidate
+      - feedback_type
+      - feedback_summary
+      - evidence_paths
+      - source_run_id
+      - confidence
+    redact_before_write:
+      - api_key
+      - token
+      - password
+      - email
+      - phone
+
+  proposal_policy:
+    minimum_evidence:
+      repeated_pattern: 2
+      explicit_user_correction: 1
+      safety_or_privacy_issue: 1
+    required_fields:
+      - target_layer
+      - target_file
+      - problem_statement
+      - proposed_change
+      - evidence_paths
+      - success_metric
+      - rollback_plan
+    forbidden:
+      - automatic_production_skill_edit
+      - automatic_router_expansion
+      - automatic_permission_change
+
+  validation:
+    compare:
+      - baseline_skill_version
+      - candidate_skill_version
+    required_checks:
+      - target_metric_improves
+      - no_risk_gate_regression
+      - cost_does_not_exceed_baseline_by_20_percent
+      - private_feedback_is_not_committed
+    promotion:
+      requires_human_approval: true
+      versioning: patch_increment
+    rollback:
+      trigger: "metric regresses or risk gate fails"
+      action: restore_prior_skill_version
+
+  compaction:
+    frequency: monthly
+    rules:
+      - merge_duplicate_rules
+      - move niche_constraints_to_resources
+      - remove_unvalidated_candidates
+      - keep_skill_entry_under_500_lines

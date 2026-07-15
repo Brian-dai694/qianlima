@@ -1,0 +1,246 @@
+# cost-baselines.yaml — 成本基线定义
+# 版本: v1.0 | 创建: 2026-07-11
+# 用途: 为每个 workflow 定义预估成本基线，用于计算节约和异常检测
+# 设计参考: Cage (cage-flux) — method: estimated | measured | modeled
+#            cost-per-outcome 思维（不以 token 为唯一指标，以任务完成价值为单位）
+
+cost_baselines:
+  version: "1.0"
+  principle: >
+    基线不是天花板。低于基线意味着节约，高于基线不一定是问题
+    （可能是任务更复杂），但超过 2x 需要解释原因。
+    所有基线初始为 estimated，实际跑 5 次后升级为 measured。
+
+  tiers:
+    - id: L0
+      name: "零模型 / 脚本直出"
+      description: "纯数据读写、格式转换、lark-cli api 调用 — 不经过 LLM"
+      typical_cost_usd: 0
+      typical_tokens: 0
+      examples:
+        - "PowerShell 脚本读写飞书表格"
+        - "lark-cli api PUT 写入单行"
+        - "CSV 聚合 / 排序 / 筛选"
+
+    - id: L1
+      name: "轻量 / Flash 级"
+      description: "模板填充、简单计算、格式校验 — Haiku/Flash 级模型"
+      typical_cost_usd: 0.05
+      typical_input_tokens: 2000
+      typical_output_tokens: 500
+      examples:
+        - "填入日报模板（数据已有）"
+        - "利润简单加减计算"
+        - "库存天数 = 库存/日均销量"
+
+    - id: L2
+      name: "标准 / 主力模型"
+      description: "广告分析、关键词判断、Listing 诊断 — 当前主力模型"
+      typical_cost_usd: 0.50
+      typical_input_tokens: 15000
+      typical_output_tokens: 3000
+      examples:
+        - "广告日报（读 3-5 源 → 分析 → 生成报告）"
+        - "关键词排名扫描 + 变动归因"
+        - "Listing 标题/五点诊断"
+
+    - id: L3
+      name: "深度 / Pro 级"
+      description: "竞品策略、选品决策、多维度复盘 — Pro/Opus 级"
+      typical_cost_usd: 2.00
+      typical_input_tokens: 50000
+      typical_output_tokens: 8000
+      examples:
+        - "竞品矩阵对比（5+ ASIN 多维分析）"
+        - "新品选品完整评估（市场/竞争/利润/风险）"
+        - "PD 后全面复盘 + 策略调整建议"
+
+  # ── 各 workflow 基线 ──────────────────────────────────────────
+
+  workflows:
+    - workflow_id: daily_ad_report
+      name: "每日广告运营日报"
+      tier: L2
+      baseline_cost_usd: 1.32
+      method: estimated
+      typical_input_tokens: 20000
+      typical_output_tokens: 4000
+      typical_tool_calls: 15
+      note: "基于 PD Day 1 实测（DeepSeek V4 Pro，14 Kimi WebBridge + 12 PS + 8 Read + 6 Write）"
+      last_calibrated: "2026-06-24"
+      calibrate_after_runs: 3
+
+    - workflow_id: keyword_rank_scan
+      name: "关键词巡检"
+      tier: L2
+      baseline_cost_usd: 0.80
+      method: estimated
+      typical_input_tokens: 12000
+      typical_output_tokens: 2500
+      typical_tool_calls: 12
+      note: "基于 SDR Loop（Sorftime → Pangolinfo → Kimi 三源），9 词扫描"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: keyword_monitoring
+      name: "关键词监控"
+      tier: L2
+      baseline_cost_usd: 0.60
+      method: estimated
+      typical_input_tokens: 10000
+      typical_output_tokens: 2000
+      typical_tool_calls: 8
+      note: "单 ASIN 关键词监控，比巡检轻量"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: sales_ledger
+      name: "ASIN 销量台账"
+      tier: L1
+      baseline_cost_usd: 0.10
+      method: estimated
+      typical_input_tokens: 3000
+      typical_output_tokens: 800
+      typical_tool_calls: 4
+      note: "读飞书 ASIN Sales 表 → 套模板 → 写回，计算为主"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 3
+
+    - workflow_id: profit_check
+      name: "利润测算"
+      tier: L1
+      baseline_cost_usd: 0.15
+      method: estimated
+      typical_input_tokens: 4000
+      typical_output_tokens: 1000
+      typical_tool_calls: 5
+      note: "利润 = 售价 - 佣金 - FBA - 广告 - 成本，数学计算为主"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 3
+
+    - workflow_id: competitor_comparison
+      name: "竞品对比"
+      tier: L3
+      baseline_cost_usd: 2.50
+      method: estimated
+      typical_input_tokens: 45000
+      typical_output_tokens: 6000
+      typical_tool_calls: 20
+      note: "多 ASIN 多维对比，需要深度分析和策略建议"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: listing_optimization
+      name: "Listing 优化诊断"
+      tier: L2
+      baseline_cost_usd: 0.90
+      method: estimated
+      typical_input_tokens: 18000
+      typical_output_tokens: 3500
+      typical_tool_calls: 10
+      note: "读当前 Listing + 竞品 + 关键词 → 诊断 + 建议，需引用规则文件"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: product_discovery
+      name: "新品机会探索"
+      tier: L3
+      baseline_cost_usd: 3.00
+      method: estimated
+      typical_input_tokens: 50000
+      typical_output_tokens: 8000
+      typical_tool_calls: 25
+      note: "全维度选品评估，数据源最多（Sorftime + Pangolinfo + SIF），分析最深度"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: traffic_anomaly_diagnosis
+      name: "流量异常诊断"
+      tier: L2
+      baseline_cost_usd: 0.70
+      method: estimated
+      typical_input_tokens: 14000
+      typical_output_tokens: 2800
+      typical_tool_calls: 10
+      note: "诊断流量下跌/异常，需要多源交叉验证"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: inventory_alert
+      name: "库存预警"
+      tier: L1
+      baseline_cost_usd: 0.08
+      method: estimated
+      typical_input_tokens: 2500
+      typical_output_tokens: 600
+      typical_tool_calls: 3
+      note: "库存 < 安全线 → 告警，逻辑简单"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 3
+
+    - workflow_id: knowledge_digest
+      name: "资料消化"
+      tier: L2
+      baseline_cost_usd: 0.50
+      method: estimated
+      typical_input_tokens: 20000
+      typical_output_tokens: 5000
+      typical_tool_calls: 6
+      note: "读取外部资料 → 摘要 → 提炼行动项，输入 token 可变范围大"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 3
+
+    - workflow_id: profit_review
+      name: "利润复盘"
+      tier: L2
+      baseline_cost_usd: 0.40
+      method: estimated
+      typical_input_tokens: 10000
+      typical_output_tokens: 2500
+      typical_tool_calls: 8
+      note: "多 SKU 利润汇总 + 月度对比 + what-if 分析"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 3
+
+    - workflow_id: strategy_exploration
+      name: "策略探索优化"
+      tier: L3
+      baseline_cost_usd: 1.50
+      method: estimated
+      typical_input_tokens: 30000
+      typical_output_tokens: 5000
+      typical_tool_calls: 15
+      note: "Exploration Engine Shadow Mode 运行，5 trials 默认"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+    - workflow_id: startup_bootstrap
+      name: "千里马启动"
+      tier: L1
+      baseline_cost_usd: 0.03
+      method: estimated
+      typical_input_tokens: 12000
+      typical_output_tokens: 500
+      typical_tool_calls: 2
+      note: "启动脚本 + 索引生成，文件读取为主，无复杂推理"
+      last_calibrated: "2026-07-11"
+      calibrate_after_runs: 5
+
+  # ── 校准规则 ──────────────────────────────────────────────────
+
+  calibration:
+    rules:
+      - "新基线初始为 estimated，标注 method: estimated"
+      - "跑满 calibrate_after_runs 次后取 P50 成本，升级为 method: measured"
+      - "每次校准更新 last_calibrated 日期"
+      - "baseline 至少每 30 天重新校准一次（模型价格可能变动）"
+    p50_calculation: "取最近 N 次运行的实际成本，排序后取中位数"
+    outlier_policy: "排除明显异常值（空跑、中断、错误重试 > 3 次）"
+
+  # ── 异常阈值 ──────────────────────────────────────────────────
+
+  anomaly_thresholds:
+    cost_spike_warning: 1.5    # 超基线 1.5x → warning
+    cost_spike_block: 2.0      # 超基线 2x → 阻断并问用户
+    cost_drop_suggest: 0.3     # 低于基线 30% → 建议降级 tier
+    consecutive_drops: 3       # 连续 N 次低于基线 50% → 自动建议降级

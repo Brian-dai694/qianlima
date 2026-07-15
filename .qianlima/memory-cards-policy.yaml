@@ -1,0 +1,36 @@
+memory_cards:
+  version: 1
+  purpose: "Keep compact, expiring operational recall without replacing source data."
+  storage: memory/cards
+  git_policy: private_local_only
+  entity_types: [asin, sku, campaign, keyword]
+  required_fields:
+    - entity_type
+    - entity_id
+    - source_refs
+    - facts
+    - confidence
+    - updated_at
+    - expires_at
+  freshness:
+    default_hours: 24
+    inventory_hours: 6
+    campaign_hours: 12
+    keyword_hours: 24
+    product_profile_hours: 168
+  source_of_truth:
+    rule: "Memory cards are recall aids. Local source files and live data override cards on conflict."
+    reload_required_for: [L4, stale_card, conflicting_source, financial_decision, inventory_decision]
+  prohibited_content:
+    - api_key
+    - token
+    - password
+    - cookie
+    - raw_customer_data
+    - bank_account
+  lifecycle:
+    create: "Create only after a source-backed task result."
+    read: "Load only the matching entity card for L2+ tasks."
+    refresh: "Replace facts after source refresh; do not silently extend expiry."
+    expire: "Mark stale cards as hints and list source reload as pending verification."
+    delete: "L4 command safety and second confirmation required."
