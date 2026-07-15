@@ -1,0 +1,29 @@
+session_lease:
+  version: 1
+  purpose: "Reuse validated short startup context within one explicit agent session without weakening risk gates."
+  scope: explicit_session_id
+  default_valid_for_minutes: 30
+  carries:
+    - startup_index_version
+    - loaded_boot_version
+    - loaded_router_version
+    - approved_context_level
+  storage: .qianlima/session-leases
+  reuse_requires:
+    - startup_cache_is_ready
+    - lease_not_expired
+    - startup_index_version_matches
+    - boot_version_matches
+    - router_version_matches
+    - request_is_not_L4
+  invalidate_when:
+    - explicit_invalidate_request
+    - configuration_or_directory_change
+    - relevant_task_card_changed
+    - cross_domain_or_ambiguous_request
+    - high_risk_request
+    - lease_expired
+  safety:
+    - "A missing SessionId means no lease reuse."
+    - "A lease contains versions and route metadata only; never store user messages, credentials, raw data, or model output."
+    - "L4 requests always require start-qianlima.ps1 -Force and never reuse a lease."

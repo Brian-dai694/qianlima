@@ -1,0 +1,193 @@
+agent_runtime_policy:
+  version: 1
+  purpose: "Turn workflow descriptions into bounded, auditable task runs."
+  principle:
+    - "Context is loaded by need and risk, never by directory breadth."
+    - "A budget exhaustion freezes the current result and records the missing verification."
+    - "Sandbox permissions and risk confirmation cannot be bypassed by a workflow."
+
+  context_levels:
+    L0:
+      use_for: [ordinary_chat, simple_facts, non_operational_question]
+      load: []
+      max_tools: 0
+      max_files: 0
+      max_steps: 1
+      response: direct_answer
+    L1:
+      use_for: [clear_low_risk_intent]
+      load: [CODEX_BOOT.md, codex-router.json]
+      max_tools: 2
+      max_files: 2
+      max_steps: 3
+      startup: bypass_when_clear_and_read_only
+      response: direct_answer_or_next_action
+    L2:
+      use_for: [structured_local_analysis]
+      load: [task_card, workflow, template]
+      max_tools: 4
+      max_files: 5
+      max_steps: 6
+      response: status_card_then_local_result
+    L3:
+      use_for: [external_data, multi_source_analysis, operating_recommendation]
+      load: [task_card, workflow, required_data_sources]
+      max_tools: 8
+      max_files: 8
+      max_steps: 10
+      first_useful_output_target_seconds: 3
+      response: status_card_then_preliminary_judgment_then_evidence_pack
+    L4:
+      use_for: [change_price, change_bid, change_budget, purchase_order, delete_data, write_back, external_send]
+      load: [task_card, workflow, risk-rules.yaml, original_data]
+      max_tools: 10
+      max_files: 10
+      max_steps: 12
+      first_useful_output_target_seconds: 3
+      response: status_card_then_evidence_then_confirmation_request
+      confirmation_required: true
+
+  default_budgets:
+    elapsed_seconds: 120
+    tool_calls: 8
+    workflow_steps: 10
+    context_files: 8
+    estimated_cost_usd: null
+    on_exhaustion: freeze_and_report_pending_verification
+
+  budget_escalation:
+    requires_confirmation_for:
+      - elapsed_seconds_above_default
+      - tool_calls_above_default
+      - workflow_steps_above_default
+      - estimated_cost_above_workflow_baseline_x2
+    never_auto_extend_for:
+      - external_write
+      - delete_data
+      - purchase_order
+
+  sandbox:
+    read:
+      allowed: [project_workspace, explicitly_selected_data_source]
+      denied: [credentials, unrelated_user_directories, system_files]
+    write:
+      allowed: [reports, logs, run-traces, context-summaries, usage-ledger, working]
+      requires_confirmation: [external_system, git_remote, lark, erp, browser_form_submission]
+      denied: [system_files, credential_files, source_data_overwrite]
+    destructive_operations:
+      default: deny
+      require_command_safety_check: scripts/check-command-safety.ps1
+      require_confirmation:
+        - recursive_delete
+        - bulk_delete
+        - overwrite_existing_files
+        - move_outside_workspace
+      forbidden_paths:
+        - workspace_parent
+        - user_profile_root
+        - disk_root
+        - unresolved_variable_path
+        - broad_wildcard_path
+      allowed_delete_scopes:
+        - .qianlima/tmp
+        - .qianlima/logs
+        - .qianlima/run-traces
+        - .qianlima/reports/generated
+      allow_only_after: explicit_second_confirmation
+
+  state_machine:
+    initial: received
+    states:
+      received:
+        allowed_next: [visible_update_sent, stopped]
+        required: [user_goal]
+      visible_update_sent:
+        allowed_next: [route_decided, stopped]
+        required: [visible_update]
+      route_decided:
+        allowed_next: [fast_result, context_loaded, stopped]
+        required: [context_level, workflow_id_or_direct_answer]
+      context_loaded:
+        allowed_next: [evidence_collecting, recommendation_ready, stopped]
+        required: [loaded_sources]
+      fast_result:
+        allowed_next: [evidence_collecting, recommendation_ready, completed, stopped]
+        required: [initial_result_or_next_action]
+      evidence_collecting:
+        allowed_next: [recommendation_ready, awaiting_confirmation, frozen, failed]
+        required: [budget_snapshot, source_trace]
+      recommendation_ready:
+        allowed_next: [awaiting_confirmation, completed, frozen]
+        required: [evidence, pending_verification]
+      awaiting_confirmation:
+        allowed_next: [executing, stopped]
+        required: [proposed_action, risk_level, user_confirmation]
+      executing:
+        allowed_next: [completed, failed]
+        required: [operation_trace]
+      frozen:
+        terminal: true
+        required: [budget_exhaustion_reason, partial_result, pending_verification]
+      completed:
+        terminal: true
+        required: [usage_record, final_result]
+      failed:
+        terminal: true
+        required: [failure_reason, recovery_action]
+      stopped:
+        terminal: true
+        required: [stop_reason]
+
+  loop_execution:
+    default_mode: stateful_local_trace
+    runner: scripts/invoke-qianlima-loop.ps1
+    allowed_loop_types: [EVR]
+    external_write: prohibited_without_L4_confirmation
+    terminal_states: [completed, failed, frozen, stopped]
+    frozen_result_required: [partial_result, pending_verification, recovery_action]
+
+  memory_cards:
+    policy: memory-cards-policy.yaml
+    load_for: [L2, L3, L4]
+    never_replace: [original_data, live_data, risk_rules]
+    high_risk_rule: reload_original_source_before_decision
+
+  subagent_separation:
+    policy: subagent-orchestration.yaml
+    maker_checker_independence: required_for_L3_L4
+    checker_context: source_summary_and_artifact_only
+    checker_forbidden: [external_write, report_write, confirmation_approval]
+    parent_only: [workflow_completion, L4_confirmation, external_write_decision]
+    failure_rule: "Checker failure returns to maker when repairable; otherwise freeze with pending verification."
+
+  plugin_and_flow_runtime:
+    plugin_registry: plugin-registry.yaml
+    workflow_runtime: workflow-runtime.yaml
+    plugin_selection: "Router selects enabled plugins whose input, risk, and permission contract matches the task."
+    scheduler_policy: "Use local stateful execution by default; introduce an external scheduler only when recurring jobs require deployment and recovery."
+
+  trace_contract:
+    required_fields:
+      - run_id
+      - context_level
+      - current_state
+      - budget_snapshot
+      - sandbox_decisions
+      - startup_ms
+      - routing_ms
+      - context_load_ms
+      - tool_ms
+      - model_ms
+      - first_useful_output_ms
+
+  interaction_scheduler:
+    policy: session-lease-policy.yaml
+    first_visible_update_target_seconds: 2
+    context_loader: scripts/qianlima-context-fast.ps1 -AutoStart
+    routing_rule: "Send the visible update first; then invoke the context loader once for L1-L3."
+    lease_rule: "Reuse only an explicit SessionId lease with matching startup, boot, and router versions."
+    continuation_short_circuit:
+      signals: [继续, 还有吗, 展开第N点, 再详细一点, 接着做, 下一步]
+      action: reuse_current_conversation_context_without_tool_call
+      invalidate_when: [goal_changed, new_data_source, configuration_change, L4_request, ambiguity]
+    high_risk_rule: "L4, ambiguous cross-domain work, and configuration changes bypass leases and force full startup."

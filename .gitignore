@@ -20,6 +20,8 @@
 # 工作区索引（含绝对路径）
 .qianlima/WORKSPACE_INDEX.md
 .qianlima/workspace-index.json
+.qianlima/startup-cache.json
+.qianlima/codex-router.json
 
 # 历史报告（含实际运营数据）
 reports/
@@ -34,6 +36,10 @@ daily-summaries/
 # ═══════════════════════════════════════════════════
 # 运行时产物 — 不提交
 # ═══════════════════════════════════════════════════
+
+# 临时执行状态
+.qianlima/tmp/
+.qianlima/session-leases/
 
 # 日志
 .qianlima/logs/

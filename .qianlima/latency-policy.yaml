@@ -1,0 +1,48 @@
+latency_policy:
+  version: 1
+  principle: "先交付可用判断，再按风险补足证据；快速路径不能降低高风险门禁。"
+  levels:
+    L0:
+      use_for: [ordinary_chat, simple_facts, non_operational_questions]
+      context: none
+      startup: bypass
+      response: direct_answer
+      ledger: not_required
+    L1:
+      use_for: [clear_low_risk_intent]
+      context: [CODEX_BOOT.md, codex-router.json]
+      startup: bypass_when_clear_context_and_no_tool_needed
+      response: direct_answer_or_next_action
+      ledger: required_when_workflow_completed
+      session_lease_minutes: 30
+    L2:
+      use_for: [structured_local_analysis]
+      context: [task_card, workflow, template]
+      response: status_card_then_local_result
+      startup: use_cached_artifacts_unless_status_requires_startup
+      ledger: required
+    L3:
+      use_for: [external_data_or_multi_source_analysis]
+      context: [task_card, workflow, required_data_sources]
+      response: status_card_then_preliminary_judgment_then_evidence_pack
+      first_useful_output_target_seconds: 3
+      ledger: required
+      startup: use_cached_artifacts_unless_status_requires_startup
+    L4:
+      use_for: [price_change, bid_change, budget_change, purchasing, deletion, external_write]
+      context: [task_card, workflow, risk-rules.yaml, original_data]
+      response: status_card_then_evidence_then_confirmation_request
+      confirmation: required
+      startup: start-qianlima.ps1_force
+      ledger: required
+  latency_fields:
+    - startup_ms
+    - routing_ms
+    - context_load_ms
+    - tool_ms
+    - model_ms
+    - first_useful_output_ms
+  interaction_contract:
+    first_visible_update_target_seconds: 2
+    rule: "Send a useful status update before context loading or tool work for L2-L4."
+    delivery_stages: [visible_update_sent, fast_result, evidence_collecting, recommendation_ready, awaiting_confirmation]

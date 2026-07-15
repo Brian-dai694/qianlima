@@ -1,6 +1,6 @@
 # 千里马计划 — 亚马逊运营 AI Agent Harness
 
-> 版本: v2.6.7 | 2026-07-10
+> 版本: v2.7.0 | 2026-07-11
 
 千里马计划是一个面向亚马逊卖家的 **AI Agent Harness 系统**。它不是另一个"关键词工具"或"广告管理面板"——它是 **Agent 治理层**，让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。
 
@@ -20,7 +20,7 @@
 ## 架构总览
 
 ```
-千里马 Harness v2.6.7
+千里马 Harness v2.7.0
 │
 ├── 🧭 场景智能路由           → 按场景精准加载，context 占用降低 40-60%
 ├── 🩺 健康自检               → 5 维度启动时自动诊断（数据新鲜度 / 注册表一致性 / 配置漂移 / 工作区完整性 / 隐私泄漏）
@@ -67,12 +67,23 @@ copy .qianlima\work.example.ws .qianlima\work.ws
 ### 3. 启动 Harness
 
 ```powershell
-# 运行启动脚本（生成工作区索引 + 健康自检）
+# 首次使用或配置变更时运行（生成工作区索引 + 健康自检）
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
 
 # 或使用中文入口
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\启动千里马计划.ps1"
 ```
+
+### macOS / Linux
+
+安装 PowerShell 7 后使用同一套运行时：
+
+```bash
+brew install --cask powershell
+bash start-qianlima.sh
+```
+
+详见 [MACOS.md](MACOS.md)。
 
 ### 4. 触发第一个任务
 
@@ -274,8 +285,8 @@ QianlimaEval 借鉴 MiniAppBench / MiniAppEval 的 `Generate -> Compile -> Evalu
 
 | 路径 | 说明 |
 |------|------|
-| `C:\Users\UEFR\Desktop\Work Space\` | 工作盘根目录 |
-| `C:\Users\UEFR\Desktop\Work Space\千里马计划\` | 千里马根目录 |
+| `./` | 千里马项目根目录 |
+| `./.qianlima/` | 千里马治理目录 |
 | `.qianlima\` | Harness 治理中枢 |
 | `agent-components\` | EAT 自我进化引擎 |
 | `reports\` | 产出报告 |
