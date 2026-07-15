@@ -4,8 +4,8 @@
 
 启动顺序：
 1. 先判定 L0-L4。L0 普通聊天直接回答，不运行任何千里马脚本。
-2. L1 先运行 `.qianlima/scripts/qianlima-status-fast.ps1`；状态为 `ready` 时只读取本文件和 `codex-router.json`。
-3. L2/L3 运行快速状态时传入本次 task-card、workflow 和 template 的相对路径（用分号分隔）；状态为 `ready` 时按任务读取最小文件，状态为 `needs_startup` 时运行 `powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"`。
+2. 明确低风险 L1 且不需要文件、外部数据或写回时直接回答，不运行脚本；需要本地规则或工具时，再单次运行 `.qianlima/scripts/qianlima-context-fast.ps1 -TaskText "..." -ContextLevel L1 -SessionId "<host-provided-thread-id>" -AsJson`。L2-L3 先发有效状态更新，再运行该装配器。未提供 SessionId 时不会复用租约。
+3. L2/L3 将本次 task-card、workflow 和 template 的相对路径传给 `-RelevantPath`（用分号分隔），并使用 `-AutoStart`，一次调用完成缓存检查、必要启动和上下文装配；若返回 `startup_completed: true`，不得再次运行启动脚本。
 4. L4 或规则/目录变更时运行 `powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1" -Force`，再读取完整启动包和原始数据。
 
 L0-L4 加载规则：
@@ -25,12 +25,16 @@ L0-L4 加载规则：
 - 选品 / 品类能不能做 → `product_discovery`
 - 整理资料 / 总结文档 → `knowledge_digest`
 
-每次开始任务先输出状态卡：
+新 L2/L3 业务任务开始时输出状态卡；L0、L1 和同主题续问不输出启动状态卡，不运行脚本：
 - 工作区：私有运营
 - 当前场景：___
 - 已加载来源：___
 - 将使用 workflow：___
 - 高风险/待验证：___
+
+交互规则：L2-L4 的第一条状态更新不等待脚本、文件或工具结果；L1 的后续追问可在同一显式 SessionId 的 30 分钟租约内复用短启动包。配置变更、路由歧义、跨域和 L4 请求立即失效租约。
+
+续问短路：`继续`、`还有吗`、`展开第 N 点`、`再详细一点`、`接着做`、`下一步`默认继承当前对话的任务、路由和证据状态，不运行任何启动或状态脚本；只有目标、数据源、风险等级或配置发生变化时重新路由。
 
 硬规则：
 - 高风险动作：改价、调竞价、调预算、采购、删除、写回外部系统，必须二次确认。

@@ -1,19 +1,3 @@
-<#
-.SYNOPSIS
-    Fast readiness check for the Qianlima startup cache and artifacts.
-.DESCRIPTION
-    Reads startup-cache.json and verifies the schema version, the presence of
-    required boot artifacts, and whether any known source files (or supplied
-    relevant paths) are newer than the cache. Reports ready or needs_startup
-    without performing a full startup. Relevant paths must stay in the workspace.
-.PARAMETER AsJson
-    Emit the status object as JSON instead of formatted host output.
-.PARAMETER RelevantPath
-    Extra workspace-relative files to include in the freshness check
-    (comma or semicolon separated values are split).
-.EXAMPLE
-    ./qianlima-status-fast.ps1 -AsJson -RelevantPath "AGENTS.md;start-qianlima.ps1"
-#>
 param(
   [switch]$AsJson,
   [string[]]$RelevantPath = @()
@@ -55,6 +39,9 @@ $freshnessSources = @(
   'AGENTS.md',
   '.qianlima\CODEX_BOOT.md',
   '.qianlima\natural-language-router.yaml',
+  '.qianlima\agent-runtime-policy.yaml',
+  '.qianlima\latency-policy.yaml',
+  '.qianlima\session-lease-policy.yaml',
   'start-qianlima.ps1'
 ) + $normalizedRelevantPaths
 $invalidRelevantPaths = @($normalizedRelevantPaths | Where-Object {

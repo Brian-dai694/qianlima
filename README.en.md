@@ -4,10 +4,10 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.3-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> Version v2.7.1 | 2026-07-13 · See [CHANGELOG.md](CHANGELOG.md)
+> Version v2.7.3 | 2026-07-15 · See [CHANGELOG.md](CHANGELOG.md)
 
 Qianlima is an **AI Agent Harness** for Amazon sellers. It is not another "keyword tool" or "ad management dashboard" — it is an **agent governance layer** that lets an LLM execute Amazon operations tasks reliably, safely, and traceably.
 
@@ -21,7 +21,7 @@ This project draws on [Lilian Weng — Harness Engineering for Self-Improvement 
 ## Architecture
 
 ```text
-Qianlima Harness v2.7.1
+Qianlima Harness v2.7.3
 ├── Scenario router        → load per scenario, minimize unnecessary context
 ├── Health self-check      → validate skeleton, index, and references at startup
 ├── Loop Engineering       → SDR / EVR / PBV / EDA execution loops

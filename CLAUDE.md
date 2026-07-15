@@ -1,44 +1,17 @@
-# CLAUDE.md — 千里马 Git-safe 公开模板仓
+# CLAUDE.md — 千里马私有运营工作区
 
-Claude Code 进入本目录后，先执行：
+## 快速路径
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
-```
+- 普通对话、简单只读问题和同主题续问：直接回答，不运行启动脚本，不读取运营配置。
+- 新的 L2/L3 业务任务：先给一句有效判断，再调用 `.qianlima/scripts/qianlima-context-fast.ps1` 一次完成缓存检查、必要启动和最小上下文装配；不要串行运行 status + startup。
+- L4：改价、调竞价、调预算、采购、删除、覆盖、写回或发送外部消息，必须完整校验、原始数据复核和用户二次确认。
 
-macOS / Linux（需先装 PowerShell 7）：
+续问关键词包括：`继续`、`下一步`、`还有吗`、`展开第 N 点`、`再详细一点`、`接着做`。只要目标、数据源、风险和配置没有变化，续问不得触发脚本、重复读启动包或单独记账。
 
-```bash
-./start-qianlima.sh
-```
+## 运行时规则
 
-然后读取：
+业务任务需要时读取 `.qianlima/CODEX_BOOT.md`，再按 task-card/workflow 加载最小文件。不要扫描整个工作区；高风险结论必须回读原始数据。删除、覆盖、格式化和递归移动前运行 `.qianlima/scripts/check-command-safety.ps1`。
 
-```text
-.qianlima/CODEX_BOOT.md
-.qianlima/WORKSPACE_INDEX.md
-```
+真正完成的 workflow 才写 `.qianlima/usage-ledger/runs.jsonl`；普通对话和续问不是 workflow。未知 token、成本和耗时填 `0`，不得编造。
 
-## 工作区定位
-
-这是千里马 Git-safe 公开模板仓，只能包含公开模板、治理文件、示例数据、脚本和脱敏文档。不要写入真实 token、账号、客户信息、ASIN 运营数据、成本台账、运行报告、截图或本地路径。
-
-## Claude Code 行为规则
-
-- 不要一次性读取整个工作区。
-- 修改前先判断是否属于公开模板改动。
-- 提交前必须运行 `.qianlima/scripts/verify-qianlima.ps1`。
-- 遇到 GitHub Actions 红叉，优先本地复现 `.github/workflows/qianlima-verify.yml` 中的步骤。
-- 每次开始任务先输出状态卡：工作区、场景、已加载来源、workflow/脚本、隐私风险/待验证。
-
-## 任务路由
-
-- README / 文档 / 翻译 → 编辑公开文档，并保持隐私边界
-- 隐私剔除 / Git-safe → 跑 `verify-qianlima.ps1`
-- CI 红叉 / 校验失败 → 本地复现 GitHub Actions 步骤
-- 补 workflow / task-card → 只写 public-safe 模板定义
-- 提交推送 → 先确认 `git status`、跑校验，再 commit/push
-
-## 禁止提交
-
-真实 `work.ws`、`data-sources.yaml`、usage ledger、decision log、报告、截图、token、账号、客户信息和本地路径。
+不要把私有 `work.ws`、数据源、报告、账本、绝对路径、凭据或业务记录复制到公开仓。

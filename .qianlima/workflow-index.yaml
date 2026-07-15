@@ -1,5 +1,5 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.7.0 | 更新: 2026-07-11
+# 版本: v2.7.3 | 更新: 2026-07-15
 # 变更: 每个 workflow 新增 cost_baseline_usd + model_tier 字段，verification_gates 补充 cost vs baseline 检查
 
 workflows:

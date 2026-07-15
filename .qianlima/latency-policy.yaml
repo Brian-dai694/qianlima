@@ -11,9 +11,10 @@ latency_policy:
     L1:
       use_for: [clear_low_risk_intent]
       context: [CODEX_BOOT.md, codex-router.json]
-      startup: qianlima-status-fast.ps1_then_short_boot
+      startup: bypass_when_clear_context_and_no_tool_needed
       response: direct_answer_or_next_action
       ledger: required_when_workflow_completed
+      session_lease_minutes: 30
     L2:
       use_for: [structured_local_analysis]
       context: [task_card, workflow, template]
@@ -41,3 +42,7 @@ latency_policy:
     - tool_ms
     - model_ms
     - first_useful_output_ms
+  interaction_contract:
+    first_visible_update_target_seconds: 2
+    rule: "Send a useful status update before context loading or tool work for L2-L4."
+    delivery_stages: [visible_update_sent, fast_result, evidence_collecting, recommendation_ready, awaiting_confirmation]

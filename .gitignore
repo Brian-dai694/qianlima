@@ -39,6 +39,7 @@ daily-summaries/
 
 # 临时执行状态
 .qianlima/tmp/
+.qianlima/session-leases/
 
 # 日志
 .qianlima/logs/

@@ -4,10 +4,10 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.3-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 版本: v2.7.2 | 2026-07-14 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
+> 版本: v2.7.3 | 2026-07-15 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
 千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。
 
@@ -21,7 +21,7 @@
 ## 架构
 
 ```text
-千里马 Harness v2.7.2
+千里马 Harness v2.7.3
 ├── 场景智能路由      → 按场景精准加载，减少不必要上下文
 ├── 健康自检          → 启动时自动检查骨架、索引和引用
 ├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环
