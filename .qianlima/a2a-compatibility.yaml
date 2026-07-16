@@ -1,0 +1,82 @@
+# a2a-compatibility.yaml - Internal-first compatibility contract for A2A v1.0
+# This file is not an A2A server configuration and must not open a network listener.
+a2a_compatibility:
+  version: 1
+  protocol_target: "A2A 1.0"
+  adoption_mode: internal_contract_only
+  purpose: "Map Qianlima's governed agent contracts to A2A concepts before any remote delegation."
+
+  non_goals:
+    - "Expose Codex Desktop as an internet-facing A2A server."
+    - "Grant execution authority from an A2A Agent Card."
+    - "Transmit hidden reasoning, full memory, secrets, or raw workspace data."
+    - "Replace L0-L4 routing, risk rules, confirmation gates, or command safety checks."
+
+  responsibility_boundary:
+    a2a: [capability_discovery, task_lifecycle, artifact_exchange, streaming_status]
+    qianlima: [routing, data_minimization, policy_enforcement, budget, verification, approval, audit, rollback]
+    mcp_and_skills: [tool_use, data_source_access, atomic_actions]
+
+  model_mapping:
+    agent_card:
+      qianlima_source: agent-cards.yaml
+      exchange_policy: "Declare only externally safe capability metadata."
+      authority_rule: "A card is discovery metadata, never a permission grant."
+    context:
+      qianlima_source: session lease and task runtime session state
+      rule: "context_id groups related work but does not widen data access."
+    task:
+      qianlima_source: work-order-schema.yaml
+      rule: "One immutable work order maps to one A2A-compatible unit of work."
+    artifact:
+      qianlima_source: report, evidence package, snapshot, or logical artifact reference
+      rule: "Exchange references, hashes, media types, and bounded summaries; never inline sensitive raw content."
+    receipt:
+      qianlima_source: run receipt and usage ledger
+      rule: "The manager records verification and final decision outside the delegated agent."
+
+  state_mapping:
+    pending: submitted
+    assigned: submitted
+    running: working
+    awaiting_verification: working
+    awaiting_confirmation: auth_required
+    completed: completed
+    rejected: rejected
+    cancelled: canceled
+    partial: internal_only
+    frozen:
+      internal_only: true
+      external_translation: "input_required only when a caller can supply a named missing input; otherwise failed with a bounded reason."
+    failed: failed
+
+  delegation_gate:
+    required_before_dispatch:
+      - agent_card_exists
+      - explicit_work_order
+      - minimum_data_scope
+      - budget_defined
+      - verifier_named
+      - manager_owner_assigned
+    forbidden_dispatch:
+      - L4_execution_authority
+      - secrets_or_credentials
+      - source_data_overwrite
+      - unrestricted_workspace_access
+      - unverified_remote_agent
+
+  artifact_contract:
+    required: [artifact_id, task_id, name, media_type, reference, integrity_hash, source_classification]
+    source_classification: [public, internal_sanitized, confidential_reference_only]
+    retention_rule: "Artifact lineage is owned by Qianlima; an external agent cannot rewrite prior task artifacts."
+
+  versioning:
+    negotiation_required: true
+    supported_protocol_versions: ["1.0"]
+    compatibility_rule: "Reject unknown major versions; record minor-version differences in the run receipt."
+
+  rollout_gates:
+    phase_0: "Internal schemas and replay-only examples. No network activity."
+    phase_1: "Local mock A2A task exchange with sanitized artifacts and deterministic verifier."
+    phase_2: "One allowlisted read-only remote agent through a governed client gateway."
+    phase_3: "External exposure only after authentication, tenant isolation, policy interception, trace audit, and incident drill approval."
