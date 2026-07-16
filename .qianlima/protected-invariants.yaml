@@ -1,0 +1,32 @@
+protected_invariants:
+  version: 1
+  principle: "Project and task rules may narrow permissions, never widen them."
+  enforcement:
+    checker: scripts/check-protected-invariants.ps1
+    invoke_before: [write_file, modify_file, execute_script, external_write]
+    shell_commands: "Continue using scripts/check-command-safety.ps1; this file does not replace command approval."
+  entries:
+    - path: AGENTS.md
+      action: ask
+      reason: "The Codex entry rules affect every later task."
+    - path: .qianlima/CODEX_BOOT.md
+      action: ask
+      reason: "The boot contract controls routing and context loading."
+    - path: .qianlima/risk-rules.yaml
+      action: block
+      reason: "Risk rules cannot be weakened by an ordinary task."
+    - path: .qianlima/agent-runtime-policy.yaml
+      action: ask
+      reason: "Runtime budgets, sandbox rules, and confirmations need review."
+    - path: .qianlima/protected-invariants.yaml
+      action: block
+      reason: "The invariant policy cannot disable itself."
+    - path: .qianlima/scripts/check-command-safety.ps1
+      action: ask
+      reason: "The destructive-command guard needs explicit human review."
+    - path: .qianlima/scripts
+      action: ask
+      reason: "Runtime scripts can change the enforcement boundary."
+    - path: start-qianlima.ps1
+      action: ask
+      reason: "The startup path controls context cost and validation."

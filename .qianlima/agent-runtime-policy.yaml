@@ -95,6 +95,19 @@ agent_runtime_policy:
         - .qianlima/reports/generated
       allow_only_after: explicit_second_confirmation
 
+  protected_invariants:
+    policy: protected-invariants.yaml
+    checker: scripts/check-protected-invariants.ps1
+    before_file_write: required
+    rule: "Project rules may narrow permissions, never widen them; protected policy changes require block or explicit confirmation."
+
+  failure_policy: failure-policy.yaml
+  run_receipt: scripts/new-run-receipt.ps1
+  governance_snapshot:
+    create: scripts/new-governance-snapshot.ps1
+    restore: scripts/restore-governance-snapshot.ps1
+    restore_requires_confirmation: true
+
   state_machine:
     initial: received
     states:
