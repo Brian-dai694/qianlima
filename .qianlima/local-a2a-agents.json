@@ -1,0 +1,18 @@
+{
+    "schema_version":  1,
+    "purpose":  "Local-only A2A-compatible agent registrations. No network dispatch.",
+    "agents":  [
+                   {
+                       "id":  "local-readonly-evidence-checker",
+                       "name":  "Local Read-Only Evidence Checker",
+                       "status":  "registered_local_only",
+                       "card_path":  ".qianlima/local-a2a-agents/local-readonly-evidence-checker/agent-card.json",
+                       "internal_agent_ref":  "evidence_checker",
+                       "dispatch_enabled":  false,
+                       "network_access":  "none",
+                       "write_access":  "none",
+                       "risk_ceiling":  "L3",
+                       "created_at":  "2026-07-16T02:40:14.1195595Z"
+                   }
+               ]
+}

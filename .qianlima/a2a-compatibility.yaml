@@ -81,6 +81,6 @@ a2a_compatibility:
 
   rollout_gates:
     phase_0: "Internal schemas and replay-only examples. No network activity."
-    phase_1: "Local mock A2A task exchange with sanitized artifacts and deterministic verifier. Runner: scripts/invoke-a2a-local-mock.ps1; test: scripts/test-a2a-local-mock.ps1."
+    phase_1: "Local mock A2A task exchange with sanitized artifacts and deterministic verifier. Beginner entry: scripts/new-local-readonly-a2a-agent.ps1; runner: scripts/invoke-a2a-local-mock.ps1; test: scripts/test-local-readonly-a2a-agent.ps1."
     phase_2: "One allowlisted read-only remote agent through a governed client gateway."
     phase_3: "External exposure only after authentication, tenant isolation, policy interception, trace audit, and incident drill approval."
