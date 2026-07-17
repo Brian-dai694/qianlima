@@ -57,7 +57,8 @@ Add-Case 'l3_rejected' (Invoke-ExpectedFailure { & $wrappers['codewhale_worker']
 
 $sandboxTask = "adapter-sandbox-$stamp"
 $sandboxGrant = New-TestGrant 'codewhale_worker' "adapter-sandbox-grant-$stamp" $sandboxTask
-Add-Case 'execute_requires_sandbox_assertion' (Invoke-ExpectedFailure { & $wrappers['codewhale_worker'] -GrantPath $sandboxGrant -TaskId $sandboxTask -Prompt 'Inspect selected sanitized evidence.' -Execute } 'SandboxReady')
+Add-Case 'execute_requires_sandbox_attestation' (Invoke-ExpectedFailure { & $wrappers['codewhale_worker'] -GrantPath $sandboxGrant -TaskId $sandboxTask -Prompt 'Inspect selected sanitized evidence.' -Execute } 'Sandbox Attestation')
+Add-Case 'manual_sandbox_flag_not_enough' (Invoke-ExpectedFailure { & $wrappers['codewhale_worker'] -GrantPath $sandboxGrant -TaskId $sandboxTask -Prompt 'Inspect selected sanitized evidence.' -Execute -SandboxReady } 'Sandbox Attestation')
 
 $revokedTask = "adapter-revoked-$stamp"
 $revokedGrantId = "adapter-revoked-grant-$stamp"
@@ -74,7 +75,7 @@ $sourceText = Get-Content -LiteralPath $generic -Raw -Encoding UTF8
 Add-Case 'no_loopback_or_auto_approval' (-not ($sourceText -match '127\.0\.0\.1|localhost|--auto'))
 $ravenTask = "adapter-raven-sandbox-$stamp"
 $ravenGrant = New-TestGrant 'raven_worker' "adapter-raven-sandbox-grant-$stamp" $ravenTask
-Add-Case 'raven_requires_sandbox' (Invoke-ExpectedFailure { & $wrappers['raven_worker'] -GrantPath $ravenGrant -TaskId $ravenTask -Prompt 'Return a bounded status.' -Mode Plan -Start } 'SandboxReady')
+Add-Case 'raven_requires_sandbox_attestation' (Invoke-ExpectedFailure { & $wrappers['raven_worker'] -GrantPath $ravenGrant -TaskId $ravenTask -Prompt 'Return a bounded status.' -Mode Plan -Start } 'Sandbox Attestation')
 
 $discoverOnly = @{
   mimo_cli_worker = Join-Path $PSScriptRoot 'invoke-mimo-cli.ps1'

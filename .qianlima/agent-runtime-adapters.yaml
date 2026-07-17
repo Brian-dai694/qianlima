@@ -7,7 +7,7 @@ direct_agent_to_agent: deny
 secret_policy: "Use environment-variable references outside work orders, grants, receipts, and audit events."
 execution_gate:
   require_grant: true
-  require_sandbox_ready_for: [Execute]
+  require_sandbox_attestation_for: [Execute, raven_worker]
   plan_mode_tools: none
   require_explicit_execute_switch: true
   allowed_risk_ceiling: [L0, L1, L2]

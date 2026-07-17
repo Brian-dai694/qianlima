@@ -12,6 +12,7 @@ param(
   [Parameter(Mandatory = $true)] [string]$GrantPath,
   [Parameter(Mandatory = $true)] [ValidatePattern('^[A-Za-z0-9._-]{3,100}$')] [string]$TaskId,
   [Parameter(Mandatory = $true)] [string]$Prompt,
+  [string]$AttestationPath = '',
   [ValidateSet('Plan', 'Execute')] [string]$Mode = 'Plan',
   [switch]$Start,
   [switch]$Execute,
@@ -26,6 +27,7 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $auditScript = Join-Path $PSScriptRoot 'write-audit-event.ps1'
 $revocationPath = Join-Path $projectRoot '.qianlima\run-traces\grant-revocations.jsonl'
 $grantRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot '.qianlima\run-traces\delegation-grants')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+$attestationRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot '.qianlima\run-traces\sandbox-attestations')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
 
 function Test-PathUnderRoot([string]$Path, [string]$Root) {
   return ([IO.Path]::GetFullPath($Path)).StartsWith($Root, [StringComparison]::OrdinalIgnoreCase)
@@ -112,8 +114,16 @@ if (-not $Start -and -not $Execute) {
   if ($PassThru) { $plan | ConvertTo-Json -Depth 8 } else { $plan | Format-List }
   exit 0
 }
-if (($effectiveMode -eq 'Execute' -or $AdapterId -eq 'raven_worker') -and -not $SandboxReady) {
-  throw "Adapter $AdapterId requires explicit -SandboxReady after an independent sandbox check."
+if ($effectiveMode -eq 'Execute' -or $AdapterId -eq 'raven_worker') {
+  if ([string]::IsNullOrWhiteSpace($AttestationPath)) { throw "Adapter $AdapterId requires a Sandbox Attestation; -SandboxReady alone is not sufficient." }
+  $attestationFullPath = (Resolve-Path -LiteralPath $AttestationPath -ErrorAction Stop).Path
+  if (-not $attestationFullPath.StartsWith($attestationRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Sandbox Attestation must be inside .qianlima/run-traces/sandbox-attestations.' }
+  $attestation = Get-Content -LiteralPath $attestationFullPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($attestation.status -ne 'verified' -or $attestation.task_id -ne $TaskId -or $attestation.agent_id -ne $AdapterId) { throw 'Sandbox Attestation does not match the task, Agent, or verified status.' }
+  if ($attestation.host_workspace_mounted -ne $false -or $attestation.agent_network -ne 'none' -or $attestation.secret_mode -ne 'secret_ref_only') { throw 'Sandbox Attestation violates isolation, network, or secret policy.' }
+  if (-not (Test-Path -LiteralPath $attestation.isolation_root -PathType Container)) { throw 'Sandbox isolation root is unavailable.' }
+  if ((Get-Date).ToUniversalTime() -ge [DateTime]::Parse($attestation.expires_at).ToUniversalTime()) { throw 'Sandbox Attestation has expired.' }
+  & $auditScript -EventType sandbox_attestation_checked -Decision allow -TaskId $TaskId -GrantId $grant.grant_id -AgentId $AdapterId -Reason 'Verified task-bound sandbox attestation accepted.' 6>$null | Out-Null
 }
 
 $resolved = $null

@@ -1,0 +1,21 @@
+version: 1
+contract_type: qianlima_sandbox_attestation
+required:
+  - attestation_id
+  - provider
+  - agent_id
+  - task_id
+  - status
+  - sandbox_type
+  - isolation_root
+  - host_workspace_mounted
+  - agent_network
+  - secret_mode
+  - expires_at
+  - evidence_hash
+invariants:
+  status: verified
+  host_workspace_mounted: false
+  agent_network: none
+  secret_mode: secret_ref_only
+  terminal_task_mutability: prohibited
