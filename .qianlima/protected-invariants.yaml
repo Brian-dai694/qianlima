@@ -24,6 +24,15 @@ protected_invariants:
     - path: .qianlima/scripts/check-command-safety.ps1
       action: ask
       reason: "The destructive-command guard needs explicit human review."
+    - path: .qianlima/enterprise-governance-framework.json
+      action: ask
+      reason: "The enterprise governance baseline controls every Agent, Runner, and approval boundary."
+    - path: .qianlima/execution-runners.json
+      action: ask
+      reason: "Runner registration and enablement determine whether an Agent can execute in an isolated environment."
+    - path: .qianlima/credential-policy.json
+      action: ask
+      reason: "Credential references define which isolated consumer may receive a provider secret."
     - path: .qianlima/scripts
       action: ask
       reason: "Runtime scripts can change the enforcement boundary."

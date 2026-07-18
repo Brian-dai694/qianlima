@@ -1,8 +1,8 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.7.5 | 更新: 2026-07-18
+# 版本: v2.7.6 | 更新: 2026-07-18
 # 变更: 新增 QianlimaEval 运行质量评估，吸收 MiniAppBench / MiniAppEval 的多维评分和证据轨迹思想
 
-# Release version: v2.7.5 | Updated: 2026-07-18
+# Release version: v2.7.6 | Updated: 2026-07-18
 workflows:
   - id: daily_ad_report
     name: 每日广告运营日报

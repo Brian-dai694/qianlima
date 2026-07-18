@@ -10,6 +10,8 @@
 .qianlima/*.local.yaml
 .qianlima/*secret*
 .qianlima/*credential*
+# This file contains references and policy only; it never contains secret values.
+!.qianlima/credential-policy.json
 
 # 工作状态（含 ASIN/价格/利润）
 .qianlima/work.ws

@@ -11,6 +11,7 @@ param(
   [Parameter(Mandatory = $true)] [ValidatePattern('^[A-Za-z0-9._-]{3,100}$')] [string]$AgentId,
   [Parameter(Mandatory = $true)] [ValidatePattern('^[A-Za-z0-9._-]{3,100}$')] [string]$TaskId,
   [Parameter(Mandatory = $true)] [string]$IsolationRoot,
+  [string]$RunnerId = '',
   [ValidateRange(1, 30)] [int]$ExpiresMinutes = 10,
   [switch]$PassThru
 )
@@ -25,6 +26,7 @@ if ($isolationFullPath -ne $taskRootBase -and -not $isolationFullPath.StartsWith
 if (-not (Test-Path -LiteralPath $isolationFullPath -PathType Container)) { throw 'IsolationRoot does not exist.' }
 
 $command = if ($Provider -eq 'codewhale') { 'codewhale' } else { 'raven' }
+$effectiveRunnerId = if ([string]::IsNullOrWhiteSpace($RunnerId)) { "$Provider-native" } else { $RunnerId }
 $probe = @(& $command doctor 2>&1)
 if ($Provider -eq 'raven') { $probe = @(& $command sandbox list 2>&1) }
 $probeText = ($probe -join "`n")
@@ -37,9 +39,9 @@ $evidence = [ordered]@{ provider = $Provider; agent_id = $AgentId; task_id = $Ta
 $evidenceJson = $evidence | ConvertTo-Json -Depth 8 -Compress
 $sha = [Security.Cryptography.SHA256]::Create(); $evidenceHash = 'sha256:' + (($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($evidenceJson)) | ForEach-Object { $_.ToString('x2') }) -join '')
 $attestation = [ordered]@{
-  schema_version = 1; contract_type = 'qianlima_sandbox_attestation'; attestation_id = $attestationId
+  schema_version = 1; contract_type = 'qianlima_sandbox_attestation'; attestation_id = $attestationId; runner_id = $effectiveRunnerId
   provider = $Provider; agent_id = $AgentId; task_id = $TaskId; status = 'verified'; sandbox_type = "$Provider-native-sandbox"
-  isolation_root = $isolationFullPath; host_workspace_mounted = $false; agent_network = 'none'; provider_egress = 'model-provider-allowlist-only'; secret_mode = 'secret_ref_only'
+  isolation_root = $isolationFullPath; host_workspace_mounted = $false; agent_network = 'none'; provider_egress = 'model-provider-allowlist-only'; mcp_mode = 'allowlist_read_only'; mcp_servers = @(); file_export = $false; web_access = $false; erp_access = $false; secret_mode = 'secret_ref_only'
   expires_at = (Get-Date).ToUniversalTime().AddMinutes($ExpiresMinutes).ToString('o'); evidence_hash = $evidenceHash
 }
 $outPath = Join-Path $attestationRoot "$attestationId.json"

@@ -21,5 +21,14 @@ if (-not $outputFullPath.StartsWith($auditRoot, [StringComparison]::OrdinalIgnor
 if (-not (Test-Path -LiteralPath (Split-Path -Parent $outputFullPath) -PathType Container)) { New-Item -ItemType Directory -Path (Split-Path -Parent $outputFullPath) -Force | Out-Null }
 $event = [ordered]@{ schema_version = 1; event_id = [Guid]::NewGuid().ToString('n'); event_type = $EventType; decision = $Decision; actor = 'qianlima_broker'; task_id = if ($TaskId) { $TaskId } else { $null }; grant_id = if ($GrantId) { $GrantId } else { $null }; agent_id = if ($AgentId) { $AgentId } else { $null }; data_refs = @($DataRef); reason = $Reason; created_at = (Get-Date).ToUniversalTime().ToString('o') }
 $line = ($event | ConvertTo-Json -Depth 8 -Compress) + [Environment]::NewLine
-[IO.File]::AppendAllText($outputFullPath, $line, [Text.UTF8Encoding]::new($false))
+$written = $false
+for ($attempt = 1; $attempt -le 3 -and -not $written; $attempt++) {
+  try {
+    [IO.File]::AppendAllText($outputFullPath, $line, [Text.UTF8Encoding]::new($false))
+    $written = $true
+  } catch [IO.IOException] {
+    if ($attempt -eq 3) { throw }
+    Start-Sleep -Milliseconds (50 * $attempt)
+  }
+}
 if ($PassThru) { $event | ConvertTo-Json -Depth 8 } else { Write-Host "Audit event written: $($event.event_id)" }

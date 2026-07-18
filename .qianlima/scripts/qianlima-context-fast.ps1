@@ -13,6 +13,9 @@
   [int]$LeaseMinutes = 30,
   [switch]$InvalidateLease,
   [switch]$AutoStart,
+  [string]$MemoryRequestPath = '',
+  [string]$MemoryGrantPath = '',
+  [string]$MemoryPath = '',
   [switch]$AsJson
 )
 
@@ -173,6 +176,28 @@ elseif ($contextRank[$lease.approved_context_level] -lt $contextRank[$ContextLev
 else { $leaseValid = $true; $leaseContextSufficient = $true }
 
 $needsFullStartup = $highRiskDetected -or $fastStatus.status -ne 'ready'
+$memoryRequested = $MemoryRequestPath -or $MemoryGrantPath -or $MemoryPath
+if ($memoryRequested -and (-not $MemoryRequestPath -or -not $MemoryGrantPath -or -not $MemoryPath)) {
+  $stopwatch.Stop()
+  $blocked = [ordered]@{ status = 'blocked'; state = 'memory_request_binding'; reason = 'MemoryRequestPath, MemoryGrantPath, and MemoryPath must be supplied together.'; memory_gate_used = $false; memory = $null; external_calls = $false }
+  if ($AsJson) { $blocked | ConvertTo-Json -Depth 8 } else { $blocked }
+  exit 1
+}
+$memoryResult = $null
+if ($memoryRequested) {
+  $memoryScript = Join-Path $PSScriptRoot 'invoke-memory-broker.ps1'
+  $memoryOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $memoryScript -RequestPath $MemoryRequestPath -GrantPath $MemoryGrantPath -MemoryPath $MemoryPath -PassThru 2>&1)
+  $memoryCode = $LASTEXITCODE
+  $memoryText = ($memoryOutput -join "`n")
+  $memoryStart = $memoryText.IndexOf('{'); $memoryEnd = $memoryText.LastIndexOf('}')
+  if ($memoryStart -ge 0 -and $memoryEnd -gt $memoryStart) { try { $memoryResult = $memoryText.Substring($memoryStart, $memoryEnd - $memoryStart + 1) | ConvertFrom-Json } catch { } }
+  if ($memoryCode -ne 0 -or $null -eq $memoryResult -or $memoryResult.status -ne 'allowed') {
+    $stopwatch.Stop()
+    $blocked = [ordered]@{ status = 'blocked'; state = 'memory_read_gate'; memory_gate_used = $true; memory = $memoryResult; external_calls = $false }
+    if ($AsJson) { $blocked | ConvertTo-Json -Depth 10 } else { $blocked }
+    exit 1
+  }
+}
 
 if ($selected) {
   $routeSummary = [PSCustomObject]@{
@@ -251,6 +276,8 @@ $result = [PSCustomObject]@{
   boot_excerpt = if ($needsFullStartup -or $contextReused) { $null } else { Get-ShortExcerpt $bootPath }
   relevant_files = $relevantExcerpts
   startup_cache_generated_at = $fastStatus.cache_generated_at
+  memory_gate_used = $memoryRequested
+  memory = $memoryResult
   elapsed_ms = [math]::Round($stopwatch.Elapsed.TotalMilliseconds, 1)
 }
 

@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "framework_id": "qianlima-enterprise-agent-governance",
+  "framework_version": "1.0.0",
+  "status": "baseline_defined_execution_restricted",
+  "scope": {
+    "system": "Qianlima Agent governance control plane",
+    "in_scope": ["Codex supervisor", "CLI workers", "local and future remote Agents", "MCP and Skills", "business workflows", "generated artifacts", "external writes"],
+    "out_of_scope": ["provider internal safety claims", "unapproved third-party Agent behavior", "unmanaged user devices"]
+  },
+  "north_star": "Every connected Agent must pass admission, receive minimum task-scoped authorization, return verifiable evidence, obey budget and audit controls, and remain revocable.",
+  "spec_driven_overlay": {
+    "protocol": "specifications/north-star-protocol.json",
+    "admission_schema": "specifications/agent-admission-spec.schema.json",
+    "lifecycle": ["Constitution", "Specify", "Plan", "Tasks", "Analyze", "Implement", "Converge"],
+    "gateway": "scripts/invoke-enterprise-overlay.ps1",
+    "gateway_requires_pipeline_spec": true,
+    "core_harness_change": "prohibited_without_separate_release_decision"
+  },
+  "agent_pipeline_overlay": {
+    "contract": "specifications/agent-pipeline-contract.json",
+    "validator": "scripts/validate-agent-pipeline.ps1",
+    "required_artifact_metadata": ["task_id", "grant_id", "agent_id", "agent_version", "runner_id", "input_hash", "source_classification", "created_at", "budget_snapshot", "verification_status"],
+    "backpressure": "stop_upstream_when_verifier_or_artifact_scan_backlog_exists",
+    "provider_hooks": "adapter_optional; broker_contract remains authoritative"
+  },
+  "trace_overlay": {
+    "contract": "specifications/trace-contract.json",
+    "validator": "scripts/validate-run-trace.ps1",
+    "failure_injection": "scripts/test-trace-failure-injection.ps1",
+    "required_lineage": ["grant_ref", "artifact_refs", "evidence_refs", "audit_event_refs"],
+    "required_versions": ["agent_version", "policy_version", "protocol_version"],
+    "improvement_input": "sanitized_trace_metadata_only",
+    "production_authority": "none"
+  },
+  "improvement_candidate_overlay": {
+    "contract": "specifications/improvement-candidate-contract.json",
+    "validator": "scripts/validate-improvement-candidate.ps1",
+    "promotion_gate": "scripts/promote-improvement-candidate.ps1",
+    "required_evaluation": ["update_validation", "id_holdout", "ood_holdout", "replay", "latency_regression", "L4_safety"],
+    "independent_verifier_required": true,
+    "sanitized_evidence_only": true,
+    "permission_expansion_requires_human_approval": true,
+    "automatic_production_change": false,
+    "production_authority": "none"
+  },
+  "memory_broker_overlay": {
+    "contract": "specifications/memory-read-contract.json",
+    "validator": "scripts/validate-memory-read.ps1",
+    "broker_entrypoint": "scripts/invoke-memory-broker.ps1",
+    "context_entrypoint": "scripts/invoke-brokered-context.ps1",
+    "required_binding": ["task_id", "grant_id", "agent_id", "requested_state_view", "requested_scope"],
+    "minimum_retrieval": "task_scoped_references_only",
+    "l4_behavior": "original_source_reload_required",
+    "revocation_behavior": "deny_before_read",
+    "full_memory": "forbidden",
+    "production_authority": "none"
+  },
+  "complexity_admission_overlay": {
+    "contract": "specifications/complexity-admission-contract.json",
+    "validator": "scripts/validate-complexity-admission.ps1",
+    "admission_entrypoint": "scripts/invoke-governed-agent-admission.ps1",
+    "analyze_enforcement": "scripts/analyze-agent-admission-spec.ps1 requires ComplexityProposalPath",
+    "required_proof": ["independent_benefit", "input_output_contract", "failure_terminals", "simulation_evidence", "independent_verifier", "rollback_plan"],
+    "single_agent_sufficiency": "unnecessary_split_denied",
+    "permission_expansion_requires_human_approval": true,
+    "automatic_production_change": false,
+    "production_authority": "none"
+  },
+  "governance_principles": [
+    {"id": "P01", "name": "control_plane_separation", "rule": "Qianlima decides policy, authorization, verification, audit, and rollback; workers execute bounded orders only."},
+    {"id": "P02", "name": "deny_by_default", "rule": "Unknown Agents, unknown Runners, unknown tools, unknown data classes, and missing evidence are denied."},
+    {"id": "P03", "name": "least_privilege", "rule": "Permissions are temporary, task-bound, single-use where practical, and are the intersection of Card, work order, Grant, Runner, and policy."},
+    {"id": "P04", "name": "data_minimization", "rule": "Pass references, hashes, and sanitized summaries; do not pass secrets, full memory, raw private data, or unrestricted workspace paths."},
+    {"id": "P05", "name": "independent_verification", "rule": "A producer cannot approve its own result; evidence and calculations require a named independent verifier."},
+    {"id": "P06", "name": "human_accountability", "rule": "High-risk decisions retain a named human confirmer and cannot be converted into silent automation."},
+    {"id": "P07", "name": "fail_closed", "rule": "Failure, drift, timeout, revocation, or uncertainty shrinks authority, freezes the run, or returns to a human; it never expands authority."},
+    {"id": "P08", "name": "immutable_evidence", "rule": "Terminal tasks, receipts, approvals, and audit events are append-only; revisions create new IDs referencing prior artifacts."},
+    {"id": "P09", "name": "reversible_change", "rule": "Any state-changing operation requires a preflight snapshot, bounded scope, rollback path, and post-change verification."},
+    {"id": "P10", "name": "governed_evolution", "rule": "Harness changes are candidates until replay, holdout, latency, and L4 safety gates pass and a human promotes them."}
+  ],
+  "roles": {
+    "qianlima_broker": {"accountability": ["route", "policy_decision", "grant", "budget", "audit", "final_adoption"], "may_execute_business_write": false},
+    "codex_supervisor": {"accountability": ["plan", "coordinate", "verify", "summarize"], "may_approve_own_work": false},
+    "worker_agent": {"accountability": ["execute_one_work_order", "return_artifact_and_receipt"], "may_delegate": false, "may_expand_grant": false},
+    "independent_checker": {"accountability": ["check_sources", "check_calculation", "report_conflict_or_gap"], "may_execute_business_write": false},
+    "runner_operator": {"accountability": ["maintain_isolation", "issue_attestation", "rotate_runtime_credentials"], "may_change_business_policy": false},
+    "human_owner": {"accountability": ["approve_L4", "approve_policy_exception", "approve_production_promotion", "accept_incident_risk"]}
+  },
+  "risk_model": {
+    "levels": {
+      "L0": {"meaning": "ordinary conversation", "approval": "none", "runtime": "no business tools or startup"},
+      "L1": {"meaning": "low-risk read-only", "approval": "none", "runtime": "minimal context and read-only tools"},
+      "L2": {"meaning": "structured local analysis", "approval": "workflow policy", "runtime": "selected sources, bounded worker, evidence receipt"},
+      "L3": {"meaning": "multi-source or operational recommendation", "approval": "named verifier and workflow gate", "runtime": "no external write; freeze on missing evidence"},
+      "L4": {"meaning": "business or destructive state change", "approval": "explicit second confirmation", "runtime": "preflight snapshot, narrow Grant, verified Runner, rollback and post-check"}
+    },
+    "non_bypassable_L4_controls": ["original_data_reload", "command_safety_check", "preflight_snapshot", "explicit_confirmation", "rollback_reference", "post_change_verification", "audit_receipt"]
+  },
+  "data_governance": {
+    "classifications": {
+      "public": {"agent_access": "allow_if_task_selected", "external_transfer": "allowlist_only"},
+      "internal_sanitized": {"agent_access": "allow_if_task_selected", "external_transfer": "local_or_allowlisted_readonly"},
+      "confidential_reference_only": {"agent_access": "reference_and_hash_only", "external_transfer": "deny"},
+      "restricted_secret": {"agent_access": "deny", "external_transfer": "deny", "storage": "secret_manager_only"}
+    },
+    "prohibited_in": ["prompt", "work_order", "delegation_grant", "artifact_receipt", "audit_event", "Agent Card", "Git"],
+    "required_controls": ["classification_before_dispatch", "path_scope_check", "secret_reference_only", "artifact_content_scan", "retention_and_deletion_policy"]
+  },
+  "trust_and_admission": {
+    "default_zone": "zone_4_unverified",
+    "default_trust": "T0_discovered",
+    "admission_sequence": ["identity_and_owner", "version_and_capability_card", "contract_test", "sandbox_test", "data_scope_test", "evidence_quality_test", "human_approval"],
+    "trust_reset_triggers": ["version_change", "capability_expansion", "new_network", "new_write", "new_delegation", "three_failures", "overreach_attempt", "artifact_integrity_failure"],
+    "direct_agent_to_agent": "prohibited"
+  },
+  "runtime_controls": {
+    "registered_runner_required": true,
+    "verified_task_bound_attestation_required": true,
+    "host_workspace_mount": "deny",
+    "network": "deny_by_default",
+    "mcp": "allowlist_read_only",
+    "file_export": "deny",
+    "web_access": "deny",
+    "erp_access": "deny",
+    "credential_mode": "secret_ref_only",
+    "image_policy": "local_allowlist_and_digest_pin",
+    "current_execute_state": "disabled_until_real_runner_attestation"
+  },
+  "security_enforcement": {
+    "credential_policy": "credential-policy.json",
+    "credential_validator": "scripts/validate-credential-reference.ps1",
+    "artifact_scanner": "scripts/scan-governed-artifact.ps1",
+    "incident_recorder": "scripts/record-security-incident.ps1",
+    "external_notification": "human_pending_only",
+    "production_acceptance_integration": "pending_control_point_wiring"
+  },
+  "evidence_and_audit": {
+    "minimum_evidence": ["source_refs", "data_time_range", "assumptions", "uncertainty", "method_ref", "integrity_hash", "verification_status", "verifier_id"],
+    "required_lineage": ["user_goal", "route", "work_order", "Grant", "Runner_attestation", "input_refs", "artifact", "verification", "final_decision"],
+    "audit_storage": "append_only_run_trace",
+    "terminal_task_mutability": "prohibited",
+    "missing_evidence_action": "partial_or_frozen_not_completed"
+  },
+  "failure_and_incident": {
+    "categories": ["transient", "task", "verifier", "needs_human"],
+    "default_response": "revoke_and_shrink",
+    "automatic_retry": {"transient": 2, "task": 0, "verifier": 1, "needs_human": 0},
+    "incident_triggers": ["overreach_attempt", "secret_exposure", "host_mount_detected", "network_escape_signal", "audit_gap", "unapproved_write", "repeated_timeout"],
+    "incident_actions": ["revoke_grants", "freeze_task", "isolate_agent_version", "preserve_receipts", "notify_human_owner", "create_new_task_for_recovery"]
+  },
+  "change_management": {
+    "core_harness_boundary": "harness-boundary.json",
+    "core_harness_modification": "separate_explicit_release_decision_required",
+    "overlay_rule": "New governance, Runner, scanner, credential, and incident capabilities use approved Overlay paths.",
+    "production_files": ["AGENTS.md", ".qianlima/CODEX_BOOT.md", ".qianlima/risk-rules.yaml", ".qianlima/agent-runtime-policy.yaml", ".qianlima/scripts", ".qianlima/enterprise-governance-framework.json"],
+    "candidate_first": true,
+    "candidate_contract": "specifications/improvement-candidate-contract.json",
+    "candidate_state_machine": ["candidate", "shadow_converged", "promotion_candidate", "human_release", "new_revision"],
+    "candidate_validator": "scripts/validate-improvement-candidate.ps1",
+    "promotion_gate": "scripts/promote-improvement-candidate.ps1",
+    "independent_verifier_required": true,
+    "private_or_raw_evidence": "deny",
+    "required_evaluation": ["update_validation", "id_holdout", "ood_holdout", "replay", "latency_regression", "L4_safety"],
+    "human_promotion": true,
+    "automatic_production_change": false,
+    "rollback": "governance_snapshot_and_new_revision"
+  },
+  "control_status": {
+    "implemented": ["deny_by_default", "task_grants", "revocation", "A2A_local_contract", "CLI_adapter_plan_gate", "command_safety", "protected_invariants", "append_only_audit", "mock_runner_gate", "artifact_content_scan", "local_incident_containment_drill", "task_scoped_memory_read_gate", "complexity_admission_gate"],
+    "partially_implemented": ["Docker_isolation_probe", "MCP_gateway_runtime", "credential_rotation", "incident_notification", "production_runner_execution"],
+    "not_enabled": ["external_A2A_network", "business_system_write_runner", "automatic_policy_promotion", "multi_tenant_external_exposure"]
+  },
+  "go_live_gates": [
+    "All mandatory controls have an owner and enforcement point.",
+    "No critical control is prompt-only.",
+    "Real Runner has verified task-bound Attestation and no host workspace mount.",
+    "Dedicated provider credentials are scoped and rotatable; none are in prompts or logs.",
+    "Incident drill proves revoke, freeze, preserve, notify, and recover behavior.",
+    "L4 replay and destructive-command regression suites pass.",
+    "Human owner signs the production enablement decision."
+  ]
+}

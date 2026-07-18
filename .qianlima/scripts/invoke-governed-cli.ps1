@@ -120,7 +120,7 @@ if ($effectiveMode -eq 'Execute' -or $AdapterId -eq 'raven_worker') {
   if (-not $attestationFullPath.StartsWith($attestationRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Sandbox Attestation must be inside .qianlima/run-traces/sandbox-attestations.' }
   $attestation = Get-Content -LiteralPath $attestationFullPath -Raw -Encoding UTF8 | ConvertFrom-Json
   if ($attestation.status -ne 'verified' -or $attestation.task_id -ne $TaskId -or $attestation.agent_id -ne $AdapterId) { throw 'Sandbox Attestation does not match the task, Agent, or verified status.' }
-  if ($attestation.host_workspace_mounted -ne $false -or $attestation.agent_network -ne 'none' -or $attestation.secret_mode -ne 'secret_ref_only') { throw 'Sandbox Attestation violates isolation, network, or secret policy.' }
+  if ($attestation.host_workspace_mounted -ne $false -or $attestation.agent_network -ne 'none' -or $attestation.mcp_mode -ne 'allowlist_read_only' -or $attestation.file_export -ne $false -or $attestation.web_access -ne $false -or $attestation.erp_access -ne $false -or $attestation.secret_mode -ne 'secret_ref_only') { throw 'Sandbox Attestation violates isolation, MCP, external access, or secret policy.' }
   if (-not (Test-Path -LiteralPath $attestation.isolation_root -PathType Container)) { throw 'Sandbox isolation root is unavailable.' }
   if ((Get-Date).ToUniversalTime() -ge [DateTime]::Parse($attestation.expires_at).ToUniversalTime()) { throw 'Sandbox Attestation has expired.' }
   & $auditScript -EventType sandbox_attestation_checked -Decision allow -TaskId $TaskId -GrantId $grant.grant_id -AgentId $AdapterId -Reason 'Verified task-bound sandbox attestation accepted.' 6>$null | Out-Null
