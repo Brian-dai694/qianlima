@@ -27,7 +27,8 @@ function Invoke-ExpectedFailure([scriptblock]$Action, [string]$Needle) {
 $safePath = Join-Path $workingRoot "safe-$stamp.md"
 $secretPath = Join-Path $workingRoot "secret-$stamp.md"
 [IO.File]::WriteAllText($safePath, "Sanitized evidence summary for a local regression case.", [Text.UTF8Encoding]::new($false))
-[IO.File]::WriteAllText($secretPath, "api_key=DEMO_SECRET_VALUE_1234567890", [Text.UTF8Encoding]::new($false))
+$secretFixture = ('api' + '_key=' + ('X' * 24))
+[IO.File]::WriteAllText($secretPath, $secretFixture, [Text.UTF8Encoding]::new($false))
 $safeResult = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scanner -ArtifactPath $safePath -MediaType text/markdown -SourceClassification internal_sanitized -TaskId "security-safe-$stamp" -PassThru | ConvertFrom-Json
 Add-Case 'safe_artifact_passed' ($safeResult.status -eq 'passed' -and $safeResult.raw_content_recorded -eq $false)
 Add-Case 'secret_artifact_rejected' (Invoke-ExpectedFailure { & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scanner -ArtifactPath $secretPath -MediaType text/markdown -SourceClassification internal_sanitized -TaskId "security-secret-$stamp" -PassThru } 'secret_assignment')
