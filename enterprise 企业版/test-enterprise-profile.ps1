@@ -142,7 +142,7 @@ Add-Case $cases 'E4_is_restricted_by_default' ($deploymentModes.modes.E4.initial
 Add-Case $cases 'deployment_mode_never_grants_business_authority' (@($deploymentModes.invariants | Where-Object { $_ -match 'L4' }).Count -gt 0 -and @($deploymentModes.invariants | Where-Object { $_ -match 'never grants MCP' }).Count -gt 0)
 Add-Case $cases 'personal_and_enterprise_share_all_capabilities' ($businessCatalog.profiles.personal.capabilities -eq 'all' -and $businessCatalog.profiles.enterprise.capabilities -eq 'all' -and @($businessCatalog.capabilities).Count -ge 10)
 Add-Case $cases 'business_periods_and_profit_views_defined' (@($businessCatalog.periods.PSObject.Properties.Name).Count -eq 5 -and @($businessCatalog.capabilities | Where-Object { $_.id -eq 'profit_accounting' }).standard_views.Count -ge 4)
-Add-Case $cases 'enterprise_overlay_allowed' ((& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $boundaryChecker -CandidatePath ($enterpriseDirectoryName + '/edition.yaml') -PassThru | ConvertFrom-Json).status -eq 'pass')
+Add-Case $cases 'enterprise_overlay_allowed' ((& $boundaryChecker -CandidatePath ($enterpriseDirectoryName + '/edition.yaml') -PassThru | ConvertFrom-Json).status -eq 'pass')
 
 $failed = @($cases | Where-Object { -not $_.passed })
 $result = [PSCustomObject]@{
