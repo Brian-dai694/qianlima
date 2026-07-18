@@ -29,7 +29,11 @@ jobs:
       - name: Enterprise offline regression
         shell: powershell
         run: |
-          $tests = Get-ChildItem -LiteralPath '.\enterprise 企业版' -Filter 'test-*.ps1' -File |
+          $enterpriseRoot = Get-ChildItem -LiteralPath . -Directory |
+            Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'edition.yaml') } |
+            Select-Object -First 1
+          if ($null -eq $enterpriseRoot) { throw 'Enterprise overlay directory was not found.' }
+          $tests = Get-ChildItem -LiteralPath $enterpriseRoot.FullName -Filter 'test-*.ps1' -File |
             Where-Object { $_.Name -ne 'test-enterprise-environment.ps1' }
           foreach ($test in $tests) {
             Write-Host ("Running " + $test.Name)
