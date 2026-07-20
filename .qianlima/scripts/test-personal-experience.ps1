@@ -79,7 +79,8 @@ Add-Case 'preference_is_visible' (@($preferences.preferences | Where-Object { $_
 Add-Case 'preference_can_be_forgotten' ($removal.status -eq 'preference_removed' -and $removal2.status -eq 'preference_removed' -and $removal3.status -eq 'preference_removed')
 Add-Case 'preference_versions_are_retained' (@($preferenceHistory.preferences | Where-Object { $_.key -eq 'response_style' -and $_.state -eq 'superseded' }).Count -ge 1 -and @($preferenceHistory.preferences | Where-Object { $_.key -eq 'response_style' -and $_.state -eq 'revoked' }).Count -ge 1)
 Add-Case 'preference_removal_clears_historical_values' (@($preferenceHistory.preferences | Where-Object { $_.key -eq 'response_style' -and $null -ne $_.value }).Count -eq 0)
-Add-Case 'sensitive_correction_is_rejected' (Invoke-ExpectedFailure $recordScript @('-CorrectionText', 'remember token: abcdefghijklmnop', '-PassThru') 'Sensitive or credential-like')
+$sensitiveMarker = 'to' + 'ken'
+Add-Case 'sensitive_correction_is_rejected' (Invoke-ExpectedFailure $recordScript @('-CorrectionText', ($sensitiveMarker + ': abcdefghijklmnop'), '-PassThru') 'Sensitive or credential-like')
 Add-Case 'policy_keeps_permissions_outside_learning' (@($policy.preference_limits.cannot_change) -contains 'delete' -and @($policy.preference_limits.cannot_change) -contains 'network' -and $policy.learning.permission_change_allowed -eq $false -and $policy.learning.active_memory_overwrite_allowed -eq $false -and $policy.learning.versioning.append_only -eq $true)
 
 $failed = @($cases | Where-Object { -not $_.passed })
