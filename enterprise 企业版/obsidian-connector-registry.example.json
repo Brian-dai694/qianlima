@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "registry_id": "qianlima-obsidian-example",
+  "default_action": "deny",
+  "connectors": [
+    {
+      "connector_id": "obsidian-local-readonly-example",
+      "enabled": false,
+      "owner_id": "knowledge-owner-ref",
+      "transport": "local_filesystem_adapter_or_approved_mcp",
+      "vault_ref": "vault-reference-only",
+      "allowed_folder_refs": [],
+      "allowed_note_refs": [],
+      "allowed_file_types": [".md"],
+      "data_classifications": ["internal_sanitized"],
+      "allowed_operations": ["search_notes", "read_selected_note", "read_frontmatter", "list_backlinks"],
+      "trust_level": "T0",
+      "health_status": "unverified",
+      "write_enabled": false,
+      "direct_agent_access": false,
+      "last_contract_test_at": null
+    }
+  ]
+}

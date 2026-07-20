@@ -32,6 +32,9 @@ $complianceMcpPath = Join-Path $enterpriseRoot 'compliance-mcp-policy.json'
 $lingxingArchitecturePath = Join-Path $enterpriseRoot 'lingxing-business-architecture.json'
 $lingxingMcpPath = Join-Path $enterpriseRoot 'lingxing-mcp-adapter-contract.json'
 $enterpriseMcpPath = Join-Path $enterpriseRoot 'enterprise-mcp-platform-contract.json'
+$obsidianContractPath = Join-Path $enterpriseRoot 'obsidian-connector-contract.json'
+$obsidianRegistryPath = Join-Path $enterpriseRoot 'obsidian-connector-registry.example.json'
+$obsidianGatePath = Join-Path $enterpriseRoot 'invoke-obsidian-connector-gate.ps1'
 $directMcpPath = Join-Path $enterpriseRoot 'direct-mcp-session-contract.json'
 $employeeLifecyclePath = Join-Path $enterpriseRoot 'employee-lifecycle-policy.json'
 $fileOrganizationPath = Join-Path $enterpriseRoot 'file-organization-policy.json'
@@ -78,6 +81,9 @@ if (-not (Test-Path -LiteralPath $complianceMcpPath -PathType Leaf)) { throw 'Mi
 if (-not (Test-Path -LiteralPath $lingxingArchitecturePath -PathType Leaf)) { throw 'Missing Lingxing business architecture map.' }
 if (-not (Test-Path -LiteralPath $lingxingMcpPath -PathType Leaf)) { throw 'Missing Lingxing MCP adapter contract.' }
 if (-not (Test-Path -LiteralPath $enterpriseMcpPath -PathType Leaf)) { throw 'Missing vendor-neutral Enterprise MCP platform contract.' }
+if (-not (Test-Path -LiteralPath $obsidianContractPath -PathType Leaf)) { throw 'Missing Obsidian connector contract.' }
+if (-not (Test-Path -LiteralPath $obsidianRegistryPath -PathType Leaf)) { throw 'Missing disabled Obsidian connector registry example.' }
+if (-not (Test-Path -LiteralPath $obsidianGatePath -PathType Leaf)) { throw 'Missing Obsidian connector gate.' }
 if (-not (Test-Path -LiteralPath $directMcpPath -PathType Leaf)) { throw 'Missing employee direct MCP session contract.' }
 if (-not (Test-Path -LiteralPath $employeeLifecyclePath -PathType Leaf)) { throw 'Missing employee lifecycle policy.' }
 if (-not (Test-Path -LiteralPath $fileOrganizationPath -PathType Leaf)) { throw 'Missing file organization policy.' }
@@ -117,6 +123,8 @@ $complianceMcp = Get-Content -LiteralPath $complianceMcpPath -Raw -Encoding UTF8
 $lingxingArchitecture = Get-Content -LiteralPath $lingxingArchitecturePath -Raw -Encoding UTF8 | ConvertFrom-Json
 $lingxingMcp = Get-Content -LiteralPath $lingxingMcpPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $enterpriseMcp = Get-Content -LiteralPath $enterpriseMcpPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$obsidianContract = Get-Content -LiteralPath $obsidianContractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$obsidianRegistry = Get-Content -LiteralPath $obsidianRegistryPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $directMcp = Get-Content -LiteralPath $directMcpPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $employeeLifecycle = Get-Content -LiteralPath $employeeLifecyclePath -Raw -Encoding UTF8 | ConvertFrom-Json
 $fileOrganization = Get-Content -LiteralPath $fileOrganizationPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -155,6 +163,8 @@ Add-Case $cases 'compliance_mcp_write_separated' ($complianceMcp.write_path.ordi
 Add-Case $cases 'lingxing_business_domains_mapped' (@($lingxingArchitecture.domains.PSObject.Properties).Count -eq 6 -and @($lingxingArchitecture.domains.PSObject.Properties.Name) -contains 'finance' -and @($lingxingArchitecture.domains.PSObject.Properties.Name) -contains 'supply_chain')
 Add-Case $cases 'lingxing_mcp_interface_reserved' ($lingxingMcp.status -eq 'interface_reserved_not_connected' -and $lingxingMcp.default_mode -eq 'allowlist_read_only' -and $lingxingMcp.direct_agent_access -eq 'deny')
 Add-Case $cases 'vendor_neutral_mcp_platform_defined' (@($enterpriseMcp.server_categories).Count -eq 12 -and $enterpriseMcp.default_action -eq 'deny')
+Add-Case $cases 'obsidian_interface_is_reserved_and_disabled' ($obsidianContract.status -eq 'interface_reserved_not_connected' -and $obsidianRegistry.connectors[0].enabled -eq $false)
+Add-Case $cases 'obsidian_vault_is_scoped_and_not_agent_direct' ($obsidianContract.vault_path_mode -eq 'reference_only' -and $obsidianContract.direct_agent_access -eq 'deny' -and @($obsidianContract.always_denied_operations) -contains 'export_entire_vault')
 Add-Case $cases 'generic_mcp_write_is_L4' ($enterpriseMcp.operation_classes.update.minimum_level -eq 'L4' -and $enterpriseMcp.operation_classes.update.write -eq $true)
 Add-Case $cases 'employee_direct_mcp_requires_owner_and_connector' ($directMcp.enforcement.connector_checks_each_call -eq $true -and @($directMcp.required_bindings) -contains 'employee_id' -and @($directMcp.required_bindings) -contains 'business_owner_approval_ref')
 Add-Case $cases 'employee_records_are_never_physically_deleted' ($employeeLifecycle.physical_employee_delete -eq 'deny' -and @($employeeLifecycle.states) -contains 'offboarded')

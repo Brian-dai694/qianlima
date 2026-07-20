@@ -96,6 +96,18 @@
     "correlated_error_group": "deny_for_independent_candidates",
     "production_authority": "none"
   },
+  "obsidian_connector_overlay": {
+    "contract": "../enterprise 企业版/obsidian-connector-contract.json",
+    "registry_example": "../enterprise 企业版/obsidian-connector-registry.example.json",
+    "gate": "../enterprise 企业版/invoke-obsidian-connector-gate.ps1",
+    "regression": "../enterprise 企业版/test-obsidian-connector-interface.ps1",
+    "default_enabled": false,
+    "default_mode": "allowlist_read_only",
+    "vault_path": "reference_only",
+    "direct_agent_access": "deny",
+    "write_level": "L4_dedicated_adapter",
+    "production_authority": "none"
+  },
   "memory_broker_overlay": {
     "contract": "specifications/memory-read-contract.json",
     "validator": "scripts/validate-memory-read.ps1",

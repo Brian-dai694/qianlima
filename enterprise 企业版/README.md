@@ -69,6 +69,9 @@ through an ordinary user start.
 - `lingxing-mcp-registry.example.json`: Disabled-by-default Lingxing MCP registration example.
 - `invoke-lingxing-mcp-gate.ps1`: Mechanical future Lingxing MCP gate; it opens no network connection.
 - `enterprise-mcp-platform-contract.json`: Vendor-neutral MCP governance for all enterprise tool and data servers.
+- `obsidian-connector-contract.json`: Reserved Obsidian knowledge connector; selected Markdown reads only by default, with Vault references instead of raw host paths.
+- `obsidian-connector-registry.example.json`: Disabled-by-default Vault registration example.
+- `invoke-obsidian-connector-gate.ps1`: Offline admission gate for note scope, file type, task Grant, and L4 write separation.
 - `mcp-server-registry.example.json`: Disabled-by-default generic MCP Server Passport example.
 - `invoke-enterprise-mcp-gate.ps1`: Generic MCP admission, version, data, budget, and write gate.
 - `direct-mcp-session-contract.json`: Business-approved low-latency Agent-to-MCP session contract.

@@ -25,6 +25,7 @@ shared_contracts:
   lingxing_business_architecture: ./lingxing-business-architecture.json
   lingxing_mcp_adapter: ./lingxing-mcp-adapter-contract.json
   enterprise_mcp_platform: ./enterprise-mcp-platform-contract.json
+  obsidian_connector: ./obsidian-connector-contract.json
   direct_mcp_session: ./direct-mcp-session-contract.json
   employee_lifecycle: ./employee-lifecycle-policy.json
   file_organization: ./file-organization-policy.json
@@ -65,6 +66,7 @@ enterprise_controls:
   commerce_lifecycle: selection_listing_fulfillment_traffic_conversion_after_sales_review
   lingxing_integration: reserved_mcp_readonly_first
   mcp_integration: vendor_neutral_broker_governed_registry
+  obsidian_integration: reserved_local_knowledge_connector_readonly_first
   approved_direct_mcp: local_connector_enforced_short_lived_session
   employee_management: joiner_mover_leaver_append_only
   artifact_organization: business_department_risk_month_task_type

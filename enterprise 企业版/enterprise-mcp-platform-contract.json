@@ -88,6 +88,7 @@
   },
   "adapter_examples": {
     "lingxing": "lingxing-mcp-adapter-contract.json",
+    "obsidian": "obsidian-connector-contract.json",
     "tax_customs_compliance": "compliance-mcp-policy.json",
     "future": "register through mcp-server-registry.example.json and pass the generic gate"
   }
