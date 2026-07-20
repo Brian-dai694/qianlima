@@ -38,6 +38,9 @@ shared_contracts:
   employee_agent_collaboration: ../.qianlima/employee-agent-collaboration-schema.yaml
   shadow_candidate_registry: ../.qianlima/shadow-candidate-provider-registry.json
   shadow_candidate_dispatch_gate: ../.qianlima/scripts/invoke-shadow-candidate-dispatch-gate.ps1
+  blindspot_observation: ../.qianlima/blindspot-observation-schema.yaml
+  collaboration_outcome_receipt: ../.qianlima/collaboration-outcome-receipt-schema.yaml
+  error_independence_gate: ../.qianlima/scripts/evaluate-error-independence.ps1
   deployment_modes: ./deployment-mode-policy.json
 
 enterprise_controls:
@@ -72,6 +75,7 @@ enterprise_controls:
   shadow_runtime: validated_claim_packs_only_no_adoption_authority
   employee_agent_collaboration: manager_fan_in_no_self_review_no_shared_grant
   real_model_shadow_trial: preflight_only_dispatch_disabled
+  blindspot_learning: sanitized_append_only_routing_only_no_permission_change
 
 runtime_defaults:
   mode: plan

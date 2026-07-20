@@ -1,0 +1,10 @@
+blindspot_observation:
+  version: 1
+  required: [observation_id, task_id, task_type, collaboration_id, participant_refs, model_versions, claim_pack_refs, disagreement_type, final_outcome_ref, attribution, verified_by, classification, created_at]
+  attribution_categories: [model, agent_scaffold, tool, data, policy, human_decision, coincidence, unresolved]
+  classifications: [public, internal_sanitized]
+  invariants:
+    - "Observations contain sanitized metadata and evidence references, not prompts, hidden reasoning, or raw business data."
+    - "A model or Agent cannot verify its own blindspot observation."
+    - "A repeated observation creates a new ID and may reference, but never overwrite, prior history."
+    - "Blindspot evidence may change routing priority; it cannot expand data, budget, tool, or execution authority."
