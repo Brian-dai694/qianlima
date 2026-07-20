@@ -35,6 +35,7 @@ shared_contracts:
   evidence_market: ../.qianlima/evidence-market-policy.json
   shadow_fusion_receipt: ../.qianlima/shadow-fusion-receipt-schema.yaml
   shadow_fusion_runtime: ../.qianlima/scripts/invoke-shadow-fusion.ps1
+  employee_agent_collaboration: ../.qianlima/employee-agent-collaboration-schema.yaml
   deployment_modes: ./deployment-mode-policy.json
 
 enterprise_controls:
@@ -67,6 +68,7 @@ enterprise_controls:
   fusion_loop: claim_pack_receipt_revoke_freeze_shadow_only
   evidence_market: disagreement_budget_signal_no_vote_authority
   shadow_runtime: validated_claim_packs_only_no_adoption_authority
+  employee_agent_collaboration: manager_fan_in_no_self_review_no_shared_grant
 
 runtime_defaults:
   mode: plan

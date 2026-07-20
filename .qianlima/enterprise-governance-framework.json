@@ -72,6 +72,18 @@
     "claim_pack_required": ["claim", "source_refs", "data_time_range", "assumptions", "uncertainty", "falsifiers", "method_ref"],
     "production_authority": "none"
   },
+  "employee_agent_collaboration_overlay": {
+    "contract": "employee-agent-collaboration-schema.yaml",
+    "validator": "scripts/validate-employee-agent-collaboration.ps1",
+    "regression": "scripts/test-employee-agent-collaboration.ps1",
+    "required_binding": ["employee_id", "agent_id", "model_id", "model_version", "work_order_ref", "grant_ref"],
+    "separation_of_duties": ["candidate", "independent_verifier", "adversarial_checker", "manager_owned_fan_in"],
+    "direct_agent_to_agent": "deny",
+    "self_review": "deny",
+    "shared_grant": "deny",
+    "correlated_error_group": "deny_for_independent_candidates",
+    "production_authority": "none"
+  },
   "memory_broker_overlay": {
     "contract": "specifications/memory-read-contract.json",
     "validator": "scripts/validate-memory-read.ps1",
@@ -195,7 +207,7 @@
     "rollback": "governance_snapshot_and_new_revision"
   },
   "control_status": {
-    "implemented": ["deny_by_default", "task_grants", "revocation", "A2A_local_contract", "CLI_adapter_plan_gate", "command_safety", "protected_invariants", "append_only_audit", "mock_runner_gate", "artifact_content_scan", "local_incident_containment_drill", "task_scoped_memory_read_gate", "complexity_admission_gate", "fusion_plan_validator", "evidence_first_fusion_regression"],
+    "implemented": ["deny_by_default", "task_grants", "revocation", "A2A_local_contract", "CLI_adapter_plan_gate", "command_safety", "protected_invariants", "append_only_audit", "mock_runner_gate", "artifact_content_scan", "local_incident_containment_drill", "task_scoped_memory_read_gate", "complexity_admission_gate", "fusion_plan_validator", "evidence_first_fusion_regression", "employee_agent_separation_of_duties"],
     "partially_implemented": ["Docker_isolation_probe", "MCP_gateway_runtime", "credential_rotation", "incident_notification", "production_runner_execution", "shadow_fusion_runtime", "evidence_market_shadow_receipts"],
     "not_enabled": ["external_A2A_network", "business_system_write_runner", "automatic_policy_promotion", "multi_tenant_external_exposure"]
   },

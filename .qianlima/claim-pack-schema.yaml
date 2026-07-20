@@ -1,6 +1,6 @@
 claim_pack:
   version: 1
-  required: [claim_pack_id, fusion_id, task_id, producer_model_id, producer_model_version, claims, source_refs, data_time_range, assumptions, uncertainties, falsifiers, method_ref, status]
+  required: [claim_pack_id, fusion_id, task_id, producer_employee_id, producer_agent_id, producer_model_id, producer_model_version, work_order_ref, grant_ref, claims, source_refs, data_time_range, assumptions, uncertainties, falsifiers, method_ref, status]
   claim_required: [claim_id, statement, source_refs, confidence, uncertainty, falsifiers]
   statuses: [candidate, partially_verified, verified, conflicting, rejected]
   invariants:
@@ -9,3 +9,4 @@ claim_pack:
     - "A producer cannot verify or adopt its own Claim Pack."
     - "Conflicting Claim Packs remain conflicting until an independent check resolves or escalates them."
     - "A Claim Pack is not a business fact, permission, or execution order."
+    - "Employee, Agent, model, work-order, and Grant lineage remains attached to every Claim Pack."

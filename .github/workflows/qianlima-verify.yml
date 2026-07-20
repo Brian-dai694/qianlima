@@ -52,6 +52,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Evidence market regression failed.' }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-shadow-fusion-runtime.ps1' -PassThru
           if ($LASTEXITCODE -ne 0) { throw 'Shadow fusion runtime regression failed.' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-employee-agent-collaboration.ps1' -PassThru
+          if ($LASTEXITCODE -ne 0) { throw 'Employee Agent collaboration regression failed.' }
 
       - name: Runtime checks
         shell: powershell
