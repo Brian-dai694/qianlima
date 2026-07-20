@@ -51,6 +51,7 @@
     "claim_pack_validator": "scripts/validate-claim-pack.ps1",
     "shadow_regression": "scripts/test-fusion-governance-loop.ps1",
     "shadow_runtime": "scripts/invoke-shadow-fusion.ps1",
+    "shadow_runtime_access": "internal_component_governed_fan_in_only",
     "shadow_runtime_regression": "scripts/test-shadow-fusion-runtime.ps1",
     "claim_scoring_policy": "evidence-market-policy.json",
     "shadow_receipt_schema": "shadow-fusion-receipt-schema.yaml",
@@ -64,6 +65,9 @@
     "blindspot_observation_recorder": "scripts/record-blindspot-observation.ps1",
     "error_independence_evaluator": "scripts/evaluate-error-independence.ps1",
     "blindspot_learning_regression": "scripts/test-blindspot-learning.ps1",
+    "governed_collaboration_fan_in": "scripts/invoke-governed-collaboration-fan-in.ps1",
+    "governed_collaboration_fan_in_regression": "scripts/test-governed-collaboration-fan-in.ps1",
+    "enterprise_collaboration_entrypoint": "governed_collaboration_fan_in",
     "validator": "scripts/validate-fusion-plan.ps1",
     "regression": "scripts/test-model-fusion.ps1",
     "default_strategy": "single_model",
@@ -215,7 +219,7 @@
     "rollback": "governance_snapshot_and_new_revision"
   },
   "control_status": {
-    "implemented": ["deny_by_default", "task_grants", "revocation", "A2A_local_contract", "CLI_adapter_plan_gate", "command_safety", "protected_invariants", "append_only_audit", "mock_runner_gate", "artifact_content_scan", "local_incident_containment_drill", "task_scoped_memory_read_gate", "complexity_admission_gate", "fusion_plan_validator", "evidence_first_fusion_regression", "employee_agent_separation_of_duties", "immutable_blindspot_observations", "error_independence_routing_gate"],
+    "implemented": ["deny_by_default", "task_grants", "revocation", "A2A_local_contract", "CLI_adapter_plan_gate", "command_safety", "protected_invariants", "append_only_audit", "mock_runner_gate", "artifact_content_scan", "local_incident_containment_drill", "task_scoped_memory_read_gate", "complexity_admission_gate", "fusion_plan_validator", "evidence_first_fusion_regression", "employee_agent_separation_of_duties", "immutable_blindspot_observations", "error_independence_routing_gate", "governed_collaboration_fan_in"],
     "partially_implemented": ["Docker_isolation_probe", "MCP_gateway_runtime", "credential_rotation", "incident_notification", "production_runner_execution", "shadow_fusion_runtime", "evidence_market_shadow_receipts"],
     "not_enabled": ["external_A2A_network", "external_shadow_candidate_dispatch", "business_system_write_runner", "automatic_policy_promotion", "multi_tenant_external_exposure"]
   },

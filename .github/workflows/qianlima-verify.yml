@@ -58,6 +58,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Shadow candidate dispatch gate regression failed.' }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-blindspot-learning.ps1' -PassThru
           if ($LASTEXITCODE -ne 0) { throw 'Blindspot learning regression failed.' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-governed-collaboration-fan-in.ps1' -PassThru
+          if ($LASTEXITCODE -ne 0) { throw 'Governed collaboration fan-in regression failed.' }
 
       - name: Runtime checks
         shell: powershell

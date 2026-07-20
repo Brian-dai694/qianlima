@@ -41,6 +41,7 @@ shared_contracts:
   blindspot_observation: ../.qianlima/blindspot-observation-schema.yaml
   collaboration_outcome_receipt: ../.qianlima/collaboration-outcome-receipt-schema.yaml
   error_independence_gate: ../.qianlima/scripts/evaluate-error-independence.ps1
+  governed_collaboration_fan_in: ../.qianlima/scripts/invoke-governed-collaboration-fan-in.ps1
   deployment_modes: ./deployment-mode-policy.json
 
 enterprise_controls:
@@ -72,10 +73,12 @@ enterprise_controls:
   model_collaboration: evidence_first_l3_only_l4_human_required
   fusion_loop: claim_pack_receipt_revoke_freeze_shadow_only
   evidence_market: disagreement_budget_signal_no_vote_authority
-  shadow_runtime: validated_claim_packs_only_no_adoption_authority
+  shadow_runtime: internal_component_governed_fan_in_only
   employee_agent_collaboration: manager_fan_in_no_self_review_no_shared_grant
   real_model_shadow_trial: preflight_only_dispatch_disabled
   blindspot_learning: sanitized_append_only_routing_only_no_permission_change
+  collaboration_fan_in: contract_lineage_independence_then_shadow_receipt
+  collaboration_entrypoint: governed_collaboration_fan_in
 
 runtime_defaults:
   mode: plan
