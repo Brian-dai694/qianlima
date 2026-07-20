@@ -43,6 +43,7 @@ shared_contracts:
   collaboration_outcome_receipt: ../.qianlima/collaboration-outcome-receipt-schema.yaml
   error_independence_gate: ../.qianlima/scripts/evaluate-error-independence.ps1
   governed_collaboration_fan_in: ../.qianlima/scripts/invoke-governed-collaboration-fan-in.ps1
+  enterprise_data_admission: ../.qianlima/enterprise-data-admission-contract.json
   deployment_modes: ./deployment-mode-policy.json
 
 enterprise_controls:
@@ -81,6 +82,8 @@ enterprise_controls:
   blindspot_learning: sanitized_append_only_routing_only_no_permission_change
   collaboration_fan_in: contract_lineage_independence_then_shadow_receipt
   collaboration_entrypoint: governed_collaboration_fan_in
+  data_admission: identity_grant_policy_filter_rank_topk_sanitize_receipt
+  external_agent_knowledge_search: deny_evidence_pack_only
 
 runtime_defaults:
   mode: plan

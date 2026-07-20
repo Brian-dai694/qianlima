@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-enterprise-data-admission",
+  "purpose": "Filter enterprise evidence by policy before relevance ranking and Agent dispatch.",
+  "pipeline": ["identity_context_check", "task_grant_check", "mandatory_policy_filter", "relevance_rank", "top_k", "sanitize_minimize", "evidence_pack", "receipt_audit_revoke_verify"],
+  "required_request_fields": ["request_id", "task_id", "agent_id", "grant_id", "organization_id", "department_id", "project_id", "device_id", "device_attestation", "purpose", "risk_level", "target", "max_items", "allowed_classifications", "now"],
+  "relevance_dimensions": ["semantic", "authorization", "organization", "time", "evidence"],
+  "mandatory_filter_order": ["grant", "classification", "organization", "scope", "revocation", "validity", "retention", "source", "verification"],
+  "ranking_dimensions": ["semantic_score", "evidence_quality", "freshness_score", "cost_efficiency", "risk_fit"],
+  "invariants": [
+    "Mandatory policy filtering runs before ranking and Top-K selection.",
+    "A denied candidate never enters the ranked candidate set.",
+    "External Agents receive only public or internal_sanitized Evidence Packs.",
+    "External Agents never receive enterprise knowledge-search capability, raw paths, raw private content, credentials, or full indexes.",
+    "Top-K is bounded by both the request and task Grant.",
+    "Every returned item retains source, version, validity, verification, classification, and content hash metadata.",
+    "An Evidence Pack is data, not authority, memory promotion, or permission expansion."
+  ]
+}

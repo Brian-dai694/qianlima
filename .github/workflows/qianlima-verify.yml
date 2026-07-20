@@ -60,6 +60,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Blindspot learning regression failed.' }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-governed-collaboration-fan-in.ps1' -PassThru
           if ($LASTEXITCODE -ne 0) { throw 'Governed collaboration fan-in regression failed.' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-enterprise-data-admission.ps1' -PassThru
+          if ($LASTEXITCODE -ne 0) { throw 'Enterprise data admission regression failed.' }
 
       - name: Runtime checks
         shell: powershell

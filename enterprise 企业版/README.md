@@ -72,6 +72,8 @@ through an ordinary user start.
 - `obsidian-connector-contract.json`: Reserved Obsidian knowledge connector; selected Markdown reads only by default, with Vault references instead of raw host paths.
 - `obsidian-connector-registry.example.json`: Disabled-by-default Vault registration example.
 - `invoke-obsidian-connector-gate.ps1`: Offline admission gate for note scope, file type, task Grant, and L4 write separation.
+- `../.qianlima/enterprise-data-admission-contract.json`: Policy-first evidence admission; identity and Grant checks precede ranking and Top-K.
+- `../.qianlima/scripts/invoke-enterprise-data-admission.ps1`: Produces minimum sanitized Evidence Packs; external Agents receive no knowledge-search capability.
 - `mcp-server-registry.example.json`: Disabled-by-default generic MCP Server Passport example.
 - `invoke-enterprise-mcp-gate.ps1`: Generic MCP admission, version, data, budget, and write gate.
 - `direct-mcp-session-contract.json`: Business-approved low-latency Agent-to-MCP session contract.

@@ -52,6 +52,8 @@ $blindspotObservationPath = Join-Path $projectRoot '.qianlima\blindspot-observat
 $collaborationOutcomePath = Join-Path $projectRoot '.qianlima\collaboration-outcome-receipt-schema.yaml'
 $errorIndependenceGatePath = Join-Path $projectRoot '.qianlima\scripts\evaluate-error-independence.ps1'
 $governedFanInPath = Join-Path $projectRoot '.qianlima\scripts\invoke-governed-collaboration-fan-in.ps1'
+$enterpriseDataAdmissionPath = Join-Path $projectRoot '.qianlima\enterprise-data-admission-contract.json'
+$enterpriseDataAdmissionRunnerPath = Join-Path $projectRoot '.qianlima\scripts\invoke-enterprise-data-admission.ps1'
 $deploymentModePath = Join-Path $enterpriseRoot 'deployment-mode-policy.json'
 $businessCatalogPath = Join-Path $projectRoot '.qianlima\specifications\business-capability-catalog.json'
 $boundaryChecker = Join-Path $projectRoot '.qianlima\scripts\check-harness-boundary.ps1'
@@ -102,6 +104,8 @@ if (-not (Test-Path -LiteralPath $blindspotObservationPath -PathType Leaf)) { th
 if (-not (Test-Path -LiteralPath $collaborationOutcomePath -PathType Leaf)) { throw 'Missing collaboration outcome receipt contract.' }
 if (-not (Test-Path -LiteralPath $errorIndependenceGatePath -PathType Leaf)) { throw 'Missing error independence routing gate.' }
 if (-not (Test-Path -LiteralPath $governedFanInPath -PathType Leaf)) { throw 'Missing governed collaboration fan-in.' }
+if (-not (Test-Path -LiteralPath $enterpriseDataAdmissionPath -PathType Leaf)) { throw 'Missing enterprise data admission contract.' }
+if (-not (Test-Path -LiteralPath $enterpriseDataAdmissionRunnerPath -PathType Leaf)) { throw 'Missing enterprise data admission runtime.' }
 if (-not (Test-Path -LiteralPath $businessCatalogPath -PathType Leaf)) { throw 'Missing shared business capability catalog.' }
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'start-qianlima.ps1') -PathType Leaf)) { throw 'Missing shared core start script.' }
 
@@ -185,6 +189,8 @@ Add-Case $cases 'shadow_candidate_dispatch_disabled_by_default' (((Get-Content -
 Add-Case $cases 'blindspot_learning_is_governed_and_routing_only' ((Test-Path -LiteralPath $blindspotObservationPath -PathType Leaf) -and (Test-Path -LiteralPath $collaborationOutcomePath -PathType Leaf) -and (Test-Path -LiteralPath $errorIndependenceGatePath -PathType Leaf) -and $edition.Contains('no_permission_change'))
 Add-Case $cases 'collaboration_fan_in_enforces_contract_lineage_and_independence' ((Test-Path -LiteralPath $governedFanInPath -PathType Leaf) -and $edition.Contains('contract_lineage_independence_then_shadow_receipt'))
 Add-Case $cases 'raw_shadow_runtime_is_not_enterprise_entrypoint' ($edition.Contains('internal_component_governed_fan_in_only') -and $edition.Contains('collaboration_entrypoint: governed_collaboration_fan_in'))
+Add-Case $cases 'enterprise_data_admission_filters_before_ranking' ($edition.Contains('identity_grant_policy_filter_rank_topk_sanitize_receipt') -and (Test-Path -LiteralPath $enterpriseDataAdmissionRunnerPath -PathType Leaf))
+Add-Case $cases 'external_agent_gets_evidence_pack_not_search' ($edition.Contains('external_agent_knowledge_search: deny_evidence_pack_only'))
 Add-Case $cases 'personal_and_enterprise_share_all_capabilities' ($businessCatalog.profiles.personal.capabilities -eq 'all' -and $businessCatalog.profiles.enterprise.capabilities -eq 'all' -and @($businessCatalog.capabilities).Count -ge 10)
 Add-Case $cases 'business_periods_and_profit_views_defined' (@($businessCatalog.periods.PSObject.Properties.Name).Count -eq 5 -and @($businessCatalog.capabilities | Where-Object { $_.id -eq 'profit_accounting' }).standard_views.Count -ge 4)
 Add-Case $cases 'enterprise_overlay_allowed' ((& $boundaryChecker -CandidatePath ($enterpriseDirectoryName + '/edition.yaml') -PassThru | ConvertFrom-Json).status -eq 'pass')

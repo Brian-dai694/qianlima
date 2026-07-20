@@ -108,6 +108,16 @@
     "write_level": "L4_dedicated_adapter",
     "production_authority": "none"
   },
+  "enterprise_data_admission_overlay": {
+    "contract": "enterprise-data-admission-contract.json",
+    "runtime": "scripts/invoke-enterprise-data-admission.ps1",
+    "regression": "scripts/test-enterprise-data-admission.ps1",
+    "mandatory_order": ["identity_context", "task_grant", "policy_filter", "rank", "top_k", "sanitize", "evidence_pack"],
+    "policy_filter_before_ranking": true,
+    "external_agent_search_capability": "deny",
+    "external_agent_input": "sanitized_minimum_evidence_pack_only",
+    "production_authority": "none"
+  },
   "memory_broker_overlay": {
     "contract": "specifications/memory-read-contract.json",
     "validator": "scripts/validate-memory-read.ps1",
