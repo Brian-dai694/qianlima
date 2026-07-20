@@ -4,24 +4,24 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.7-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 版本: v2.7.3 | 2026-07-15 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
+> 版本: v2.7.7 | 2026-07-20 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
-千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。
+千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。v2.7.7 增加个人版渐进式治理、任务相关记忆选择和可清除的个人经验管理。
 
 ## 核心理念
 
 > Harness 不是 prompt 模板，而是运行时系统。  
 > 它观察自己、诊断问题、积累经验，并持续自我改进。
 
-本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.7.1 完成分层启动、运行时策略、命令安全、评估、观测、记忆卡、子代理分工与状态化 Loop 的公开安全模板。
+本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.7.7 延续分层启动、运行时策略、命令安全、评估、观测、记忆卡、子代理分工与状态化 Loop 的公开安全模板。
 
 ## 架构
 
 ```text
-千里马 Harness v2.7.3
+千里马 Harness v2.7.7
 ├── 场景智能路由      → 按场景精准加载，减少不必要上下文
 ├── 健康自检          → 启动时自动检查骨架、索引和引用
 ├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环

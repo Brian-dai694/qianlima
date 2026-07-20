@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-personal-restricted-skill-install",
+  "default_action": "scan_before_install",
+  "scan_mode": "static_read_only_no_execution",
+  "user_result_bands": {
+    "low": "checked_restricted_install",
+    "medium": "risk_needs_confirmation",
+    "high": "high_risk_not_recommended"
+  },
+  "first_install_contract": {
+    "network": "deny",
+    "environment_read": "deny",
+    "file_read": "task_selected_scope_only",
+    "file_write": "task_workspace_only",
+    "external_send": "deny",
+    "automatic_start": false,
+    "persistence": false,
+    "scheduled_tasks": false,
+    "registry_write": false,
+    "browser_sessions": "deny",
+    "credential_access": "deny",
+    "memory_write": "candidate_only_after_user_confirmation",
+    "task_end": "revoke_and_close"
+  },
+  "risk_escalators": {
+    "medium": ["script", "network", "environment_read", "file_write"],
+    "high": ["external_send", "credential_access", "browser_session", "autostart", "persistence", "elevation", "obfuscation", "system_path_write", "destructive_delete"]
+  },
+  "red_flags": {
+    "network": ["Invoke-WebRequest", "Invoke-RestMethod", "curl", "wget", "WebClient", "HttpClient", "fetch(", "requests", "urllib", "socket", "http://", "https://"],
+    "environment_read": ["$env:", "Get-Item Env:", "os.environ", "process.env", "GetEnvironmentVariable"],
+    "file_write": ["Set-Content", "Out-File", "Add-Content", "WriteAllText", "WriteAllBytes", "write_text", "writeFile", "Copy-Item", "Move-Item", "New-Item"],
+    "external_send": ["Invoke-RestMethod", "requests.post", "fetch(", "Send-MailMessage", "smtp", "POST ", "webhook"],
+    "credential_access": ["api_key", "apikey", "access_token", "password", "secret", "cookie", ".ssh", ".aws", ".config", "Authorization:"],
+    "browser_session": ["localStorage", "sessionStorage", "browser cookie", "Chrome\\User Data", "Playwright", "puppeteer"],
+    "autostart": ["Register-ScheduledTask", "schtasks", "LaunchAgents", "systemd", "cron", "Startup\\", "RunOnce", "Run ", "CreateService"],
+    "elevation": ["sudo", "runas", "RunAs", "Verb RunAs", "Administrator"],
+    "obfuscation": ["FromBase64String", "base64", "eval(", "exec(", "Invoke-Expression", "EncodedCommand"],
+    "destructive_delete": ["Remove-Item", "rm -rf", "rmdir", "del /", "unlink(", "shutil.rmtree"]
+  },
+  "install_root": ".qianlima/working/restricted-skills",
+  "memory_boundary": "A Skill may propose a preference candidate but cannot write active personal preferences."
+}

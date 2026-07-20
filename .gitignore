@@ -59,6 +59,10 @@ daily-summaries/
 # 评估结果
 .qianlima/evaluations/
 
+# Personal runtime candidates and session leases
+.qianlima/evolution/
+.qianlima/session-leases/
+
 # 上下文摘要
 .qianlima/context-summaries/
 

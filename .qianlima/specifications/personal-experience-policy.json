@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-personal-progressive-governance",
+  "principle": "Default interaction is frictionless; governance becomes visible only when risk, ambiguity, evidence, or reversibility requires it.",
+  "runtime_loading": {
+    "chat_and_follow_up": "no_runtime_no_ledger_no_global_memory_no_business_skill",
+    "learning_and_light_research": "topic_relevant_preferences_and_verified_conclusions_only",
+    "batch_or_file_analysis": "restricted_local_script_first_then_compact_result",
+    "long_or_independent_research": "one_task_scoped_read_only_agent_only_when_justified",
+    "background_tasks": "disabled_by_default"
+  },
+  "improvement_gate": {
+    "applies_to": ["prompt", "skill", "router", "context_selector", "memory_selector"],
+    "requires": ["baseline_replay", "quality_delta", "first_useful_output_delta", "total_latency_delta", "cost_delta", "safety_regression_check"],
+    "automatic_production_apply": false,
+    "promotion": "user_confirmed_or_explicit_release",
+    "rollback": "previous_version_retained"
+  },
+  "service_levels": {
+    "L0": {"mode": "quick", "governance_visibility": "silent", "shadow_check": "suppressed", "confirmation_required": false},
+    "L1": {"mode": "quick", "governance_visibility": "silent", "shadow_check": "suppressed", "confirmation_required": false},
+    "L2": {"mode": "quick", "governance_visibility": "quiet", "shadow_check": "suppressed", "confirmation_required": false},
+    "L3": {"mode": "evidence", "governance_visibility": "evidence", "shadow_check": "background_if_budget_allows", "confirmation_required": false},
+    "L4": {"mode": "controlled", "governance_visibility": "explicit", "shadow_check": "candidate_only", "confirmation_required": true}
+  },
+  "memory_classes": {
+    "task_state": {"default_state": "current", "expires": "task_end", "user_visible": true, "editable": false, "deletable": true},
+    "explicit_preference": {"default_state": "current", "source": "user_statement_or_correction", "user_visible": true, "editable": true, "deletable": true},
+    "observed_habit": {"default_state": "shadow_only", "source": "repeated_behavior", "user_visible": true, "editable": false, "deletable": true},
+    "validated_work_mode": {"default_state": "current", "requires": ["three_observations", "independent_shadow_check", "user_confirmation"], "user_visible": true, "editable": true, "deletable": true},
+    "sensitive_fact": {"default_state": "reference_only", "store_value": false, "user_visible": false, "editable": false, "deletable": true}
+  },
+  "personal_memory_chunks": {
+    "storage": ".qianlima/working/personal-memory-chunks.json",
+    "allowed_types": ["stable_preference", "task_habit", "current_task_state", "local_experience", "temporary_context"],
+    "selection": {
+      "default_max_chunks": 8,
+      "task_relevance_required": true,
+      "stable_preference_requires_user_confirmation": true,
+      "task_habit_requires_task_match": true,
+      "current_task_state_requires_task_id": true,
+      "local_experience_requires_source_and_reproducibility": true,
+      "temporary_context_requires_expiry": true,
+      "temporary_context_auto_promotion": false,
+      "return_mode": "minimal_summary_and_provenance"
+    },
+    "selector": ".qianlima/scripts/select-personal-memory-chunks.ps1"
+  },
+  "learnable_preference_keys": [
+    "communication_language",
+    "response_style",
+    "response_length",
+    "presentation_order",
+    "speed_preference",
+    "quality_preference",
+    "collaboration_style",
+    "architecture_preference",
+    "shadow_second_opinion",
+    "tool_preference",
+    "workflow_order",
+    "workflow_default_parameters"
+  ],
+  "learning": {
+    "lifecycle": ["session_context", "observed_candidate", "consistency_check", "user_confirmation", "stable_version", "user_edit_revoke_or_rollback"],
+    "accepted_signal": "explicit_user_correction",
+    "observed_behavior_effect": "shadow_only",
+    "minimum_observations_for_promotion": 3,
+    "promotion_requires_user_confirmation": true,
+    "candidate_storage": ".qianlima/evolution/candidates",
+    "automatic_global_rule_change": false,
+    "permission_change_allowed": false,
+    "data_scope_change_allowed": false,
+    "tool_authority_change_allowed": false,
+    "default_parameter_authority": "suggestion_only",
+    "automatic_dreaming_promotion": false,
+    "active_memory_overwrite_allowed": false,
+    "versioning": {
+      "append_only": true,
+      "superseded_versions_retained": true,
+      "revoked_versions_restorable": false,
+      "rollback_requires_user_confirmation": true
+    }
+  },
+  "sparse_selection": {
+    "default_top_k": 5,
+    "minimum_top_k": 3,
+    "maximum_top_k": 8,
+    "filter_order": ["task_class", "task_domain", "user_confirmed", "state_current", "not_expired", "confidence", "recent_use", "observation_count"],
+    "inject_only_selected": true,
+    "empty_selection_is_valid": true,
+    "high_risk_authority": "none",
+    "selector": ".qianlima/scripts/select-personal-preferences.ps1",
+    "selection_is_sparse": true,
+    "selection_must_be_task_relevant": true
+  },
+  "task_classes": {
+    "chat": {"allowed_preference_effects": ["expression", "response_length", "presentation_order", "language"]},
+    "learning": {"allowed_preference_effects": ["expression", "response_length", "presentation_order", "explanation_depth", "context_selection"]},
+    "read_only_business": {"allowed_preference_effects": ["expression", "response_length", "presentation_order", "result_order", "context_selection", "shadow_check_preference", "tool_preference", "workflow_order", "workflow_default_parameters"]},
+    "high_risk": {"allowed_preference_effects": ["expression", "receipt_format"], "permission_effect": "none"}
+  },
+  "preference_limits": {
+    "cannot_change": ["network", "external_agent", "mcp", "file_read_scope", "file_export", "delete", "overwrite", "price", "bid", "budget", "purchase", "external_send", "confirmation_requirement"],
+    "sensitive_values": "reference_only",
+    "default_mode": "quick"
+  },
+  "success_criteria": {
+    "north_star": "fewer_unnecessary_interruptions_without_boundary_crossing",
+    "measures": [
+      "repeated_explanation_reduced",
+      "low_risk_confirmation_interruptions_reduced",
+      "permission_expansion_from_learning_zero",
+      "automatic_sensitive_profile_promotion_zero",
+      "every_active_preference_user_visible_editable_deletable"
+    ],
+    "learning_must_not_optimize": ["autonomy", "permission_breadth", "external_action_rate", "silent_high_risk_completion"]
+  },
+  "personal_receipt": {
+    "required_fields": ["action", "basis", "affected_scope", "confirmation_state", "rollback_ref"],
+    "storage": ".qianlima/run-traces",
+    "show_for": ["L4", "external_write", "delete", "overwrite", "user_requested_receipt"]
+  }
+}

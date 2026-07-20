@@ -164,6 +164,13 @@ $nextAction = switch ($serviceLevel) {
   'L3' { 'Collect and filter the required evidence; deliver updates as each decision-relevant fact arrives.' }
   'L4' { 'Prepare the decision package and request explicit confirmation before any external action.' }
 }
+$experience = switch ($serviceLevel) {
+  'L0' { [ordered]@{ mode = 'quick'; governance_visibility = 'silent'; shadow_check = 'suppressed'; confirmation_required = $false } }
+  'L1' { [ordered]@{ mode = 'quick'; governance_visibility = 'silent'; shadow_check = 'suppressed'; confirmation_required = $false } }
+  'L2' { [ordered]@{ mode = 'quick'; governance_visibility = 'quiet'; shadow_check = 'suppressed'; confirmation_required = $false } }
+  'L3' { [ordered]@{ mode = 'evidence'; governance_visibility = 'evidence'; shadow_check = 'background_if_budget_allows'; confirmation_required = $false } }
+  default { [ordered]@{ mode = 'controlled'; governance_visibility = 'explicit'; shadow_check = 'candidate_only'; confirmation_required = $true } }
+}
 
 $result = [PSCustomObject]@{
   schema_version = 1
@@ -180,6 +187,11 @@ $result = [PSCustomObject]@{
   known_fact_or_exclusion = $knownOrExclusion
   matched_signals = [object[]]$(if ($selected) { @($selected.matched_signals) } else { @() })
   next_action = $nextAction
+  personal_mode = $experience.mode
+  governance_visibility = $experience.governance_visibility
+  shadow_check = $experience.shadow_check
+  confirmation_required = $experience.confirmation_required
+  learning_action = if ($serviceLevel -in @('L0', 'L1', 'L2')) { 'accept_explicit_correction_as_shadow_candidate' } else { 'never_promote_from_action' }
   pending_checks = [object[]]$(if ($serviceLevel -in @('L2', 'L3', 'L4')) { @('Load route-specific evidence before making a decision-final claim.') } else { @() })
 }
 
