@@ -64,6 +64,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Enterprise data admission regression failed.' }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-skill-intake-gate.ps1' -PassThru
           if ($LASTEXITCODE -ne 0) { throw 'Skill Intake Gate regression failed.' }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-improvement-governance-pipeline.ps1' -PassThru
+          if ($LASTEXITCODE -ne 0) { throw 'Improvement governance pipeline regression failed.' }
 
       - name: Runtime checks
         shell: powershell

@@ -78,6 +78,9 @@ through an ordinary user start.
 - `../.qianlima/scripts/invoke-skill-intake-gate.ps1`: Returns `approved`, `conditional`, or `denied`; approval still requires human confirmation, isolated trial, and a task Grant.
 
 Skill Intake never runs during ordinary conversation or startup. Static scanning is defense in depth, not a sandbox. Dependency-network checks and source-code LLM review remain disabled unless separately approved for the data classification.
+
+- `../.qianlima/improvement-evaluation-card-schema.json`: Required evaluation card for every improvement candidate, including baseline, frozen replay, independent verification, canary scope, rollback conditions, approver, and effective version.
+- `../.qianlima/scripts/invoke-improvement-governance-pipeline.ps1`: Enterprise improvement entrypoint. It can recommend canary or rollback states but cannot release or edit production.
 - `mcp-server-registry.example.json`: Disabled-by-default generic MCP Server Passport example.
 - `invoke-enterprise-mcp-gate.ps1`: Generic MCP admission, version, data, budget, and write gate.
 - `direct-mcp-session-contract.json`: Business-approved low-latency Agent-to-MCP session contract.

@@ -56,6 +56,8 @@ $enterpriseDataAdmissionPath = Join-Path $projectRoot '.qianlima\enterprise-data
 $enterpriseDataAdmissionRunnerPath = Join-Path $projectRoot '.qianlima\scripts\invoke-enterprise-data-admission.ps1'
 $skillIntakeContractPath = Join-Path $projectRoot '.qianlima\skill-intake-contract.json'
 $skillIntakeGatePath = Join-Path $projectRoot '.qianlima\scripts\invoke-skill-intake-gate.ps1'
+$improvementEvaluationCardPath = Join-Path $projectRoot '.qianlima\improvement-evaluation-card-schema.json'
+$improvementPipelinePath = Join-Path $projectRoot '.qianlima\scripts\invoke-improvement-governance-pipeline.ps1'
 $deploymentModePath = Join-Path $enterpriseRoot 'deployment-mode-policy.json'
 $businessCatalogPath = Join-Path $projectRoot '.qianlima\specifications\business-capability-catalog.json'
 $boundaryChecker = Join-Path $projectRoot '.qianlima\scripts\check-harness-boundary.ps1'
@@ -110,6 +112,8 @@ if (-not (Test-Path -LiteralPath $enterpriseDataAdmissionPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $enterpriseDataAdmissionRunnerPath -PathType Leaf)) { throw 'Missing enterprise data admission runtime.' }
 if (-not (Test-Path -LiteralPath $skillIntakeContractPath -PathType Leaf)) { throw 'Missing enterprise Skill Intake contract.' }
 if (-not (Test-Path -LiteralPath $skillIntakeGatePath -PathType Leaf)) { throw 'Missing enterprise Skill Intake gate.' }
+if (-not (Test-Path -LiteralPath $improvementEvaluationCardPath -PathType Leaf)) { throw 'Missing improvement evaluation card.' }
+if (-not (Test-Path -LiteralPath $improvementPipelinePath -PathType Leaf)) { throw 'Missing improvement governance pipeline.' }
 if (-not (Test-Path -LiteralPath $businessCatalogPath -PathType Leaf)) { throw 'Missing shared business capability catalog.' }
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'start-qianlima.ps1') -PathType Leaf)) { throw 'Missing shared core start script.' }
 
@@ -197,6 +201,8 @@ Add-Case $cases 'enterprise_data_admission_filters_before_ranking' ($edition.Con
 Add-Case $cases 'external_agent_gets_evidence_pack_not_search' ($edition.Contains('external_agent_knowledge_search: deny_evidence_pack_only'))
 Add-Case $cases 'skill_intake_is_install_update_only' ($edition.Contains('skill_intake_gate: install_update_only_offline_static_first') -and (Test-Path -LiteralPath $skillIntakeGatePath -PathType Leaf))
 Add-Case $cases 'skill_intake_never_runs_on_startup' ($edition.Contains('skill_intake_startup_path: never'))
+Add-Case $cases 'improvement_pipeline_requires_evaluation_card_and_canary' ($edition.Contains('improvement_entrypoint: evaluation_card_replay_verify_human_canary_monitor') -and (Test-Path -LiteralPath $improvementPipelinePath -PathType Leaf))
+Add-Case $cases 'automatic_improvement_release_is_denied' ($edition.Contains('automatic_improvement_release: deny'))
 Add-Case $cases 'personal_and_enterprise_share_all_capabilities' ($businessCatalog.profiles.personal.capabilities -eq 'all' -and $businessCatalog.profiles.enterprise.capabilities -eq 'all' -and @($businessCatalog.capabilities).Count -ge 10)
 Add-Case $cases 'business_periods_and_profit_views_defined' (@($businessCatalog.periods.PSObject.Properties.Name).Count -eq 5 -and @($businessCatalog.capabilities | Where-Object { $_.id -eq 'profit_accounting' }).standard_views.Count -ge 4)
 Add-Case $cases 'enterprise_overlay_allowed' ((& $boundaryChecker -CandidatePath ($enterpriseDirectoryName + '/edition.yaml') -PassThru | ConvertFrom-Json).status -eq 'pass')

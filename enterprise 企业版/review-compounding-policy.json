@@ -6,7 +6,7 @@
   "required_review_sections": ["business_expectation", "actual_outcome", "failure", "core_issue", "handling", "evidence_refs", "impact", "what_worked", "what_failed", "prevention", "owner", "due_at"],
   "lesson_fields": ["lesson_id", "business", "department", "risk_level", "task_id", "recurrence_key", "symptom", "root_cause", "impact", "fix", "prevention", "evidence_refs", "tested_with", "status", "created_at"],
   "lesson_status": ["candidate", "replay_passed", "simulation_passed", "promotion_pending", "approved", "rejected", "superseded"],
-  "promotion_flow": ["sanitized_review", "lesson_candidate", "deduplicate_by_recurrence_key", "replay", "failure_injection", "latency_and_cost_check", "L4_safety_check", "independent_verification", "human_approval", "new_version_or_reject"],
+  "promotion_flow": ["sanitized_review", "lesson_candidate", "deduplicate_by_recurrence_key", "replay", "frozen_replay", "failure_injection", "simulation", "latency_and_cost_check", "L4_safety_check", "independent_verification", "human_approval", "small_canary", "metric_monitoring", "versioned_release_candidate_or_rollback"],
   "hard_boundaries": {
     "automatic_AGENTS_change": false,
     "automatic_risk_rule_change": false,

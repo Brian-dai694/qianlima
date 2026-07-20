@@ -45,6 +45,8 @@ shared_contracts:
   governed_collaboration_fan_in: ../.qianlima/scripts/invoke-governed-collaboration-fan-in.ps1
   enterprise_data_admission: ../.qianlima/enterprise-data-admission-contract.json
   skill_intake: ../.qianlima/skill-intake-contract.json
+  improvement_evaluation_card: ../.qianlima/improvement-evaluation-card-schema.json
+  improvement_governance_pipeline: ../.qianlima/scripts/invoke-improvement-governance-pipeline.ps1
   deployment_modes: ./deployment-mode-policy.json
 
 enterprise_controls:
@@ -87,6 +89,8 @@ enterprise_controls:
   external_agent_knowledge_search: deny_evidence_pack_only
   skill_intake_gate: install_update_only_offline_static_first
   skill_intake_startup_path: never
+  improvement_entrypoint: evaluation_card_replay_verify_human_canary_monitor
+  automatic_improvement_release: deny
 
 runtime_defaults:
   mode: plan

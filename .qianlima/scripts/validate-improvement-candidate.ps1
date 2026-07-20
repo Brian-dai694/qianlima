@@ -116,6 +116,6 @@ if ($null -ne $candidate.privacy) {
 foreach ($field in @($contract.prohibited_field_names)) { if ($raw -match ('(?i)"' + [regex]::Escape($field) + '"\s*:')) { Add-Violation "prohibited_field_$field" } }
 if ($raw -match '(?i)([A-Z]:\\Users\\|/Users/|/home/|-----BEGIN .*PRIVATE KEY-----|sk-[A-Za-z0-9_-]{20,})') { Add-Violation 'raw_private_value_or_path_detected' }
 $status = if ($violations.Count -eq 0) { 'passed' } else { 'blocked' }
-$result = [ordered]@{ status = $status; candidate_id = if (Has-Value $candidate 'candidate_id') { $candidate.candidate_id } else { $null }; lifecycle_state = if (Has-Value $candidate 'lifecycle_state') { $candidate.lifecycle_state } else { $null }; contract_version = $contract.contract_version; violations = @($violations); production_change = $false; automatic_promotion = $false; raw_private_evidence_recorded = $false; external_calls = $false }
+$result = [ordered]@{ status = $status; candidate_id = if (Has-Value $candidate 'candidate_id') { $candidate.candidate_id } else { $null }; candidate_content_sha256 = (Get-FileHash -LiteralPath $fullPath -Algorithm SHA256).Hash.ToLowerInvariant(); lifecycle_state = if (Has-Value $candidate 'lifecycle_state') { $candidate.lifecycle_state } else { $null }; contract_version = $contract.contract_version; violations = @($violations); production_change = $false; automatic_promotion = $false; raw_private_evidence_recorded = $false; external_calls = $false }
 if ($PassThru) { $result | ConvertTo-Json -Depth 12 } else { $result | Format-List }
 if ($status -ne 'passed') { exit 1 }
