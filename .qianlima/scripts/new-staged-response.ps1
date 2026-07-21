@@ -36,12 +36,6 @@ if ([string]::IsNullOrWhiteSpace($Root)) {
 
 $policyPath = Join-Path $Root 'response-policy.yaml'
 $routerPath = Join-Path $Root 'codex-router.json'
-if (-not (Test-Path -LiteralPath $policyPath -PathType Leaf)) {
-  throw "Missing response policy: $policyPath"
-}
-if (-not (Test-Path -LiteralPath $routerPath -PathType Leaf)) {
-  throw "Missing compact router: $routerPath. Run start-qianlima.ps1 first."
-}
 
 function Test-AnyMatch([string]$Text, [object[]]$Signals) {
   foreach ($signal in $Signals) {
@@ -64,7 +58,6 @@ function ConvertFrom-CodePoints([int[]]$CodePoints) {
   return -join ($CodePoints | ForEach-Object { [char]$_ })
 }
 
-$router = Get-Content -LiteralPath $routerPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $requestText = $Request.Trim()
 $highRiskSignals = @(
   (ConvertFrom-CodePoints @(35843, 31454, 20215)),
@@ -118,23 +111,31 @@ $chatSignals = @(
   (ConvertFrom-CodePoints @(35299, 37322)),
   (ConvertFrom-CodePoints @(26159, 20160, 20040))
 )
-$routeMatches = @()
-
-foreach ($route in $router.routes) {
-  $signals = @($route.strong_signals)
-  $matched = @($signals | Where-Object {
-    $_ -and $requestText.IndexOf([string]$_, [StringComparison]::OrdinalIgnoreCase) -ge 0
-  })
-  if ($matched.Count -gt 0) {
-    $routeMatches += [PSCustomObject]@{ route = $route; score = $matched.Count; matched_signals = $matched }
-  }
-}
-
-$selected = $routeMatches | Sort-Object score -Descending | Select-Object -First 1
 $isControlAdjustment = (Test-AnyMatch $requestText $controlledTargets) -and (Test-AnyMatch $requestText $adjustmentVerbs)
 $isHighRisk = (Test-AnyMatch $requestText $highRiskSignals) -or $isControlAdjustment
 $isBusiness = Test-AnyMatch $requestText $businessSignals
 $isSimpleChat = (Test-AnyMatch $requestText $chatSignals) -and -not $isBusiness -and -not $isHighRisk
+$routeMatches = @()
+$selected = $null
+if (-not $isSimpleChat) {
+  if (-not (Test-Path -LiteralPath $policyPath -PathType Leaf)) {
+    throw "Missing response policy: $policyPath"
+  }
+  if (-not (Test-Path -LiteralPath $routerPath -PathType Leaf)) {
+    throw "Missing compact router: $routerPath. Run start-qianlima.ps1 first."
+  }
+  $router = Get-Content -LiteralPath $routerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  foreach ($route in $router.routes) {
+    $signals = @($route.strong_signals)
+    $matched = @($signals | Where-Object {
+      $_ -and $requestText.IndexOf([string]$_, [StringComparison]::OrdinalIgnoreCase) -ge 0
+    })
+    if ($matched.Count -gt 0) {
+      $routeMatches += [PSCustomObject]@{ route = $route; score = $matched.Count; matched_signals = $matched }
+    }
+  }
+  $selected = $routeMatches | Sort-Object score -Descending | Select-Object -First 1
+}
 
 if ($isHighRisk) {
   $serviceLevel = 'L4'
