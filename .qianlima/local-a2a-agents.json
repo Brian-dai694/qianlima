@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "purpose": "Personal edition local stdio registrations. This registry contains no endpoint or listener.",
+  "agents": [
+    {
+      "id": "local-readonly-evidence-checker",
+      "status": "registered_local_only",
+      "transport": "stdio",
+      "internal_agent_ref": "evidence_checker",
+      "dispatch_enabled": false,
+      "network_access": "none",
+      "write_access": "none",
+      "can_delegate": false,
+      "risk_ceiling": "L3",
+      "data_scope": "public_or_internal_sanitized_references_only"
+    }
+  ]
+}

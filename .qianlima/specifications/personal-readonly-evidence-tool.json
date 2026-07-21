@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_tool_contract",
+  "edition": "personal",
+  "tool_id": "qianlima_readonly_evidence_task",
+  "invocation_mode": "explicit_local_stdio",
+  "agent_id": "local-readonly-evidence-checker",
+  "transport": "stdio",
+  "input": {
+    "required": ["task_id", "context_id", "agent_id", "tool_id", "input_refs"],
+    "allowed_source_classifications": ["public", "internal_sanitized"]
+  },
+  "grant": {
+    "required_status": "issued",
+    "required_agent_id": "local-readonly-evidence-checker",
+    "required_tool_id": "qianlima_readonly_evidence_task",
+    "required_network_access": "none",
+    "required_write_access": "none",
+    "required_can_delegate": false,
+    "max_risk_ceiling": "L3",
+    "must_be_unexpired": true,
+    "must_not_be_revoked": true
+  },
+  "prohibited_transport_fields": ["url", "endpoint", "remote_endpoint", "port", "host", "network_dispatch"],
+  "output": {
+    "artifact": "immutable_run_trace",
+    "receipt": "qianlima_evidence_receipt",
+    "verification_owner": "qianlima_evidence_verifier"
+  },
+  "security": {
+    "network_access": "none",
+    "business_write_access": "none",
+    "direct_agent_to_agent": false,
+    "user_configures_address": false,
+    "agent_card_is_permission": false
+  }
+}
