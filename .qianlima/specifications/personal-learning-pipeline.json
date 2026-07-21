@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "qianlima_personal_learning_pipeline",
+  "edition": "personal",
+  "purpose": "Keep resource understanding, planning, execution, and verification separate without adding background autonomy.",
+  "default_delivery": {
+    "mode": "summary_only",
+    "immediate_first_delivery": true,
+    "background_task": false,
+    "auto_start": false,
+    "network_access": "none",
+    "write_access": "none",
+    "can_delegate": false
+  },
+  "stage_sequence": [
+    {
+      "id": "resource_summary",
+      "role": "resource",
+      "output": ["capability_summary", "source_refs", "risk_flags"],
+      "authority": "none"
+    },
+    {
+      "id": "local_plan",
+      "role": "expert_or_orchestrator",
+      "output": ["local_proposal", "selected_inputs", "budget", "stop_conditions"],
+      "authority": "proposal_only"
+    },
+    {
+      "id": "readonly_execute",
+      "role": "brokered_local_executor",
+      "requires": ["explicit_start", "matching_grant", "qianlima_readonly_evidence_task"],
+      "output": ["artifact", "evidence_receipt"],
+      "authority": "task_grant_only"
+    },
+    {
+      "id": "verify_and_converge",
+      "role": "qianlima",
+      "output": ["verification_status", "uncertainties", "pending_checks", "next_action"],
+      "authority": "accept_freeze_or_stop"
+    }
+  ],
+  "allowed_proposal_tools": ["local_summary", "local_aggregation", "qianlima_readonly_evidence_task"],
+  "forbidden_personal_defaults": [
+    "automatic_skill_install",
+    "network_fetch",
+    "remote_agent_dispatch",
+    "ssh_or_cluster_execution",
+    "business_system_write",
+    "credential_access",
+    "direct_agent_to_agent_grant",
+    "background_loop_until_complete"
+  ],
+  "one_skills_mapping": {
+    "resource": "summary_only",
+    "expert": "proposal_only",
+    "orchestrator": "proposal_only",
+    "executor": "not_available_without_broker_grant"
+  },
+  "pdd_inspiration": {
+    "first_delivery": "current_bounded_judgment_and_next_check",
+    "handoff": "explicit_continue_only",
+    "latency_optimization": "presentation_and_local_aggregation_only",
+    "permission_rule": "latency_never_expands_grant_or_data_scope"
+  },
+  "required_plan_fields": [
+    "task_id",
+    "delivery_mode",
+    "stage_sequence",
+    "source_refs",
+    "proposed_tools",
+    "auto_start",
+    "background_task",
+    "network_access",
+    "write_access",
+    "can_delegate",
+    "stop_conditions"
+  ]
+}
