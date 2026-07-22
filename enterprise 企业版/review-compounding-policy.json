@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-enterprise-review-and-compounding",
+  "purpose": "Turn verified operational experience into governed improvement candidates without automatic production mutation.",
+  "review_triggers": ["task_failed", "verification_failed", "rollback_executed", "grant_revoked", "threshold_exception", "repeated_timeout", "material_profit_variance", "monthly_operating_review"],
+  "required_review_sections": ["business_expectation", "actual_outcome", "failure", "core_issue", "handling", "evidence_refs", "impact", "what_worked", "what_failed", "prevention", "owner", "due_at"],
+  "lesson_fields": ["lesson_id", "business", "department", "risk_level", "task_id", "recurrence_key", "symptom", "root_cause", "impact", "fix", "prevention", "evidence_refs", "tested_with", "status", "created_at"],
+  "lesson_status": ["candidate", "replay_passed", "simulation_passed", "promotion_pending", "approved", "rejected", "superseded"],
+  "promotion_flow": ["sanitized_review", "lesson_candidate", "deduplicate_by_recurrence_key", "replay", "frozen_replay", "failure_injection", "simulation", "latency_and_cost_check", "L4_safety_check", "independent_verification", "human_approval", "small_canary", "metric_monitoring", "versioned_release_candidate_or_rollback"],
+  "hard_boundaries": {
+    "automatic_AGENTS_change": false,
+    "automatic_risk_rule_change": false,
+    "automatic_permission_expansion": false,
+    "production_secret_access": false,
+    "hidden_reasoning_storage": false,
+    "raw_private_data_in_lesson": false
+  },
+  "cadence": {
+    "immediate": ["security_incident", "failed_rollback", "material_financial_error"],
+    "weekly": ["repeated_failures", "verification_gaps", "workflow_delay"],
+    "monthly": ["approved_lessons", "rejected_candidates", "cost_and_latency_regression"],
+    "quarterly": ["policy_effectiveness", "Agent_trust_drift", "business_outcome_attribution"]
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "model_id": "qianlima-enterprise-commerce-operations",
+  "purpose": "Govern the full commerce lifecycle from product selection to after-sales review with shared task, evidence, cost, and approval contracts.",
+  "lifecycle": [
+    {
+      "stage": "discover_and_select",
+      "modules": ["market_analysis", "competitive_analysis", "keyword_research", "product_selection"],
+      "default_level": "L3",
+      "owner_role": "product_owner",
+      "outcomes": ["market_evidence_pack", "competitor_matrix", "keyword_map", "selection_decision"]
+    },
+    {
+      "stage": "commercialize",
+      "modules": ["profitability", "pricing", "title", "main_image", "bullet_points", "long_description", "packaging", "supplier_collaboration"],
+      "default_level": "L3",
+      "owner_role": "product_owner",
+      "outcomes": ["approved_profit_model", "price_policy", "listing_asset_pack", "packaging_spec", "supplier_milestone_plan"]
+    },
+    {
+      "stage": "source_and_fulfill",
+      "modules": ["procurement", "sea_freight", "logistics", "customs_declaration", "warehouse_inbound", "amazon_inbound", "listing_activation"],
+      "default_level": "L3",
+      "owner_role": "supply_chain_owner",
+      "outcomes": ["purchase_plan", "shipment_plan", "customs_pack", "inbound_receipts", "listing_ready_status"]
+    },
+    {
+      "stage": "operate_and_convert",
+      "modules": ["local_warehouse_inventory", "amazon_inventory", "inventory_management", "traffic", "advertising", "conversion", "promotion"],
+      "default_level": "L3",
+      "owner_role": "operations_owner",
+      "outcomes": ["inventory_health", "traffic_report", "advertising_report", "conversion_actions", "promotion_plan"]
+    },
+    {
+      "stage": "service_and_review",
+      "modules": ["after_sales", "returns", "review_analysis", "clearance", "profit_review", "root_cause_review"],
+      "default_level": "L3",
+      "owner_role": "operations_owner",
+      "outcomes": ["after_sales_report", "return_loss_model", "clearance_plan", "profit_review", "improvement_candidates"]
+    }
+  ],
+  "cadence": {
+    "daily_report": ["sales", "estimated_daily_profit", "advertising", "inventory", "shipment_exceptions", "listing_exceptions"],
+    "weekly_report": ["estimated_weekly_profit", "keywords", "traffic", "conversion", "advertising", "inventory", "supplier_progress"],
+    "monthly_report": ["monthly_profit_close", "tax_summary", "inventory_aging", "procurement", "logistics", "supplier_scorecard", "market_and_competition"],
+    "quarterly_report": ["quarterly_profit_close", "tax_and_customs_review", "portfolio_review", "inventory_strategy", "supplier_review", "market_shift"],
+    "annual_report": ["annual_profit_close", "annual_tax_and_customs", "portfolio_outcome", "supplier_outcome", "inventory_loss", "strategy_review"],
+    "monthly_plan": ["sales_target", "profit_target", "advertising_budget", "inventory_actions", "procurement_and_logistics", "listing_actions"],
+    "quarterly_plan": ["portfolio", "profit", "inventory", "supplier", "market", "compliance"],
+    "annual_plan": ["business_target", "profit_and_cash", "portfolio", "supply_chain", "organization", "compliance_and_risk"]
+  },
+  "profit_settlement": {
+    "daily_profit": {"status": "management_estimate", "required_sources": ["orders", "sales", "ad_spend", "estimated_fees", "estimated_product_cost"], "may_be_official_accounting": false},
+    "weekly_profit": {"status": "management_estimate", "required_sources": ["daily_profit", "returns", "shipment_adjustments"], "may_be_official_accounting": false},
+    "monthly_profit": {"status": "controlled_close", "required_sources": ["settlement", "platform_fees", "ad_invoice", "product_cost", "freight", "returns", "tax_accrual", "exchange_rate"], "independent_verification": true},
+    "quarterly_profit": {"status": "controlled_close", "required_sources": ["monthly_profit", "tax_adjustments", "inventory_write_down", "customs_and_logistics_adjustments"], "independent_verification": true},
+    "annual_profit": {"status": "finance_close", "required_sources": ["quarterly_profit", "year_end_adjustments", "tax_close", "inventory_count", "audit_adjustments"], "finance_owner_required": true}
+  },
+  "regulated_domains": {
+    "tax": {"analysis_level": "L3", "filing_level": "L4", "owner_role": "tax_owner", "official_source_required": true, "mcp_policy": "compliance-mcp-policy.json"},
+    "customs_declaration": {"analysis_level": "L3", "filing_level": "L4", "owner_role": "customs_owner", "official_source_required": true, "mcp_policy": "compliance-mcp-policy.json"},
+    "product_compliance": {"analysis_level": "L3", "submission_level": "L4", "owner_role": "compliance_owner", "official_source_required": true, "mcp_policy": "compliance-mcp-policy.json"}
+  },
+  "cross_cutting_controls": {
+    "five_view_task": "five-view-task-contract.json",
+    "commerce_outcome_pack": "commerce-deliverable-contract.json",
+    "approval_routing": "approval-routing-policy.json",
+    "data_connections": "connection-policy.json",
+    "all_external_state_changes": "Enterprise L4 with responsible owner, receipt, and rollback or compensation",
+    "business_owner_notification": "daily digest by default; immediate only for threshold, exception, failed rollback, or governance-critical events"
+  }
+}

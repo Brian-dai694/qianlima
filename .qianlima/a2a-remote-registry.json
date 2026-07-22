@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "purpose": "Allowlist for future governed A2A client dispatch. This registry does not enable network access by itself.",
+  "default_action": "deny",
+  "network_dispatch_enabled": false,
+  "agents": [
+    {
+      "id": "example_readonly_research_agent",
+      "enabled": false,
+      "endpoint": "https://example.invalid/a2a",
+      "protocol_versions": ["1.0"],
+      "allowed_workflows": ["knowledge_digest"],
+      "risk_ceiling": "L2",
+      "allowed_source_classifications": ["public"],
+      "allowed_artifact_media_types": ["application/json", "text/markdown"],
+      "authentication": "not_configured",
+      "notes": "Template only. Replace only after separate human approval of endpoint, identity, data scope, cost, and failure policy."
+    }
+  ]
+}

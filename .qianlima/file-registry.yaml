@@ -4,6 +4,53 @@
 
 files:
 
+  - file_id: amazon_operations_architecture
+    path: 千里马计划/.qianlima/amazon-operations-architecture.yaml
+    display_name: 亚马逊运营全流程机器架构
+    scenario: all
+    file_type: governance
+    description: 生命周期阶段、Gate、交接物、能力边界和实施优先级的机器可读定义
+    can_overwrite: true
+    retention: keep
+
+  - file_id: amazon_operations_architecture_report
+    path: 千里马计划/reports/2026-07-10_运营架构_亚马逊全流程_US_V1.md
+    display_name: 亚马逊运营全流程架构说明
+    scenario: all
+    file_type: reference
+    generated_by: architecture_design
+    can_overwrite: false
+    retention: keep
+
+  - file_id: amazon_ops_skill_bundle_review
+    path: 千里马计划/reports/2026-07-10_运营Skill全家桶评估_US_V1.md
+    display_name: 亚马逊运营 Skill 全家桶评估
+    scenario: all
+    file_type: reference
+    generated_by: architecture_design
+    description: 评估用户提供的16个运营Skill候选项，给出合并、保留、改为Workflow和补缺建议，新增淡旺季补货能力
+    can_overwrite: false
+    retention: keep
+
+  - file_id: b0gcfx283d_seasonal_replenishment_report
+    path: 千里马计划/reports/2026-07-10_B0GCFX283D_淡旺季补货_US_V1.md
+    display_name: B0GCFX283D 淡旺季补货报告
+    scenario: inventory_monitor
+    file_type: report
+    generated_by: seasonal_replenishment_review
+    description: 基于 B0GCFX283D 当前库存、历史销量、广告和规格风险，输出只读补货建议和待验证项
+    can_overwrite: false
+    retention: keep
+
+  - file_id: amazon_operations_architecture_diagram
+    path: 千里马计划/reports/2026-07-10_运营架构_亚马逊全流程_US_V1.svg
+    display_name: 亚马逊运营全流程架构图
+    scenario: all
+    file_type: diagram
+    generated_by: fireworks_tech_graph
+    can_overwrite: false
+    retention: keep
+
   # ── 核心工作文件（只读参考） ──
 
   - file_id: work_manual
@@ -688,6 +735,40 @@ files:
     source: xiyou_demand_replica
     used_by:
       - keyword_demand_lifecycle_timing
+    can_overwrite: true
+    retention: keep
+
+  - file_id: workflow_seasonal_replenishment_review
+    path: 千里马计划/.qianlima/workflows/seasonal_replenishment_review.yaml
+    display_name: 淡旺季补货复盘工作流
+    scenario: inventory_monitor
+    file_type: workflow
+    source: amazon_ops_architecture
+    used_by:
+      - amazon_seasonal_replenishment
+      - seasonal_replenishment_review
+    can_overwrite: true
+    retention: keep
+
+  - file_id: task_card_seasonal_replenishment
+    path: 千里马计划/.qianlima/task-cards/seasonal-replenishment.yaml
+    display_name: 淡旺季补货复盘任务卡
+    scenario: inventory_monitor
+    file_type: task_card
+    source: amazon_ops_architecture
+    used_by:
+      - seasonal_replenishment_review
+    can_overwrite: true
+    retention: keep
+
+  - file_id: template_seasonal_replenishment
+    path: 千里马计划/.qianlima/templates/seasonal-replenishment_template.md
+    display_name: 淡旺季补货报告模板
+    scenario: inventory_monitor
+    file_type: template
+    source: amazon_ops_architecture
+    used_by:
+      - seasonal_replenishment_review
     can_overwrite: true
     retention: keep
 

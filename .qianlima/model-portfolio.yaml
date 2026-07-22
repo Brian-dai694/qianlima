@@ -1,0 +1,41 @@
+model_portfolio:
+  version: 1
+  purpose: Govern model admission, data boundaries, reliability evidence, cost, and latency.
+  default_strategy: single_model
+  model_version_change: revalidate_and_reset_trust
+  profiles:
+    unknown:
+      trust: T0
+      max_risk: L1
+      allowed_data: [public]
+      fusion_allowed: false
+    verified_readonly:
+      trust: T2
+      max_risk: L3
+      allowed_data: [public, internal_sanitized]
+      fusion_allowed: true
+    controlled:
+      trust: T3
+      max_risk: L4
+      allowed_data: [public, internal_sanitized, confidential_reference_only]
+      fusion_allowed: true
+      business_write: separate_grant_only
+  required_passport_fields: [model_id, provider, version, capability_domains, data_boundary, risk_ceiling, contract_test_ref, evidence_pass_rate, cost_ref, latency_ref, last_audit_at]
+  independence_requirements:
+    distinct_provider_or_version: preferred
+    shared_context: deny
+    shared_hidden_reasoning: deny
+    shared_raw_private_data: deny
+    producer_can_verify_self: false
+  routing:
+    L0: {strategy: single_model, fusion: deny}
+    L1: {strategy: single_model, fusion: deny}
+    L2: {strategy: single_model_plus_rule_or_tool_check, fusion: deny}
+    L3: {strategy: independent_candidates_plus_evidence_verifier, fusion: approval_required}
+    L4: {strategy: candidate_only_human_decision, fusion: human_required}
+  required_metrics: [evidence_completeness, verification_pass_rate, calibration, first_useful_output_ms, total_latency_ms, estimated_cost_usd, overreach_rate, prompt_injection_resistance]
+  hard_boundaries:
+    model_output_is_business_fact: false
+    model_output_is_permission: false
+    majority_vote_overrides_missing_evidence: false
+    revoked_model_artifact_is_eligible: false

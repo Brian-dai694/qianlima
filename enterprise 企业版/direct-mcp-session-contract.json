@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-enterprise-direct-mcp-session",
+  "purpose": "Allow low-latency Agent-to-MCP data flow after business approval while keeping Connector enforcement and revocation.",
+  "state_machine": ["requested", "policy_checked", "business_owner_approved", "session_grant_issued", "active", "revoked_or_expired"],
+  "required_bindings": ["session_grant_id", "business_owner_approval_ref", "organization_id", "employee_id", "task_id", "agent_id", "agent_version", "device_id", "server_id", "server_version", "tool_manifest_hash", "allowed_tools", "data_scope", "budget", "issued_at", "expires_at"],
+  "enforcement": {
+    "path": "agent_to_local_governance_connector_to_mcp",
+    "central_broker_in_data_path": false,
+    "connector_checks_each_call": true,
+    "revocation_check_each_call": true,
+    "tool_and_argument_scope_check": true,
+    "data_scope_check": true,
+    "budget_check": true,
+    "receipt_required": true
+  },
+  "limits": {
+    "maximum_minutes": 60,
+    "single_employee": true,
+    "single_task": true,
+    "single_agent_version": true,
+    "single_mcp_server_version": true,
+    "secondary_delegation": false,
+    "scope_expansion": false,
+    "write_authority_inherited": false
+  },
+  "invalidate_when": ["employee_suspended", "employee_transferred", "employee_offboarded", "business_owner_approval_revoked", "task_cancelled", "grant_revoked", "agent_version_changed", "server_version_changed", "tool_manifest_changed", "budget_exhausted", "device_posture_changed", "overreach_detected", "session_expired"]
+}

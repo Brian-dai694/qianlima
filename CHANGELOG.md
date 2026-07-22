@@ -6,20 +6,44 @@
 - 个人版新增四段式学习管线：资源摘要、局部计划、显式 Grant 只读执行、验证收敛。
 - 默认无后台任务、无自动 Skill 安装、无网络、无远程/集群执行；OneSkills 仅作为结构参考，不直接安装。
 - 新增个人学习计划边界校验和回归测试，拒绝自动启动、网络/端点字段、SSH/集群工具、业务写入和直接委派。
+- 千里马新增结构化 Execution Plan、步骤执行回执和 Execute-Verify-Revise 状态机。
+- 新增本地只读 CSV Runner；XLSX/Python 仅预检，不自动安装依赖，不联网、不写回、不删除、不委派。
+- 执行结果必须带来源引用、行数、警告、待验证项和 Artifact Hash，未验证结果不能标记完成。
+- 严格校验脚本纳入执行计划合同、EVR 合同、只读 Runner 合同及其回归测试，并避免因 `.gitattributes` 读取失败中断公开安全扫描。
 
 ## [v2.7.8] - 2026-07-21
 - 个人版仅预留显式启动的本地 stdio 证据核验模式，唯一工具为 `qianlima_readonly_evidence_task`。
 - 每次调用必须绑定任务匹配、未过期、未撤销的最小 Grant；强制无网络、无业务写入、不可委派和最高 L3。
-- 新增本地只读 Agent 适配器、统一个人审计事件、Evidence Receipt 和 11 项拒绝回归测试。
+- 新增本地只读 Agent 适配器、统一个人审计事件、Evidence Receipt 和拒绝回归测试。
 - 不接受端口、URL、远程端点、Agent Card 配置或远程派发；主 Harness 和企业版内容保持不变。
+- Low-risk Skill candidates now auto-release after independent validation; approval prompts are removed from the normal personal workflow.
+- High-risk, permission-changing, or attack-surface-changing candidates freeze and keep the prior version active. Automatic rollback remains available.
 
 ## [v2.7.7] - 2026-07-20
 - 个人版渐进式治理：普通聊天和续问保持快速路径，风险升高时才显示治理状态。
 - 偏好支持语言、篇幅、展示顺序、工具偏好和工作流建议，并以追加版本支持编辑、停用、回退和删除。
 - 个人记忆按任务相关 Chunk 选择，排除无关、过期、未确认和敏感内容。
-- 增加一键清除个人经验入口，清除偏好、Chunk 和候选内容。
-- Skill 安装先做静态检查，默认受限、无网络、无自动启动。
+- 增加一键清除个人经验入口；Skill 安装先做静态检查，默认受限、无网络、无自动启动。
 - 保持无外部 Agent、无业务写入和主 Harness 核心文件冻结。
+- Added the Skill self-evolution manager and contract: sanitized feedback, evidence-bound rule abstraction, candidate-only patching, independent replay validation, explicit release records, and rollback events.
+- Added regression coverage proving out-of-order changes are denied, production files are never auto-modified, and the append-only evolution trace survives rollback.
+
+## [v2.7.6] - 2026-07-18
+- Memory Broker 成为记忆读取的统一入口，支持任务、Grant、状态视图、作用域和撤销校验。
+- Complexity Gate 接入 Agent admission 分析，新增 Agent、Pipeline stage 和复杂度提案必须先通过准入。
+- 新增 Agent pipeline、Trace、改进候选、记忆状态和企业治理规格合同及回归测试。
+- 企业版 overlay 补齐 Runner、组织、连接、MCP、审批、业务交付和文件治理合同；主 Harness 保持冻结。
+
+## [v2.7.5] - 2026-07-18
+- 个人版与企业版统一共享同一套亚马逊运营能力目录，覆盖报告、计划、利润、合规、选品、Listing、供应链、库存、广告、售后与根因复盘。
+- 新增日/周/月/季/年度报告与利润口径规格，明确时间窗口、数据来源、假设和验证要求。
+- 新增共享 MCP 能力与端口规划：业务域独立端口、默认不监听、仅回环绑定、任务结束撤销，不授予业务写入权限。
+- 增加 MCP 端口规划回归测试，验证端口唯一性、能力覆盖、Grant 检查和零外部调用。
+
+## [v2.7.4] - 2026-07-17
+- Agent Runtime adapters: Codex supervisor, CodeWhale, Claude Code, Raven, plus discover-only Mimo, Kimi, Gemini, Aider, OpenCode, and Goose entries.
+- Added grant, revocation, expiry, risk ceiling, Plan/Execute, sandbox, timeout, path, and secret guards with adapter regression coverage.
+ - Added local CLI discovery and safe startup contracts; unknown vendor CLIs remain discover-only until their command and sandbox contracts are verified.
 
 ## [v2.7.3] - 2026-07-15
 - Codex 体感提速：普通对话、L0/L1 快答和同主题续问不再触发启动脚本或重复读取上下文。

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-evidence-market",
+  "purpose": "Reward verifiable claims and govern disagreement without majority-vote authority.",
+  "required_roles": ["candidate", "independent_verifier", "adversarial_checker"],
+  "claim_dimensions": ["source_traceability", "freshness", "assumption_visibility", "uncertainty_quality", "falsifiability", "independent_verification", "error_independence"],
+  "prohibited_rewards": ["answer_length", "writing_style", "confidence_tone", "majority_agreement_without_evidence"],
+  "decision_matrix": {
+    "low_disagreement_strong_evidence": "verified",
+    "low_disagreement_weak_evidence": "low_confidence",
+    "high_disagreement_supplementable": "evidence_required",
+    "high_disagreement_not_supplementable": "needs_human"
+  },
+  "adversarial_checks": ["missing_premise", "stale_or_unreliable_source", "reversed_causality", "non_executable_conclusion", "data_or_authority_overreach", "shared_source_bias"],
+  "budget_rules": {
+    "additional_budget_is_grant": false,
+    "evidence_required_may_propose_more_budget": true,
+    "needs_human_may_auto_retry": false,
+    "budget_expansion_requires_policy_or_human_approval": true
+  },
+  "shadow_mode": {
+    "affects_primary_result": false,
+    "external_write": false,
+    "records": ["fusion_id", "model_versions", "input_snapshot_ref", "claim_pack_refs", "disagreement_record", "policy_version", "verification_result", "final_adopter", "supersedes"]
+  },
+  "invariants": [
+    "Votes never substitute for sources.",
+    "A conflicting claim remains visible until independently resolved or escalated.",
+    "Adversarial checker cannot execute or expand authorization.",
+    "A new conclusion creates a new fusion version and may supersede but never overwrite history."
+  ]
+}

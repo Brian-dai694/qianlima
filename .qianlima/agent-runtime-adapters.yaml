@@ -1,0 +1,160 @@
+version: 1
+purpose: "Governed adapters for supervisor and bounded CLI execution workers."
+default_mode: dry_run
+safe_start_mode: plan
+network_dispatch: deny
+direct_agent_to_agent: deny
+secret_policy: "Use environment-variable references outside work orders, grants, receipts, and audit events."
+mcp_policy:
+  mode: allowlist_read_only
+  allowed_data: [public, internal_sanitized]
+  write_access: deny
+  arbitrary_server_registration: deny
+  task_end_revoke: true
+external_access:
+  model_provider: allowlist_only
+  file_export: deny
+  web_access: deny
+  erp_access: deny
+execution_gate:
+  require_grant: true
+  require_sandbox_attestation_for: [Execute, raven_worker]
+  plan_mode_tools: none
+  require_explicit_execute_switch: true
+  allowed_risk_ceiling: [L0, L1, L2]
+  reject: [expired_grant, revoked_grant, L3, L4, network_access, write_access, can_delegate]
+runner_gate:
+  registry: execution-runners.json
+  dispatcher: scripts/invoke-governed-runner.ps1
+  docker_preflight: scripts/probe-docker-runner.ps1
+  host_direct_execution: deny
+  default_runner: docker_local_mock
+  execute_requires: [verified_runner_attestation, task_workspace_only, no_host_workspace_mount, no_network, allowlist_read_only_mcp, no_file_export]
+  dry_run_is_not_execution: true
+security_gates:
+  credential_policy: credential-policy.json
+  credential_values_in_prompts_args_logs: deny
+  artifact_scan_before_acceptance: required
+  incident_containment: revoke_freeze_preserve_human_notify
+adapters:
+  - id: codex_supervisor
+    role: supervisor_planner_verifier
+    command: codex
+    arguments: [exec]
+    mode: supervisor_only
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [plan, inspect_selected_artifacts, verify_receipt, summarize]
+  - id: codewhale_worker
+    role: bounded_execution_worker
+    command: codewhale
+    arguments: [exec]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: stream-json
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+  - id: claude_code_worker
+    role: bounded_execution_worker
+    command: claude
+    arguments: [-p]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+  - id: raven_worker
+    role: bounded_agent_framework_worker
+    command: raven
+    arguments: [agent]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    safe_start: "agent -m <message> -w <workspace>"
+    sandbox_provider: raven_sandbox
+    default_mode: dry_run
+  - id: mimo_cli_worker
+    role: bounded_cli_execution_worker
+    command: mimo
+    arguments: [chat]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run
+  - id: kimi_cli_worker
+    role: bounded_cli_execution_worker
+    command: kimi
+    arguments: [--print]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run
+  - id: gemini_cli_worker
+    role: bounded_cli_execution_worker
+    command: gemini
+    arguments: [--prompt]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run
+  - id: aider_worker
+    role: bounded_cli_execution_worker
+    command: aider
+    arguments: [--message]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run
+  - id: opencode_worker
+    role: bounded_cli_execution_worker
+    command: opencode
+    arguments: [run]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run
+  - id: goose_worker
+    role: bounded_cli_execution_worker
+    command: goose
+    arguments: [run]
+    mode: worker
+    can_write: false
+    network_access: none
+    risk_ceiling: L2
+    output: text
+    allowed_actions: [inspect_selected_artifacts, produce_candidate_artifact, verify_receipt]
+    command_contract: unverified
+    availability: discover_only
+    default_mode: dry_run

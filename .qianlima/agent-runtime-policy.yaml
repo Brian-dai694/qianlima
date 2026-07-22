@@ -95,6 +95,19 @@ agent_runtime_policy:
         - .qianlima/reports/generated
       allow_only_after: explicit_second_confirmation
 
+  protected_invariants:
+    policy: protected-invariants.yaml
+    checker: scripts/check-protected-invariants.ps1
+    before_file_write: required
+    rule: "Project rules may narrow permissions, never widen them; protected policy changes require block or explicit confirmation."
+
+  failure_policy: failure-policy.yaml
+  run_receipt: scripts/new-run-receipt.ps1
+  governance_snapshot:
+    create: scripts/new-governance-snapshot.ps1
+    restore: scripts/restore-governance-snapshot.ps1
+    restore_requires_confirmation: true
+
   state_machine:
     initial: received
     states:
@@ -166,6 +179,90 @@ agent_runtime_policy:
     checker_forbidden: [external_write, report_write, confirmation_approval]
     parent_only: [workflow_completion, L4_confirmation, external_write_decision]
     failure_rule: "Checker failure returns to maker when repairable; otherwise freeze with pending verification."
+
+  agent_contracts:
+    cards: agent-cards.yaml
+    work_order_schema: work-order-schema.yaml
+    creator: scripts/new-work-order.ps1
+    rule: "Assign only to an enabled Agent Card; allowed tools and data scope are the intersection of card, order, and runtime grant."
+    no_shared_hidden_reasoning: true
+    no_secret_in_order: true
+    manager_owned_fan_in: required
+
+  broker_contracts:
+    capability_contract: capability-contract-schema.yaml
+    trust_policy: agent-trust-policy.yaml
+    delegation_grant: delegation-grant-schema.yaml
+    grant_creator: scripts/new-delegation-grant.ps1
+    evidence_receipt: evidence-receipt-schema.yaml
+    evidence_creator: scripts/new-evidence-receipt.ps1
+    direct_agent_to_agent: prohibited
+    failure_default: revoke_and_shrink
+    runtime_enforcement:
+      local_invoke_requires_grant: true
+      revocation_ledger: .qianlima/run-traces/grant-revocations.jsonl
+      audit_events: scripts/write-audit-event.ps1
+      revoked_grant_action: deny_before_tool_use
+
+  agent_runtime_adapters:
+    registry: agent-runtime-adapters.yaml
+    scripts: [scripts/invoke-codex-supervisor.ps1, scripts/invoke-codewhale.ps1, scripts/invoke-claude-code.ps1, scripts/invoke-raven.ps1]
+    default_mode: dry_run
+    plan_start_requires: [issued_grant, matching_task_id, unexpired_grant, non_revoked_grant, no_network, no_tools]
+    execute_requires: [issued_grant, matching_task_id, unexpired_grant, non_revoked_grant, sandbox_attestation, explicit_execute_switch]
+    sandbox_attestation: .qianlima/run-traces/sandbox-attestations
+    attestation_creator: scripts/new-sandbox-attestation.ps1
+    allowed_risk_ceiling: [L0, L1, L2]
+    denied: [network_access, write_access, can_delegate, arbitrary_mcp, file_export, web_access, erp_access, L3, L4, secrets_in_prompt]
+    mcp_policy: allowlist_read_only
+    mcp_allowed_data: [public, internal_sanitized]
+    mcp_task_end_action: revoke
+    external_access: {model_provider: allowlist_only, file_export: deny, web_access: deny, erp_access: deny}
+    supervisor_worker_boundary: "Codex plans and verifies; CodeWhale, Claude Code, and Raven only execute bounded worker orders."
+    raven_requires: [raven_sandbox_vm_for_execute]
+    unverified_cli_policy: "Unknown vendor command contracts remain discover-only and cannot be started by the adapter."
+
+  execution_runners:
+    schema: execution-runner-schema.yaml
+    registry: execution-runners.json
+    dispatcher: scripts/invoke-governed-runner.ps1
+    docker_preflight: scripts/probe-docker-runner.ps1
+    docker_attestation_creator: scripts/probe-docker-runner.ps1 -RunContainerProbe -IssueAttestation
+    default_action: deny
+    host_direct_execution: deny
+    dry_run_runner: docker_local_mock
+    execute_requires: [registered_runner, enabled_runner, matching_work_order, issued_grant, non_revoked_grant, verified_task_bound_attestation]
+    current_execute_state: disabled_until_real_runner_attestation
+    no_process_in_dry_run: required
+
+  enterprise_governance:
+    framework: enterprise-governance-framework.json
+    control_matrix: enterprise-governance-control-matrix.md
+    regression: scripts/test-enterprise-governance.ps1
+    status: baseline_defined_execution_restricted
+    human_promotion_required: true
+    credential_policy: credential-policy.json
+    credential_validator: scripts/validate-credential-reference.ps1
+    artifact_scanner: scripts/scan-governed-artifact.ps1
+    incident_recorder: scripts/record-security-incident.ps1
+    security_regression: scripts/test-security-controls.ps1
+
+  a2a_internal_contract:
+    compatibility: a2a-compatibility.yaml
+    task_state: a2a-task-state.yaml
+    task_envelope_creator: scripts/new-task-envelope.ps1
+    artifact_receipt_schema: artifact-receipt-schema.yaml
+    artifact_receipt_creator: scripts/new-artifact-receipt.ps1
+    network_listener: prohibited
+    terminal_task_mutability: prohibited
+    revision_rule: "Create a new task_id and reference the prior task; never overwrite a terminal task."
+
+  a2a_client_gateway:
+    policy: a2a-client-gateway-policy.yaml
+    registry: a2a-remote-registry.json
+    preflight: scripts/preflight-a2a-client.ps1
+    default: deny
+    network_io: prohibited_until_separate_approval
 
   plugin_and_flow_runtime:
     plugin_registry: plugin-registry.yaml

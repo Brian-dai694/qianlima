@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-enterprise-approval-routing",
+  "principle": "L4 means governed and accountable; it does not mean every action is approved by the business owner.",
+  "profiles": {
+    "routine_reversible": {
+      "per_action_minimum_approvers": 1,
+      "allowed_roles": ["department_manager", "data_owner", "technical_owner", "business_owner"],
+      "business_owner_required": false,
+      "batch_approval_allowed": true,
+      "batch_requires": ["batch_approval_id", "validity_window", "aggregate_limit", "within_threshold"]
+    },
+    "data_external": {
+      "per_action_minimum_approvers": 1,
+      "required_roles": ["data_owner"],
+      "confidential_additional_role": "security_admin",
+      "business_owner_required": false,
+      "batch_approval_allowed": false
+    },
+    "technical_production": {
+      "per_action_minimum_approvers": 1,
+      "required_roles": ["technical_owner"],
+      "critical_additional_role": "security_admin",
+      "business_owner_required": false,
+      "batch_approval_allowed": true
+    },
+    "financial_material": {
+      "per_action_minimum_approvers": 1,
+      "required_roles": ["finance_owner"],
+      "threshold_exceeded_additional_role": "business_owner",
+      "business_owner_required": "only_when_threshold_exceeded",
+      "batch_approval_allowed": true
+    },
+    "governance_critical": {
+      "per_action_minimum_approvers": 2,
+      "required_roles": ["security_admin", "business_owner"],
+      "business_owner_required": true,
+      "batch_approval_allowed": false
+    }
+  },
+  "action_routes": {
+    "business_write": "routine_reversible",
+    "source_write": "routine_reversible",
+    "erp_write": "routine_reversible",
+    "external_send": "data_external",
+    "deployment": "technical_production",
+    "finance_write": "financial_material",
+    "purchase": "financial_material",
+    "governance_change": "governance_critical",
+    "credential_assignment": "governance_critical"
+  },
+  "owner_notifications": {
+    "routine": "daily_digest",
+    "threshold_or_policy_exception": "immediate",
+    "overreach_or_failed_rollback": "immediate"
+  }
+}

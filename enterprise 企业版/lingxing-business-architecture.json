@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "architecture_id": "qianlima-lingxing-business-map",
+  "positioning": {
+    "lingxing": "commerce business data and action system",
+    "qianlima": "governance control plane, trusted Broker, verification, approval, and audit",
+    "rule": "Lingxing authorization or role permission never becomes Agent authority automatically."
+  },
+  "official_sources": [
+    {"title": "Lingxing Quick Start Guide", "url": "https://www.lingxing.com/help/article/QuickStartGuide", "verified_at": "2026-07-18"},
+    {"title": "Lingxing modular training overview", "url": "https://www.lingxing.com/help/article/xingjiangtangnew-basic", "verified_at": "2026-07-18"}
+  ],
+  "domains": {
+    "initialization": {
+      "capabilities": ["shop_authorization", "subaccount_and_permissions", "product_setup", "listing_initialization", "warehouse_initialization", "logistics_setup", "business_configuration"],
+      "qianlima_use": ["connection_admission", "identity_mapping", "scope_verification", "configuration_drift_detection"]
+    },
+    "operations": {
+      "capabilities": ["sales_dashboard", "sales_analysis", "sales_statistics", "product_performance", "target_management", "operations_plan", "operations_todo", "profit_statistics", "amazon_reports", "platform_orders", "fba_fee_difference", "promotion_management", "customer_messages", "review_requests", "review_management", "monitoring_and_alerts"],
+      "qianlima_use": ["business_and_outcome_views", "daily_weekly_monthly_reporting", "anomaly_events", "handling_assignments"]
+    },
+    "advertising": {
+      "capabilities": ["asin_reverse_lookup", "aba_search_terms", "sp_advertising", "automatic_rules", "keyword_movement", "budget_analysis", "daypart_analysis", "daypart_strategy", "incremental_strategy", "keyword_placement", "advertising_dashboard", "advertising_asin_analysis", "amc_analysis"],
+      "qianlima_use": ["read_only_diagnosis", "recommendation", "controlled_L4_bid_budget_or_rule_change"]
+    },
+    "finance": {
+      "capabilities": ["settlement_center", "profit_report", "performance_report", "data_accuracy_validation", "cost_investigation", "valuation_method", "fund_management", "receivables", "shipping_settlement_difference"],
+      "qianlima_use": ["profit_settlement", "finance_verification", "difference_root_cause", "threshold_escalation"]
+    },
+    "supply_chain": {
+      "capabilities": ["procurement_plan", "purchase_order", "purchase_change", "shipment_order", "fba_shipment", "first_mile_logistics", "first_mile_reconciliation", "inventory_detail", "procurement_report", "replenishment_advice", "instant_inventory", "all_warehouse_inventory", "processing_order", "transfer_order", "adjustment_order", "stocktake"],
+      "qianlima_use": ["procurement_and_logistics_plan", "inventory_health", "replenishment", "controlled_L4_orders_and_adjustments"]
+    },
+    "platform_extensions": {
+      "capabilities": ["self_fulfillment", "warehouse_fulfillment_separation", "multi_platform_orders", "multi_platform_listing", "inventory_sync", "mobile_approvals", "ai_copy", "ai_review_insight", "ai_customer_service"],
+      "qianlima_use": ["capability_specific_admission", "platform_scope_isolation", "provider_independent_verification"]
+    }
+  },
+  "data_authority": {
+    "source_of_truth": ["shop_orders", "settlement_transactions", "inventory_snapshots", "purchase_and_shipment_documents"],
+    "derived_evidence": ["sales_analysis", "product_performance", "profit_statistics", "advertising_analysis", "replenishment_advice"],
+    "rule": "Derived Lingxing reports are evidence inputs; high-risk decisions reload authoritative source records and timestamps."
+  }
+}

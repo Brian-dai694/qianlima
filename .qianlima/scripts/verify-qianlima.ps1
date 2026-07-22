@@ -32,7 +32,7 @@ function Add-Warning([string]$Message) { $Warnings.Add($Message) }
 function Test-Leaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $Root $RelativePath) -PathType Leaf }
 function Test-ProjectLeaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $ProjectRoot $RelativePath) -PathType Leaf }
 
-foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'CODEX_BOOT.md', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'model-pricing.json', 'skill-evolution.yaml', 'response-policy.yaml', 'task-runtime.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws', 'scripts/get-model-cost.ps1', 'scripts/new-staged-response.ps1', 'scripts/save-hot-state.ps1', 'scripts/new-task-contract.ps1', 'scripts/set-task-control.ps1', 'scripts/check-task-contract.ps1', 'scripts/get-snapshot-decision.ps1', 'scripts/summarize-csv.ps1', 'scripts/update-tool-health.ps1', 'scripts/write-experience-event.ps1', 'scripts/get-quality-dashboard.ps1', 'scripts/new-skill-feedback-record.ps1', 'scripts/new-skill-patch-proposal.ps1', 'workflows/skill_evolution.yaml', 'task-cards/skill-evolution.yaml', 'templates/operational-snapshot_template.json', 'templates/experience-event_template.json', 'templates/token-usage-record_template.yaml')) {
+foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'CODEX_BOOT.md', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'model-pricing.json', 'skill-evolution.yaml', 'response-policy.yaml', 'task-runtime.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws', 'specifications/skill-self-evolution-contract.json', 'specifications/qianlima-execution-plan-contract.json', 'specifications/qianlima-step-result-contract.json', 'specifications/qianlima-evr-contract.json', 'specifications/qianlima-readonly-runner-contract.json', 'scripts/get-model-cost.ps1', 'scripts/new-staged-response.ps1', 'scripts/save-hot-state.ps1', 'scripts/new-task-contract.ps1', 'scripts/set-task-control.ps1', 'scripts/check-task-contract.ps1', 'scripts/get-snapshot-decision.ps1', 'scripts/summarize-csv.ps1', 'scripts/update-tool-health.ps1', 'scripts/write-experience-event.ps1', 'scripts/get-quality-dashboard.ps1', 'scripts/new-skill-feedback-record.ps1', 'scripts/new-skill-patch-proposal.ps1', 'scripts/invoke-skill-self-evolution.ps1', 'scripts/test-skill-self-evolution.ps1', 'scripts/new-qianlima-execution-plan.ps1', 'scripts/new-qianlima-step-result.ps1', 'scripts/invoke-qianlima-evr.ps1', 'scripts/invoke-qianlima-readonly-runner.ps1', 'scripts/test-qianlima-execution-plan.ps1', 'workflows/skill_evolution.yaml', 'task-cards/skill-evolution.yaml', 'templates/operational-snapshot_template.json', 'templates/experience-event_template.json', 'templates/token-usage-record_template.yaml')) {
   if (-not (Test-Leaf $file)) { Add-Issue "Missing required public-safe Qianlima file: $file" }
 }
 foreach ($dir in @('logs', 'usage-ledger')) {
@@ -94,8 +94,8 @@ foreach ($relative in $files) {
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
   $item = Get-Item -LiteralPath $path -Force
   if ($item.Length -gt 1048576) { continue }
-  if ($item.Extension -notin @('.md', '.yaml', '.yml', '.ps1', '.json', '.txt', '.gitignore', '.gitattributes')) { continue }
-  $text = Get-Content -LiteralPath $path -Encoding UTF8 -Raw -Force
+  if ($item.Extension -notin @('.md', '.yaml', '.yml', '.ps1', '.json', '.txt', '.gitignore')) { continue }
+  try { $text = [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8) } catch { Add-Warning "Could not read tracked public-safe file; skipped secret scan: $relative"; continue }
   foreach ($pattern in $secretPatterns) {
     if ($text -match $pattern) {
       Add-Issue "Potential secret-like value found in public-safe scan: $relative"

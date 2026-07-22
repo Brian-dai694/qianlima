@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "registry_id": "lingxing-mcp-example",
+  "default_action": "deny",
+  "servers": [
+    {
+      "server_id": "lingxing-readonly",
+      "enabled": false,
+      "transport": "MCP",
+      "endpoint_ref": "lingxing-mcp-endpoint-ref",
+      "credential_ref": "lingxing-readonly-credential-ref",
+      "mode": "allowlist_read_only",
+      "shop_scope": [],
+      "marketplace_scope": [],
+      "allowed_domains": ["operations", "advertising", "finance", "supply_chain"],
+      "allowed_tools": [],
+      "network_zone": "zone_2_internal_or_approved_gateway",
+      "write_enabled": false,
+      "direct_agent_access": false
+    }
+  ]
+}

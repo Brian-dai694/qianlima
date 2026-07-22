@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-governed-trace-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Bind authorization, execution, artifacts, verification, budget, and terminal state to one sanitized trace envelope.",
+  "required_fields": [
+    "trace_id",
+    "run_id",
+    "task_id",
+    "agent_id",
+    "agent_version",
+    "runner_id",
+    "policy_version",
+    "protocol_version",
+    "budget_snapshot",
+    "grant_ref",
+    "artifact_refs",
+    "evidence_refs",
+    "audit_event_refs",
+    "terminal_status",
+    "created_at"
+  ],
+  "terminal_statuses": ["completed", "partial", "frozen", "failed", "rejected", "cancelled"],
+  "failure_actions": {
+    "expired_grant": "deny_before_tool_use",
+    "revoked_grant": "deny_before_tool_use",
+    "version_drift": "trust_reset_and_freeze",
+    "artifact_hash_mismatch": "reject_artifact_and_freeze",
+    "budget_exceeded": "revoke_and_freeze",
+    "verification_conflict": "freeze_and_require_human",
+    "cancelled_downstream": "stop_pending_downstream"
+  },
+  "prohibited_fields": ["raw_prompt", "hidden_reasoning", "secret_value", "full_tool_parameters", "raw_private_data"],
+  "invariants": [
+    "All linked contracts in one trace must share trace_id, task_id, and agent_id.",
+    "A trace cannot report completed when a required failure action is unresolved.",
+    "Trace metadata may reference artifacts but cannot contain raw artifact contents.",
+    "A version drift resets trust; it never inherits the prior trust decision.",
+    "A cancelled task cannot leave runnable downstream work in the same trace."
+  ]
+}

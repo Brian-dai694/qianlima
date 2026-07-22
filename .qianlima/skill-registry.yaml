@@ -350,6 +350,90 @@ skill_registry:
       estimated_tokens: 20000
       estimated_duration_min: 10
 
+    - skill_id: amazon_product_development
+      name: "Amazon 产品开发"
+      description: "把已批准的选品机会转成 PRD、规格矩阵、RFQ、样品测试计划和验收标准"
+      triggers:
+        - "产品开发"
+        - "做 PRD"
+        - "开发这个品"
+        - "供应商怎么问"
+        - "样品怎么验收"
+        - "规格冲突怎么修"
+        - "把选品转开发"
+      scope:
+        does:
+          - "承接 opportunity_brief"
+          - "输出 product_requirement_document"
+          - "建立规格矩阵、RFQ 包和样品测试计划"
+          - "识别规格、兼容、包装、售后和内容证据风险"
+        does_not:
+          - "重新替代选品市场判断"
+          - "未经确认采购、付款或确认供应商"
+          - "发布或修改 Amazon Listing"
+      capabilities:
+        - "机会 → PRD 转换"
+        - "规格矩阵与冲突检查"
+        - "RFQ 问题清单"
+        - "样品验收门禁"
+      outputs:
+        - format: markdown
+          path: "reports/{date}_产品开发_{asin_or_topic}_{marketplace}_V{version}.md when requested"
+      constraints:
+        - "规格冲突不能用总分抵消"
+        - "不同产品形态不得混入同一 PRD"
+        - "采购、打样付款和供应商确认必须人工确认"
+      quality_gates:
+        - "PRD 含规格、兼容、材料、包装、测试和证据计划"
+        - "RFQ 基于同一规格矩阵"
+        - "样品测试有可量化通过标准"
+      sub_skills:
+        - "amazon-product-development"
+      estimated_tokens: 12000
+      estimated_duration_min: 8
+
+    - skill_id: amazon_seasonal_replenishment
+      name: "Amazon 淡旺季补货"
+      description: "根据销量、库存、在途、交期、季节性、现金和广告节奏生成补货计划"
+      triggers:
+        - "淡旺季补货"
+        - "旺季前备货"
+        - "库存还能撑多久"
+        - "这个 ASIN 要补多少"
+        - "断货风险"
+        - "淡季控广告"
+        - "补货计划"
+      scope:
+        does:
+          - "计算可售天数、补货点和建议补货量"
+          - "识别旺季不断货和淡季压货风险"
+          - "联动广告节奏、促销节奏和现金占用"
+          - "输出 replenishment_plan"
+        does_not:
+          - "未经确认下采购单"
+          - "未经确认改价、改预算或清仓"
+          - "用站外趋势替代真实库存和销量"
+      capabilities:
+        - "淡旺季窗口判断"
+        - "销量情景测算"
+        - "补货点与补货量测算"
+        - "广告库存联动建议"
+      outputs:
+        - format: markdown
+          path: "reports/{date}_淡旺季补货_{asin_or_sku}_{marketplace}_V{version}.md when requested"
+      constraints:
+        - "采购、压货、清仓、改价、改预算必须人工确认"
+        - "新品未验证转化前不得按乐观旺季销量大量补货"
+        - "缺交期、在途、MOQ、采购成本时只能输出风险预估"
+      quality_gates:
+        - "输出保守、基准、旺季三种可售天数"
+        - "补货建议说明现金占用和断货/压货风险"
+        - "广告节奏建议只建议不执行"
+      sub_skills:
+        - "amazon-seasonal-replenishment"
+      estimated_tokens: 10000
+      estimated_duration_min: 6
+
     - skill_id: knowledge_digest
       name: "资料消化"
       description: "读取长文档/多文件/课程资料，提取关键要点、生成结构化摘要和行动项"

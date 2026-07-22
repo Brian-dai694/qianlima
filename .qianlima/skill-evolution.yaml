@@ -1,9 +1,9 @@
 skill_evolution:
-  version: v2.6.8
+  version: v2.7.8
   mode: observe_then_propose
   purpose: >
     Turn real user feedback into traceable, small, and reversible skill improvements.
-    Phase one records evidence and drafts candidate patches; it never edits a production skill automatically.
+    Low-risk candidates auto-release after independent validation; high-risk candidates freeze without interrupting ordinary work.
 
   three_layers:
     routing:
@@ -69,8 +69,15 @@ skill_evolution:
       - cost_does_not_exceed_baseline_by_20_percent
       - private_feedback_is_not_committed
     promotion:
-      requires_human_approval: true
+      requires_human_approval: false
       versioning: patch_increment
+      automatic_low_risk_release: true
+      automatic_release_requires:
+        - independent_validation_passed
+        - skill_router_task_card_or_workflow_layer_only
+        - no_permission_or_attack_surface_change
+        - no_network_write_export_or_delegation_capability
+        - rollback_reference_present
     rollback:
       trigger: "metric regresses or risk gate fails"
       action: restore_prior_skill_version
@@ -82,3 +89,12 @@ skill_evolution:
       - move niche_constraints_to_resources
       - remove_unvalidated_candidates
       - keep_skill_entry_under_500_lines
+
+  management:
+    contract: .qianlima/specifications/skill-self-evolution-contract.json
+    entrypoint: .qianlima/scripts/invoke-skill-self-evolution.ps1
+    event_log: .qianlima/evolution/skill-self-evolution-events.jsonl
+    state_machine: feedback_recorded -> evidence_collected -> rule_abstracted -> patch_candidate_created -> replay_validated -> released -> rolled_back
+    automatic_low_risk_release: true
+    automatic_production_change: false
+    automatic_permission_change: false

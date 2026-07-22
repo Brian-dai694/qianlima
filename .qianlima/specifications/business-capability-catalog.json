@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "catalog_id": "qianlima-amazon-business-capabilities",
+  "catalog_version": "1.0.0",
+  "principle": "Personal and Enterprise editions share the same business capabilities; editions differ only in governance, identity, deployment, and approval controls.",
+  "profiles": {
+    "personal": {
+      "capabilities": "all",
+      "identity": "local_user",
+      "audit": "local_append_only_trace",
+      "approval": "user_confirmation_for_L4"
+    },
+    "enterprise": {
+      "capabilities": "all",
+      "identity": "enterprise_identity",
+      "audit": "local_trace_with_optional_central_sink",
+      "approval": "RBAC_plus_named_human_confirmation"
+    }
+  },
+  "shared_execution_rules": {
+    "default_mode": "read_analyze_recommend",
+    "business_write": "L4_explicit_confirmation_only",
+    "source_required": true,
+    "period_required_for_metrics": true,
+    "unknown_data_is_not_zero": true,
+    "missing_evidence_status": "partial_or_frozen",
+    "all_outputs_require": ["source_refs", "data_time_range", "assumptions", "verification_status"]
+  },
+  "periods": {
+    "daily": {"code": "D", "default_window": "previous_complete_calendar_day"},
+    "weekly": {"code": "W", "default_window": "previous_complete_calendar_week"},
+    "monthly": {"code": "M", "default_window": "previous_complete_calendar_month"},
+    "quarterly": {"code": "Q", "default_window": "previous_complete_calendar_quarter"},
+    "annual": {"code": "Y", "default_window": "previous_complete_calendar_year"}
+  },
+  "capabilities": [
+    {
+      "id": "reporting",
+      "name": "经营报告",
+      "periods": ["daily", "weekly", "monthly", "quarterly", "annual"],
+      "outputs": ["executive_summary", "metric_table", "anomaly_list", "root_cause_candidates", "next_actions"],
+      "required_evidence": ["source_snapshot", "period_definition", "comparison_baseline"],
+      "execution": "read_only_by_default"
+    },
+    {
+      "id": "planning",
+      "name": "经营计划",
+      "periods": ["monthly", "quarterly", "annual"],
+      "outputs": ["target_tree", "assumption_register", "resource_plan", "milestones", "risk_register"],
+      "required_evidence": ["baseline_metrics", "cash_constraint", "inventory_constraint", "approved_objectives"],
+      "execution": "recommendation_only_until_approved"
+    },
+    {
+      "id": "profit_accounting",
+      "name": "利润口径与复盘",
+      "periods": ["daily", "weekly", "monthly", "quarterly", "annual"],
+      "standard_views": ["gross_profit", "contribution_profit", "operating_profit", "cash_profit", "settlement_profit"],
+      "required_dimensions": ["revenue", "cogs", "amazon_fees", "advertising", "fulfillment", "storage", "refunds_returns", "taxes_duties", "currency_rate", "period_basis"],
+      "outputs": ["profit_bridge", "unit_economics", "sensitivity_analysis", "variance_explanation"],
+      "constraints": ["never_mix_cash_and_accrual_without_label", "unknown_cost_is_not_zero", "assumptions_require_confirmation"],
+      "execution": "read_only_by_default"
+    },
+    {
+      "id": "tax_customs_product_compliance",
+      "name": "税务、海关与产品合规",
+      "periods": ["monthly", "quarterly", "annual"],
+      "subdomains": ["tax_document_check", "customs_classification_reference", "landed_cost_compliance", "product_certification_check", "label_packaging_requirement_check", "marketplace_policy_check"],
+      "outputs": ["compliance_checklist", "missing_document_list", "jurisdiction_assumptions", "escalation_items"],
+      "required_evidence": ["jurisdiction", "product_materials", "declared_value", "shipment_route", "official_or_authoritative_source"],
+      "constraints": ["not_legal_or_tax_advice", "no_filing_or_declaration_without_human_review", "conflicting_rules_freeze_recommendation"],
+      "execution": "read_and_flag_only_by_default"
+    },
+    {
+      "id": "product_market_competition_keyword_pricing",
+      "name": "选品、市场、竞争、关键词与定价",
+      "subdomains": ["product_selection", "market_sizing", "competitor_analysis", "keyword_demand", "keyword_rank", "price_positioning", "scenario_pricing"],
+      "outputs": ["opportunity_brief", "competitor_snapshot", "keyword_map", "price_scenario", "go_no_go_recommendation"],
+      "required_evidence": ["marketplace", "time_window", "source_coverage", "cost_assumptions", "competition_snapshot"],
+      "constraints": ["single_source_findings_labeled", "price_change_is_L4", "market_estimate_is_not_actual_sales"],
+      "execution": "read_analyze_recommend"
+    },
+    {
+      "id": "listing_content",
+      "name": "Listing 内容与素材",
+      "subdomains": ["title", "main_image_brief", "bullet_points", "long_description", "search_terms", "content_compliance"],
+      "outputs": ["content_diagnosis", "before_after_draft", "keyword_placement_map", "image_brief", "policy_checklist"],
+      "required_evidence": ["current_listing", "product_facts", "approved_claims", "keyword_sources", "marketplace_policy_version"],
+      "constraints": ["no_unverified_claims", "no_direct_marketplace_write", "image_generation_is_draft_until_review"],
+      "execution": "draft_and_verify"
+    },
+    {
+      "id": "procurement_supplier_packaging_logistics",
+      "name": "采购、厂家合作、包装与物流",
+      "subdomains": ["supplier_shortlist", "rfq_comparison", "supplier_cooperation", "specification_matrix", "packaging_plan", "ocean_freight", "logistics_route", "landed_cost"],
+      "outputs": ["supplier_comparison", "rfq_pack", "negotiation_questions", "packaging_spec", "shipping_scenario", "landed_cost_bridge"],
+      "required_evidence": ["approved_product_spec", "supplier_quote", "moq", "lead_time", "incoterm", "route", "compliance_documents"],
+      "constraints": ["purchase_order_is_L4", "supplier_payment_is_L4", "quote_expiry_required", "unknown_freight_is_not_zero"],
+      "execution": "recommendation_only_until_approved"
+    },
+    {
+      "id": "inventory_fulfillment",
+      "name": "入仓、上架、本地库存与亚马逊库存",
+      "subdomains": ["inbound_tracking", "receiving_check", "listing_readiness", "local_inventory", "amazon_inventory", "in_transit_inventory", "available_to_sell", "stockout_overstock_risk"],
+      "outputs": ["inventory_position", "replenishment_signal", "inbound_exception_list", "listing_readiness_check", "stock_risk_report"],
+      "required_evidence": ["sku_or_asin", "snapshot_time", "on_hand", "inbound", "reserved", "local_stock", "lead_time"],
+      "constraints": ["inventory_sources_must_be_time_stamped", "purchase_and_clearance_are_L4", "inbound_unknown_is_not_available"],
+      "execution": "read_analyze_recommend"
+    },
+    {
+      "id": "traffic_advertising_conversion_campaigns",
+      "name": "流量、广告、转化与活动",
+      "periods": ["daily", "weekly", "monthly", "quarterly", "annual"],
+      "subdomains": ["traffic_diagnosis", "ad_spend", "cpc_ctr_cvr", "acos_tacos", "search_term", "campaign_health", "promotion_event", "conversion_funnel"],
+      "outputs": ["traffic_funnel", "ad_diagnosis", "campaign_comparison", "conversion_gap_list", "optimization_recommendation"],
+      "required_evidence": ["attribution_window", "ad_source", "sales_source", "campaign_scope", "promotion_calendar"],
+      "constraints": ["bid_and_budget_change_are_L4", "attribution_windows_must_be_labeled", "cross_source_variance_must_be_reported"],
+      "execution": "read_analyze_recommend"
+    },
+    {
+      "id": "after_sales_clearance_root_cause",
+      "name": "售后、退货、清货与根因复盘",
+      "periods": ["daily", "weekly", "monthly", "quarterly", "annual"],
+      "subdomains": ["customer_service", "returns", "refunds", "defect_reason", "review_feedback", "clearance_scenario", "profit_impact", "root_cause_review"],
+      "outputs": ["after_sales_summary", "return_reason_distribution", "defect_root_cause_tree", "clearance_scenario", "profit_impact_bridge", "corrective_action_plan"],
+      "required_evidence": ["order_or_case_scope", "return_reason", "refund_amount", "inventory_effect", "profit_basis", "period_definition"],
+      "constraints": ["customer_data_minimized", "clearance_and_price_change_are_L4", "root_cause_is_hypothesis_until_verified"],
+      "execution": "read_analyze_recommend"
+    }
+  ],
+  "edition_invariant": "Every capability above is available in both personal and enterprise profiles; only the governing controls differ."
+}

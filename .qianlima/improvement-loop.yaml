@@ -1,13 +1,13 @@
 # improvement-loop.yaml — 进化式反馈闭环
-# 版本: v2.1 | 更新: 2026-07-11
+# 版本: v2.1 | 更新: 2026-07-15
 # 来源: Lilian Weng "Harness Engineering for Self-Improvement" (2026-07-04)
 # 理念: "Evolve the harness through experimentation, not just bug fixing."
 #
-# v2→v2.1 核心变更:
-#   - 新增 cost_baseline 记忆类型
-#   - 新增 model_downgrade 改进策略
-#   - 新增 cost_spike 触发示例
-#   - 引用 rules/cost-baselines.yaml 和 rules/model-routing-rules.yaml
+# v1→v2 核心变更:
+#   - 从线性修复（fix only）变为进化式多分支（fix + explore + optimize）
+#   - 新增实验框架：A/B 变体 + 效果验证 + 经验固化
+#   - 新增经验自动提取：从每次运行中学习，无需手动记录
+#   - 新增改进历史：追踪每个改进的「为什么」和「效果如何」
 
 improvement_loop:
   version: "2.0"
@@ -229,22 +229,6 @@ improvement_loop:
           auto_apply: false
           requires_confirmation: true
 
-        # v2.1: 模型降级策略
-        - id: model_downgrade
-          name: "模型降级建议"
-          applies_to: [cost_spike, pattern_inefficiency]
-          method: >
-            当同一个 workflow 连续 3 次实际成本低于 baseline × 0.5：
-            提示用户可以降级到更低的模型 tier（如 L2→L1）。
-            当成本持续低于基线但质量没有下降时，用更便宜的模型是安全的。
-          auto_apply: false
-          requires_confirmation: true
-          downgrade_conditions:
-            - "连续 3 次 estimated_cost < baseline_cost × 0.5"
-            - "eval_score 没有下降 > 5%"
-            - "用户没有报告质量不满意"
-          source_file: "rules/model-routing-rules.yaml"
-
         # 🆕 Raven 借鉴: Agent Templates 自动模板化
         - id: template_extraction
           name: "黄金模板提取"
@@ -384,15 +368,6 @@ improvement_loop:
         quality_min: 0.4
         example: "用户说 '崩盘' 时，80% 情况是 tig welding accessories 排名暴跌"
 
-      # v2.1: 成本基线记忆
-      - type: cost_baseline
-        description: "workflow 的成本基线数据（P50 实测成本）"
-        lifecycle: {create: "跑满 calibrate_after_runs 次后由 measured 升级", validate: "连续 5 次校准波动 < 20%", decay_days: 60}
-        quality_min: 0.7
-        example: "daily_ad_report 的 P50 实测成本为 $1.32（DeepSeek V4 Pro，2026-06-24 校准）"
-        source_file: "rules/cost-baselines.yaml"
-        note: "模型价格变动或 workflow 逻辑变更时必须重新校准；超过 30 天未校准从 measured 降级为 estimated"
-
     # ── 记忆生命周期 ──────────────────────────────────────────
 
     lifecycle:
@@ -526,15 +501,39 @@ improvement_loop:
       strategy: rule_evolution
       improvement: "将数据新鲜度告警阈值从 '被动提示' 升级为 '阻断后续高风险操作'"
 
-    # v2.1 新增示例
-    - trigger: "单次 daily_ad_report 成本 > $2.64（baseline × 2）"
-      strategy: parameter_tuning
-      improvement: "检查是否加载了不必要的文件；检查是否可以用 L1 模型替代；触发 ConAct 折叠"
+miniappbench_eval_optimization:
+  version: v2.6.7
+  source: https://github.com/MiniAppBench/miniappbench
+  purpose: >
+    将 MiniAppEval 的多维评分、轨迹证据、公开验证集/私有隐藏集思想，
+    落地为 QianlimaEval。每个非简单任务不只输出结论，还输出可审计评分。
 
-    - trigger: "连续 3 次 daily_ad_report 成本 < $0.66（baseline × 0.5）且质量无下降"
-      strategy: model_downgrade
-      improvement: "建议将 daily_ad_report 从 L2 降级到 L1（Flash 模型），预估月省 $25+"
+  adopted_patterns:
+    - pattern: generate_compile_evaluate
+      qianlima_mapping: "execute_workflow -> assemble_evidence_pack -> score_run"
+    - pattern: multidimensional_scoring
+      qianlima_mapping: "intent_alignment + evidence_static_quality + dynamic_execution_quality + cost_savings_efficiency + risk_control"
+    - pattern: trajectory_as_evidence
+      qianlima_mapping: "trace logs, tool results, verification gates, and usage ledger are evaluated as first-class evidence"
+    - pattern: withheld_private_tests
+      qianlima_mapping: "public checks stay in evaluation-tasks.yaml; real business shadow cases stay private"
+    - pattern: separate_generation_and_evaluation_models
+      qianlima_mapping: "low-cost model may generate; stronger model may evaluate high-risk or high-value runs"
 
-    - trigger: "weekly_cost 接近 cost_limit"
-      strategy: parameter_tuning
-      improvement: "暂停低优先级的 strategy_exploration 和 knowledge_digest，仅保留日报/关键词/台账等核心 workflow"
+  release_gate:
+    default_min_score: 0.80
+    review_score_min: 0.60
+    block_if:
+      - credentials_detected
+      - missing_report_artifact
+      - high_risk_action_without_confirmation
+      - external_write_without_confirmation
+
+  cost_policy:
+    principle: "节约是中心思想，但不能用低成本掩盖低质量。"
+    required_for_non_simple_tasks:
+      - estimated_cost
+      - baseline_cost
+      - estimated_savings
+      - continue_or_stop
+      - model_choice_reason

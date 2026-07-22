@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-enterprise-five-view-task",
+  "principle": "One governed task has five role-oriented views over the same immutable task and event lineage.",
+  "required_views": ["business", "outcome", "failure", "core_issue", "handling"],
+  "views": {
+    "business": {
+      "audience": ["business_owner", "department_manager", "employee"],
+      "purpose": "Explain why the task exists and what business value is expected.",
+      "required_fields": ["goal", "business_owner_id", "department_id", "project_id", "cost_center", "risk_level", "expected_value", "deadline"]
+    },
+    "outcome": {
+      "audience": ["business_owner", "department_manager", "employee", "verifier"],
+      "purpose": "Show what was produced, verified, adopted, rejected, or superseded.",
+      "required_fields": ["status", "artifact_refs", "evidence_refs", "verification_status", "business_result", "adoption_status"]
+    },
+    "failure": {
+      "audience": ["department_manager", "employee", "security_admin", "verifier"],
+      "purpose": "Describe the failed stage, impact, retry eligibility, and preserved partial work.",
+      "required_fields": ["status", "category", "failed_stage", "impact_scope", "retry_eligible", "partial_artifact_refs", "incident_ref"]
+    },
+    "core_issue": {
+      "audience": ["department_manager", "security_admin", "verifier"],
+      "purpose": "Separate symptoms from the best supported root cause and unresolved unknowns.",
+      "required_fields": ["status", "problem_statement", "root_cause", "evidence_refs", "confidence", "unknowns", "recurrence_key"]
+    },
+    "handling": {
+      "audience": ["employee", "department_manager", "security_admin", "business_owner"],
+      "purpose": "State who owns the next action, approval route, deadline, containment, and recovery.",
+      "required_fields": ["status", "responsible_role", "responsible_person_id", "next_action", "due_at", "approval_profile", "containment", "rollback_or_compensation_ref"]
+    }
+  },
+  "visibility_defaults": {
+    "business_owner": ["business", "outcome", "major_failure", "threshold_exception"],
+    "department_manager": ["business", "outcome", "failure", "core_issue", "handling"],
+    "employee": ["business_summary", "own_outcome", "assigned_handling"],
+    "security_admin": ["failure", "core_issue", "security_handling"],
+    "finance_owner": ["business_cost", "outcome_cost", "threshold_exception"]
+  },
+  "invariants": [
+    "Views reference one task_id and trace_id.",
+    "Failure does not erase partial outcomes.",
+    "A symptom cannot be promoted to root cause without evidence.",
+    "Every open failure or core issue must have a handling owner or be explicitly frozen.",
+    "A correction appends a new event and does not overwrite prior history."
+  ]
+}

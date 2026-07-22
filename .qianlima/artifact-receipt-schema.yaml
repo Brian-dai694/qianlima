@@ -1,0 +1,12 @@
+# artifact-receipt-schema.yaml - verifiable artifact metadata, never raw content
+artifact_receipt_schema:
+  version: 1
+  required: [artifact_id, task_id, name, media_type, reference, integrity_hash, source_classification, verification_status]
+  source_classification: [public, internal_sanitized, confidential_reference_only]
+  verification_status: [pending, passed, failed]
+  integrity_hash: "sha256:<64 lowercase hexadecimal characters>"
+  invariants:
+    - "A receipt stores references and hashes, never raw artifact contents or secrets."
+    - "Artifact IDs are immutable; a replacement receives a new artifact_id."
+    - "A completed task must reference a verifier result before publication."
+    - "References must stay inside the declared data scope or use a logical artifact ref."

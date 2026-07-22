@@ -1,0 +1,24 @@
+{
+  "locale": "zh-CN",
+  "prompts": {
+    "company_name": "公司名称",
+    "owner_name": "老板或业务负责人姓名",
+    "owner_id": "老板员工编号，例如 boss001",
+    "departments": "部门名称，用英文逗号分隔，例如 运营,产品,财务"
+  },
+  "errors": {
+    "required_owner_fields": "公司名称和老板信息不能为空。",
+    "department_required": "至少需要一个部门。",
+    "security_admin_must_differ": "企业上线时，IT/安全管理员必须与老板或业务负责人为不同人员。",
+    "output_scope": "组织配置只能写入 .qianlima/local-data/enterprise。",
+    "no_overwrite": "组织配置已存在，向导拒绝覆盖。请通过受控变更流程修改。"
+  },
+  "next_steps": {
+    "draft": ["指定一名与老板不同的 IT/安全管理员", "导入员工并分配部门", "注册员工设备和 Agent"],
+    "ready": ["导入员工并分配部门", "注册员工设备和 Agent", "完成企业上线复核"]
+  },
+  "messages": {
+    "created": "组织设置已创建：{0}",
+    "status": "当前状态：{0}"
+  }
+}

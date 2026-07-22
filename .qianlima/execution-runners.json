@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_execution_runner_registry",
+  "default_action": "deny",
+  "host_direct_execution": "deny",
+  "execution_enabled_by_default": false,
+  "runners": [
+    {
+      "runner_id": "docker_local_mock",
+      "provider": "docker",
+      "mode": "dry_run_mock",
+      "enabled": true,
+      "execution_enabled": false,
+      "trust_zone": "zone_1_local_controlled",
+      "supported_agents": ["codewhale_worker", "claude_code_worker", "raven_worker"],
+      "allowed_images": ["alpine:3.20"],
+      "image_policy": "local_allowlist_only",
+      "isolation": {
+        "host_workspace_mounted": false,
+        "task_workspace_only": true,
+        "root_required": true
+      },
+      "network_policy": "none",
+      "mcp_policy": "allowlist_read_only",
+      "secret_policy": "secret_ref_only",
+      "file_export": false,
+      "web_access": false,
+      "erp_access": false,
+      "requires_attestation": true,
+      "receipt_format": "qianlima-runner-receipt-v1",
+      "note": "Contract-only mock. It never starts Docker or a vendor process."
+    },
+    {
+      "runner_id": "docker_local_isolated",
+      "provider": "docker",
+      "mode": "container",
+      "enabled": false,
+      "execution_enabled": false,
+      "trust_zone": "zone_1_local_controlled",
+      "supported_agents": ["codewhale_worker", "claude_code_worker", "raven_worker"],
+      "allowed_images": ["alpine:3.20"],
+      "image_policy": "local_allowlist_only",
+      "isolation": {
+        "host_workspace_mounted": false,
+        "task_workspace_only": true,
+        "root_required": true
+      },
+      "network_policy": "none",
+      "mcp_policy": "allowlist_read_only",
+      "secret_policy": "secret_ref_only",
+      "file_export": false,
+      "web_access": false,
+      "erp_access": false,
+      "requires_attestation": true,
+      "receipt_format": "qianlima-runner-receipt-v1",
+      "note": "Reserved until Docker isolation probes, credential injection, and signed attestations are implemented."
+    }
+  ]
+}

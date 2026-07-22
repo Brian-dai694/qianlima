@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "template_id": "qianlima-enterprise-beginner-roles",
+  "principle": "Assign a simple job role first; every real Agent action still requires task-scoped policy evaluation.",
+  "roles": [
+    {
+      "id": "business_owner",
+      "display_name": "老板/业务负责人",
+      "plain_description": "看公司汇总、预算和高风险审批，不负责安装系统。",
+      "default_scope": "organization_summary",
+      "may_request_levels": ["L0", "L1", "L2", "L3", "L4"],
+      "may_approve": ["business_L4"],
+      "platform_admin": false,
+      "may_approve_own_L4": false,
+      "raw_secret_access": false
+    },
+    {
+      "id": "department_manager",
+      "display_name": "部门主管",
+      "plain_description": "管理本部门员工、任务和预算，不能查看其他部门原始资料。",
+      "default_scope": "assigned_department",
+      "may_request_levels": ["L0", "L1", "L2", "L3"],
+      "may_approve": ["department_L3"],
+      "platform_admin": false,
+      "cross_department_access": false,
+      "raw_secret_access": false
+    },
+    {
+      "id": "employee",
+      "display_name": "员工",
+      "plain_description": "使用已批准的 Agent 完成本部门任务，默认不能跨部门或执行企业写入。",
+      "default_scope": "own_department_and_assigned_projects",
+      "may_request_levels": ["L0", "L1", "L2"],
+      "may_approve": [],
+      "platform_admin": false,
+      "cross_department_access": false,
+      "business_write": false,
+      "raw_secret_access": false
+    },
+    {
+      "id": "security_admin",
+      "display_name": "IT/安全管理员",
+      "plain_description": "负责设备、Agent、隔离和安全事件，不替老板批准业务动作。",
+      "default_scope": "managed_devices_and_agent_runtime",
+      "may_request_levels": ["L0", "L1", "L2", "L3"],
+      "may_approve": ["device_admission", "agent_admission", "security_recovery"],
+      "platform_admin": true,
+      "may_approve_business_L4": false,
+      "raw_business_data_access": false,
+      "raw_secret_access": false
+    }
+  ],
+  "assignment_rules": {
+    "new_employee_default": "employee",
+    "new_employee_scope": "own_department_and_assigned_projects",
+    "business_owner_and_security_admin_should_be_distinct": true,
+    "no_role_grants_permanent_agent_execution": true,
+    "departing_employee_action": "disable_identity_revoke_grants_and_credentials",
+    "department_change_action": "recalculate_scope_and_revoke_old_grants"
+  }
+}

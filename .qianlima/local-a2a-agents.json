@@ -1,18 +1,21 @@
 {
   "schema_version": 1,
-  "purpose": "Personal edition local stdio registrations. This registry contains no endpoint or listener.",
+  "purpose": "Local-only A2A-compatible agent registrations for the personal edition. No endpoint, listener, or network dispatch.",
   "agents": [
     {
       "id": "local-readonly-evidence-checker",
+      "name": "Local Read-Only Evidence Checker",
       "status": "registered_local_only",
       "transport": "stdio",
+      "card_path": ".qianlima/local-a2a-agents/local-readonly-evidence-checker/agent-card.json",
       "internal_agent_ref": "evidence_checker",
       "dispatch_enabled": false,
       "network_access": "none",
       "write_access": "none",
       "can_delegate": false,
       "risk_ceiling": "L3",
-      "data_scope": "public_or_internal_sanitized_references_only"
+      "data_scope": "public_or_internal_sanitized_references_only",
+      "created_at": "2026-07-16T02:40:14.1195595Z"
     }
   ]
 }

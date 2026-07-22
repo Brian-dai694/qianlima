@@ -32,6 +32,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+$PowerShellExecutable = (Get-Process -Id $PID).Path
 
 function Get-JsonProp {
     param(
@@ -67,10 +68,10 @@ if (-not (Test-Path -LiteralPath $reporter)) { throw "Reporter script not found:
 
 $importResult = $null
 if (-not $SkipImport) {
-    $importResult = & powershell -NoProfile -ExecutionPolicy Bypass -File $importer -InputJson $InputJson -HistoryDir $HistoryDir
+    $importResult = & $PowerShellExecutable -NoProfile -File $importer -InputJson $InputJson -HistoryDir $HistoryDir
 }
 
-$reportPath = & powershell -NoProfile -ExecutionPolicy Bypass -File $reporter -Asin $asin -Marketplace $marketplace -Date $date -HistoryDir $HistoryDir -OutputDir $OutputDir -Version $Version
+$reportPath = & $PowerShellExecutable -NoProfile -File $reporter -Asin $asin -Marketplace $marketplace -Date $date -HistoryDir $HistoryDir -OutputDir $OutputDir -Version $Version
 
 [pscustomobject]@{
     input = $InputJson

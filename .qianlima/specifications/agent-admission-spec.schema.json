@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "spec_type": "qianlima_agent_admission_spec",
+  "lifecycle": ["draft", "specified", "planned", "analyzed", "shadow_converged", "promotion_candidate", "frozen", "rejected"],
+  "required": ["spec_id", "spec_version", "north_star_protocol_version", "agent_id", "goal", "risk_level", "data_scope", "allowed_tools", "runner_id", "budget", "verification", "stop_conditions", "rollback_plan", "approval_state"],
+  "invariants": [
+    "The specification precedes any dispatch.",
+    "The North Star protocol version must be explicit.",
+    "Agent Analyze requires a passing complexity admission proposal before it can pass.",
+    "L4 requires explicit confirmation, original-data reload, preflight snapshot, rollback, and post-change verification.",
+    "A specification cannot grant network, secrets, arbitrary MCP, file export, web, ERP, or direct Agent-to-Agent delegation.",
+    "Analyze may reject or freeze; it cannot widen a specification.",
+    "Converge produces a shadow result or promotion candidate; it never edits the core Harness automatically."
+  ]
+}

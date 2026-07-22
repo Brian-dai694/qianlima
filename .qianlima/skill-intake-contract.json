@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-enterprise-skill-intake-gate",
+  "applies_to": ["skill", "mcp_connector"],
+  "accepted_sources": ["git_url", "archive", "internal_artifact"],
+  "trigger": "install_or_update_only",
+  "startup_path": false,
+  "pipeline": ["freeze_provenance", "offline_static_scan", "semantic_review_policy", "capability_diff", "admission_evidence", "decision", "human_confirmation", "isolated_trial", "task_grant"],
+  "required_provenance": ["artifact_id", "artifact_type", "source_type", "source_ref", "version", "content_sha256", "commit_sha", "author_ref", "dependency_manifest_hash", "scanner_id", "scanner_version", "scanned_at"],
+  "decisions": ["approved", "conditional", "denied"],
+  "rescan_triggers": ["new_version", "commit_changed", "dependency_changed", "permission_expanded", "new_cve", "scanner_rule_changed"],
+  "semantic_review": {
+    "default": "no_llm_offline_static_only",
+    "public_or_internal_sanitized": "approved_model_only",
+    "confidential_or_restricted": "approved_internal_model_or_no_llm",
+    "external_llm_raw_source": "deny_without_explicit_data_owner_approval"
+  },
+  "network_boundaries": {
+    "dependency_vulnerability_lookup": "disabled_unless_separately_approved",
+    "http_mcp_without_authentication": "deny",
+    "mcp_bind": "stdio_or_127_0_0_1_only",
+    "global_mcp_install": "deny",
+    "per_conversation_startup": "deny"
+  },
+  "invariants": [
+    "Scanning is defense in depth and is not a sandbox.",
+    "Declared capability must match observed capability.",
+    "Approval never grants global permission or installs the artifact.",
+    "Approved artifacts enter isolated read-only trial before task-scoped activation.",
+    "The admitted capability contract is the minimum safe intersection, not the package's requested maximum.",
+    "Every rescan creates new admission evidence and never overwrites prior decisions."
+  ]
+}

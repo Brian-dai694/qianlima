@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-enterprise-commerce-deliverable-pack",
+  "purpose": "Bind profitability and listing assets to one product, marketplace, governed task, and evidence lineage.",
+  "required_identity": ["task_id", "trace_id", "product_id", "marketplace", "locale", "currency", "owner_id"],
+  "required_deliverables": ["profitability", "title", "main_image", "bullet_points", "long_description"],
+  "deliverables": {
+    "profitability": {
+      "required_fields": ["status", "source_refs", "data_as_of", "selling_price", "product_cost", "inbound_freight", "platform_fees", "fulfillment_fees", "ad_cost_assumption", "return_loss_assumption", "tax_assumption", "contribution_margin", "margin_rate", "break_even_acos", "calculation_ref", "verification_status"],
+      "rules": ["Unknown values remain unknown and are not silently set to zero.", "Price or cost changes create a new calculation revision.", "A pricing action is separate Enterprise L4 work."]
+    },
+    "title": {
+      "required_fields": ["status", "text", "character_count", "keyword_refs", "claim_evidence_refs", "compliance_status", "verification_status"],
+      "rules": ["Marketplace and locale limits apply.", "Unsupported claims are prohibited.", "Keywords do not override readability or compliance."]
+    },
+    "main_image": {
+      "required_fields": ["status", "asset_ref", "source_asset_refs", "width", "height", "background_policy", "product_accuracy_status", "compliance_status", "verification_status"],
+      "rules": ["The actual product must be inspectable.", "Generated or edited assets must retain source lineage.", "Image approval does not authorize external upload."]
+    },
+    "bullet_points": {
+      "required_fields": ["status", "items", "keyword_refs", "claim_evidence_refs", "compliance_status", "verification_status"],
+      "item_count": 5,
+      "rules": ["Exactly five customer-facing points are required.", "Each material claim must have evidence.", "Duplicate points are rejected."]
+    },
+    "long_description": {
+      "required_fields": ["status", "content", "structure", "keyword_refs", "claim_evidence_refs", "compliance_status", "verification_status"],
+      "rules": ["Content must match the approved product and listing claims.", "Unsupported guarantees and competitor claims are prohibited.", "A+ or module-specific assets remain separate referenced artifacts."]
+    }
+  },
+  "completion": {
+    "completed": "All five deliverables pass independent verification.",
+    "partial": "At least one deliverable is missing, pending, disputed, or failed.",
+    "rejected": "Profitability or compliance fails the approved business threshold."
+  },
+  "authority_boundary": {
+    "pack_creation_authorizes_listing_upload": false,
+    "pack_creation_authorizes_price_change": false,
+    "external_upload_requires": "Enterprise L4 connection action and responsible approval route"
+  }
+}

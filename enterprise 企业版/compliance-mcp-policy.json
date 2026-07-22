@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-enterprise-compliance-mcp",
+  "default_action": "deny",
+  "domains": ["tax", "customs", "product_compliance"],
+  "operations": {
+    "query_official_rules": "L3",
+    "validate_evidence_pack": "L3",
+    "prepare_draft": "L3",
+    "submit_official": "L4",
+    "amend_official": "L4",
+    "cancel_official": "L4"
+  },
+  "read_path": {
+    "mcp_mode": "allowlist_read_only",
+    "official_source_refs_required": true,
+    "credential_mode": "secret_ref_only",
+    "raw_secret_data": "deny"
+  },
+  "write_path": {
+    "ordinary_mcp_write": "deny",
+    "dedicated_submission_adapter_required": true,
+    "responsible_owner_required": true,
+    "human_confirmation_required": true,
+    "idempotency_key_required": true,
+    "submission_receipt_required": true,
+    "rollback_or_amendment_plan_required": true,
+    "business_owner_required": false,
+    "business_owner_escalation": ["material_financial_threshold", "cross_entity_filing", "policy_exception", "failed_compensation"]
+  },
+  "failure": {
+    "mcp_unavailable": "freeze_and_return_draft",
+    "official_source_missing": "deny_submission",
+    "schema_or_calculation_conflict": "needs_human",
+    "submission_receipt_missing": "treat_as_unconfirmed_not_completed"
+  }
+}

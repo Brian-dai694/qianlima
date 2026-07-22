@@ -1,0 +1,19 @@
+{
+  "protocol_id": "qianlima-north-star-protocol",
+  "protocol_version": "1.0.0",
+  "status": "approved_baseline",
+  "rule": "Any Agent must pass admission, minimum task-scoped authorization, evidence verification, budget control, audit, and revocation.",
+  "immutable_principles": [
+    {"id": "NS-01", "rule": "Agent Card describes capability; it never grants authority."},
+    {"id": "NS-02", "rule": "Every dispatch requires a task-bound Grant, explicit data scope, tool allowlist, budget, verifier, and stop conditions."},
+    {"id": "NS-03", "rule": "Secrets, full memory, raw private data, unrestricted workspace paths, and hidden reasoning never cross an Agent contract."},
+    {"id": "NS-04", "rule": "Unknown, expired, revoked, over-budget, drifted, or unverified work is denied or frozen."},
+    {"id": "NS-05", "rule": "L4 actions require original-data reload, preflight snapshot, explicit confirmation, rollback, and post-change verification."},
+    {"id": "NS-06", "rule": "Terminal tasks and receipts are immutable; revisions create new IDs referencing prior artifacts."},
+    {"id": "NS-07", "rule": "Governance changes are candidate-first and require replay, holdout, latency, safety evaluation, and human promotion."},
+    {"id": "NS-08", "rule": "Core Harness files are read-only; new governance capabilities use approved Overlay paths."},
+    {"id": "NS-09", "rule": "Memory reads are task-, grant-, agent-, state-view-, and scope-bound; full memory is forbidden and L4 decisions reload the original source."},
+    {"id": "NS-10", "rule": "New Agent or pipeline complexity requires measured independent benefit, explicit input/output contracts, failure terminals, simulation evidence, independent verification, and rollback."}
+  ],
+  "forbidden_defaults": ["direct_agent_to_agent", "network_access", "write_access", "file_export", "web_access", "erp_access", "arbitrary_mcp", "automatic_production_change"]
+}

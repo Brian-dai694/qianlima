@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-enterprise-data-connections",
+  "default_action": "deny",
+  "supported_types": [
+    "managed_local_folder",
+    "smb_nas",
+    "sharepoint_onedrive",
+    "lark_drive",
+    "object_storage",
+    "business_api",
+    "database_warehouse",
+    "event_stream",
+    "temporary_download"
+  ],
+  "required_fields": [
+    "connection_id",
+    "display_name",
+    "type",
+    "owner_id",
+    "organization_id",
+    "data_classification",
+    "network_zone",
+    "endpoint_ref",
+    "credential_ref",
+    "allowed_operations",
+    "cost_center",
+    "retention_policy"
+  ],
+  "invariants": {
+    "direct_agent_connection": "deny",
+    "broker_required": true,
+    "inbound_public_listener": "deny",
+    "credential_values_in_config": "deny",
+    "endpoint_credentials": "deny",
+    "whole_share_mount": "deny",
+    "task_selected_references_only": true,
+    "temporary_cache": "task_scoped_and_deleted_after_retention",
+    "unknown_connector": "deny"
+  },
+  "operation_levels": {
+    "list_selected": "L1",
+    "read_selected": "L2",
+    "download_to_task_sandbox": "L2",
+    "query_readonly": "L2",
+    "cross_source_query": "L3",
+    "external_sanitized_transfer": "L3",
+    "write_task_artifact": "L2",
+    "delete_task_cache": "L2",
+    "upload_internal_project": "L3",
+    "write_new_version": "L3",
+    "send_internal": "L3",
+    "overwrite_source": "L4",
+    "send_external": "L4",
+    "business_write": "L4",
+    "delete_business_record": "L4"
+  },
+  "network_rules": {
+    "zone_1_local": ["managed_local_folder", "smb_nas"],
+    "zone_2_internal": ["smb_nas", "business_api", "database_warehouse", "event_stream"],
+    "zone_3_approved_cloud": ["sharepoint_onedrive", "lark_drive", "object_storage", "business_api"],
+    "zone_4_external": ["temporary_download", "business_api"],
+    "external_allowed_data": ["public", "internal_sanitized"]
+  },
+  "formal_state_change_requirements": [
+    "enterprise_L4",
+    "task_grant",
+    "verified_attestation",
+    "approval_profile_and_responsible_owner",
+    "snapshot_or_idempotency_key",
+    "rollback_or_compensation",
+    "post_change_verification"
+  ],
+  "approval_routing": {
+    "routine_reversible": "department_manager_or_responsible_owner",
+    "data_external": "data_owner",
+    "technical_production": "technical_owner",
+    "financial_material": "finance_owner_and_business_owner_only_above_threshold",
+    "governance_critical": "security_admin_and_business_owner"
+  }
+}

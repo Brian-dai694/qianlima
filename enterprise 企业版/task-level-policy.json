@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "policy_id": "qianlima-enterprise-task-levels",
+  "edition": "enterprise",
+  "personal_classification_authority": "deny",
+  "classification_formula": "risk_level + organizational_scope + data_classification + action_type + identity_and_runtime_posture",
+  "levels": {
+    "L0": {
+      "meaning": "Enterprise general conversation without enterprise data or governed tools.",
+      "runtime": "bypass",
+      "allowed_data": ["none", "public"],
+      "audit": "aggregate_security_metadata_only",
+      "grant_required": false,
+      "attestation_required": false
+    },
+    "L1": {
+      "meaning": "Identity-bound read-only access to public or explicitly approved low-risk material.",
+      "runtime": "minimal_readonly",
+      "allowed_data": ["public"],
+      "required_identity": ["tenant_id", "organization_id", "employee_id"],
+      "grant_required": false,
+      "attestation_required": false
+    },
+    "L2": {
+      "meaning": "Project-scoped governed analysis on a managed device.",
+      "runtime": "managed_connector_or_runner",
+      "allowed_data": ["public", "internal_sanitized"],
+      "required_identity": ["tenant_id", "organization_id", "employee_id", "device_id", "project_id", "cost_center"],
+      "minimum_agent_trust": "T1",
+      "grant_required": true,
+      "attestation_required": true,
+      "artifact_scope": "task_directory_only"
+    },
+    "L3": {
+      "meaning": "Multi-source, cross-domain, cross-department, or operational recommendation.",
+      "runtime": "managed_runner_with_independent_verification",
+      "allowed_data": ["public", "internal_sanitized", "confidential_reference_only"],
+      "required_identity": ["tenant_id", "organization_id", "employee_id", "device_id", "project_id", "cost_center"],
+      "minimum_agent_trust": "T2",
+      "grant_required": true,
+      "attestation_required": true,
+      "independent_verifier_required": true,
+      "minimum_approvals": 0,
+      "approval": "workflow_or_project_policy",
+      "business_write": "deny"
+    },
+    "L4": {
+      "meaning": "Enterprise state change, external send, deployment, governance change, or business-system write.",
+      "runtime": "managed_runner_single_action",
+      "allowed_data": ["public", "internal_sanitized", "confidential_reference_only"],
+      "required_identity": ["tenant_id", "organization_id", "employee_id", "device_id", "project_id", "cost_center", "human_owner_id"],
+      "minimum_agent_trust": "T3",
+      "grant_required": true,
+      "attestation_required": true,
+      "independent_verifier_required": true,
+      "minimum_distinct_approvers": 1,
+      "approval_routing": "approval-routing-policy.json",
+      "business_owner_required": "only_by_profile_or_threshold",
+      "initiator_may_approve": false,
+      "snapshot_required": true,
+      "rollback_required": true,
+      "post_change_verification_required": true
+    }
+  },
+  "minimum_level_rules": {
+    "task_artifact_write": "L2",
+    "task_cache_delete": "L2",
+    "internal_project_upload": "L3",
+    "new_version_write": "L3",
+    "internal_send": "L3",
+    "cross_department": "L3",
+    "cross_project": "L3",
+    "confidential_reference_only": "L3",
+    "external_send": "L4",
+    "business_write": "L4",
+    "source_write": "L4",
+    "deployment": "L4",
+    "governance_change": "L4",
+    "credential_assignment": "L4",
+    "erp_write": "L4",
+    "finance_write": "L4",
+    "purchase": "L4"
+  },
+  "always_denied": ["restricted_secret_in_prompt", "personal_grant_reused_for_enterprise", "agent_self_approval", "agent_self_verification", "direct_agent_to_agent", "unmanaged_device_execution"]
+}

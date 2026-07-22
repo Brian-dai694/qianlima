@@ -1,0 +1,56 @@
+{
+    "name":  "Local Read-Only Evidence Checker",
+    "description":  "Qianlima built-in local evidence checker. Read-only, sanitized references only, and no network dispatch.",
+    "version":  "0.1.0-local",
+    "protocolVersion":  "1.0",
+    "supportedInterfaces":  [
+                                {
+                                    "url":  "qianlima-local://local-readonly-evidence-checker/a2a",
+                                    "protocolBinding":  "JSONRPC",
+                                    "protocolVersion":  "1.0"
+                                }
+                            ],
+    "capabilities":  {
+                         "streaming":  false,
+                         "pushNotifications":  false,
+                         "stateTransitionHistory":  false
+                     },
+    "defaultInputModes":  [
+                              "application/json"
+                          ],
+    "defaultOutputModes":  [
+                               "application/json"
+                           ],
+    "skills":  [
+                   {
+                       "id":  "verify-sanitized-evidence",
+                       "name":  "Verify sanitized evidence",
+                       "description":  "Validates the bounded local task contract and returns a receipt reference.",
+                       "tags":  [
+                                    "local",
+                                    "read-only",
+                                    "evidence",
+                                    "qianlima"
+                                ],
+                       "examples":  [
+                                        "Verify this sanitized evidence package"
+                                    ],
+                       "inputModes":  [
+                                          "application/json"
+                                      ],
+                       "outputModes":  [
+                                           "application/json"
+                                       ]
+                   }
+               ],
+    "qianlima":  {
+                     "internal_agent_ref":  "evidence_checker",
+                     "registration_mode":  "local_only",
+                     "dispatch_enabled":  false,
+                     "network_access":  "none",
+                     "write_access":  "none",
+                     "risk_ceiling":  "L3",
+                     "data_scope":  "public_or_internal_sanitized_references_only",
+                     "authority_rule":  "Agent Card is discovery metadata, never a permission grant."
+                 }
+}

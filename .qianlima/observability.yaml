@@ -1,12 +1,6 @@
 observability:
-  version: "v2.7.0"
-  purpose: Track workflow components, experience, decisions, files, cost, savings, and cost aggregation.
-  principle: Cost visibility and savings are central runtime signals, not after-run bookkeeping.
-  changes:
-    v2_7_0:
-      - "cost_observability: 新增 baseline_cost_usd（必填）、tier（必填）、method（estimated|measured|modeled）"
-      - "realtime_cost_card: required_for 扩展为 every_workflow_completion"
-      - "新增 cost_aggregation 维度：周累计 / 月累计 / 相比基线累计节约 / 聚合仪表盘"
+  version: 1
+  purpose: Track workflow components, experience, decisions, files, and cost.
 
 dimensions:
   component_observability:
@@ -47,49 +41,27 @@ dimensions:
       - overwrite_attempts
 
   cost_observability:
-    description: Track model, tool, workflow cost, savings, and cost aggregation dashboard in real time.
+    description: Track model, tool, and workflow cost.
     metrics:
       - model_calls
       - input_tokens
       - output_tokens
       - tool_calls
       - rows_read
-      - tier                            # 🆕 v2.7.0: L0/L1/L2/L3 模型路由等级
-      - method                          # 🆕 v2.7.0: estimated | measured | modeled（来自 Cage 设计模式）
       - estimated_cost_usd
-      - baseline_cost_usd              # 🔴 必填
+      - outcome_units
+      - cost_per_outcome_usd
+      - baseline_cost_usd
+      - cost_over_baseline_ratio
       - estimated_savings_usd
       - estimated_savings_rate_pct
       - cost_limit_usd
       - cost_status
       - savings_source
-      - continue_or_stop_recommendation
-
-  realtime_cost_card:
-    description: User-visible compact cost and savings summary.
-    template: templates/realtime-cost-card_template.md
-    generator: scripts/new-cost-card.ps1
-    aggregator: scripts/new-cost-aggregation.ps1   # 🆕 v2.7.0
-    required_for:
-      - every_non_trivial_workflow
-      - every_workflow_completion                  # 🆕 v2.7.0: 所有非 trivial workflow 完成时必须输出
-      - before_expensive_tool_calls
-      - before_multi_file_summarization
-      - before_high_risk_or_high_cost_actions
-    fields:
-      - current_estimated_cost_usd
-      - cost_limit_usd
-      - tier                                        # 🆕 v2.7.0
-      - method                                      # 🆕 v2.7.0: estimated | measured | modeled
-      - baseline_cost_usd
-      - estimated_savings_usd
-      - estimated_savings_rate_pct
-      - cumulative_weekly_cost_usd                  # 🆕 v2.7.0
-      - primary_savings_source
       - continue_or_stop
 
   context_observability:
-    description: Track context usage, compression level, safety reserve, and ConAct folding.
+    description: Track context usage, compression level, and safety reserve.
     metrics:
       - estimated_context_tokens
       - context_budget_ratio
@@ -99,8 +71,6 @@ dimensions:
       - files_indexed
       - compression_level_used
       - source_reload_count
-      - conact_folding_triggered      # 🆕 v2.7.0
-      - conact_folded_tokens_saved    # 🆕 v2.7.0
 
   latency_observability:
     description: Attribute task delay so optimization targets the actual bottleneck.
@@ -137,32 +107,26 @@ dimensions:
       - reasoning_mode_enabled
       - reserve_ratio_used
 
-  # ── 🆕 v2.7.0: 成本聚合维度 ─────────────────────────────────
-
-  cost_aggregation:
-    description: Aggregate cost stats across all usage-ledger records.
-    generator: scripts/new-cost-aggregation.ps1
-    frequency: weekly
-    output_path: "reports/cost-aggregation-{date}.md"
+  qianlima_eval_observability:
+    description: Track MiniAppBench-style run evaluation quality.
     metrics:
-      - total_cost_this_week_usd
-      - total_cost_this_month_usd
-      - total_savings_vs_baseline_usd
-      - savings_rate_this_week_pct
-      - cost_by_workflow
-      - cost_by_tier
-      - top_cost_driver
-      - anomaly_runs
-      - trend_30d
-    alert_thresholds:
-      weekly_cost_exceeds_budget: "阻断并提示用户"
-      single_run_cost_2x_baseline: "阻断并等待用户确认"
+      - eval_report_generated
+      - eval_weighted_score
+      - eval_status
+      - intent_alignment_score
+      - evidence_static_quality_score
+      - dynamic_execution_quality_score
+      - cost_savings_efficiency_score
+      - risk_control_score
+      - hard_block_count
+      - pending_verification_count
+      - next_optimization_count
+      - private_shadow_case_pass_rate
 
 default_trace_fields:
   - run_id
   - workflow_id
   - scenario
-  - tier                              # 🆕 v2.7.0
   - data_sources
   - source_files
   - output_files
@@ -171,11 +135,7 @@ default_trace_fields:
   - confirmations_required
   - validation_result
   - usage_summary
-  - realtime_cost_card
-  - savings_summary
-  - cost_aggregation_summary          # 🆕 v2.7.0
   - context_budget_summary
   - model_adapter_summary
-  - latency_summary
-  - runtime_policy_summary
+  - qianlima_eval_summary
   - status

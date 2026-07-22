@@ -311,6 +311,47 @@ natural_language_router:
       risk: medium
       forbidden_without_confirmation: [purchase_order, create_product]
 
+    - route_id: amazon_product_development
+      intent: "把已批准的选品机会转成产品开发方案、PRD、RFQ、规格矩阵和样品验收标准"
+      required_slots: [task_intent, target_object]
+      strong_signals: ["产品开发", "PRD", "RFQ", "打样", "样品验收", "规格矩阵", "供应商怎么问", "开发这个品"]
+      negative_signals: ["市场能不能做", "选品", "广告日报", "付款周期"]
+      triggers:
+        - "产品开发"
+        - "做 PRD"
+        - "开发这个品"
+        - "供应商怎么问"
+        - "样品怎么验收"
+        - "规格冲突怎么修"
+        - "把选品转开发"
+      use:
+        skill: amazon_product_development
+        tools: [pangolinfo, sorftime, officecli]
+      output_defaults: ["reports/{date}_产品开发_{asin_or_topic}_{marketplace}_V{version}.md"]
+      risk: medium
+      forbidden_without_confirmation: [purchase_order, create_product, update_listing, write_back]
+
+    - route_id: amazon_seasonal_replenishment
+      intent: "根据销量、库存、在途、交期、季节性、现金和广告节奏生成淡旺季补货建议"
+      required_slots: [task_intent, target_object]
+      strong_signals: ["补货", "淡旺季", "旺季", "淡季", "库存还能撑多久", "断货", "压货", "备货", "可售天数"]
+      negative_signals: ["选品", "Listing 文案", "付款周期", "技能安装"]
+      triggers:
+        - "淡旺季补货"
+        - "旺季前备货"
+        - "库存还能撑多久"
+        - "这个 ASIN 要补多少"
+        - "断货风险"
+        - "淡季控广告"
+        - "补货计划"
+      use:
+        skill: amazon_seasonal_replenishment
+        workflow: seasonal_replenishment_review
+        tools: [lingsing_product, lark_asin_sales, lingsing_ads, sorftime, pangolinfo]
+      output_defaults: ["reports/{date}_淡旺季补货_{asin_or_sku}_{marketplace}_V{version}.md"]
+      risk: medium
+      forbidden_without_confirmation: [purchase_order, change_price, change_bid, change_budget, write_back]
+
     - route_id: traffic_anomaly_diagnosis
       intent: "流量、排名、订单突然异常的根因诊断"
       required_slots: [task_intent, target_object]

@@ -1,0 +1,9 @@
+collaboration_outcome_receipt:
+  version: 1
+  required: [receipt_id, collaboration_id, task_id, final_outcome_ref, accepted_claim_refs, rejected_claim_refs, unresolved_claim_refs, human_adopter, observed_at, policy_version, supersedes, status, independence_status, shadow_report_ref, shadow_report_sha256]
+  statuses: [verified_outcome, partial_outcome, disputed_outcome, superseded]
+  invariants:
+    - "Outcome receipts are append-only and contain references, not raw business outcomes."
+    - "A later outcome supersedes with a new receipt; it never mutates the prior receipt."
+    - "Outcome attribution informs routing candidates only and has no permission authority."
+    - "The referenced shadow report is bound to the receipt by SHA-256."

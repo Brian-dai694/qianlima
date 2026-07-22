@@ -1,0 +1,9 @@
+shadow_fusion_receipt:
+  version: 1
+  required: [receipt_id, fusion_id, fusion_version, task_id, model_versions, input_snapshot_ref, claim_pack_refs, disagreement_record, evidence_strength, decision, policy_version, verification_result, primary_result_affected, external_write, created_at]
+  decisions: [verified, low_confidence, evidence_required, needs_human, rejected]
+  invariants:
+    - "Shadow fusion never changes the primary result or performs an external write."
+    - "A receipt records model/version and evidence lineage, not hidden reasoning."
+    - "Supersession creates a new receipt referencing the prior fusion version."
+    - "Additional budget is a proposal, never an automatic Grant."

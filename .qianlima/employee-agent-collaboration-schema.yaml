@@ -1,0 +1,14 @@
+employee_agent_collaboration:
+  version: 1
+  required: [collaboration_id, task_id, fusion_id, risk_level, participants, manager_employee_id, final_adoption_authority, direct_agent_to_agent, status]
+  participant_required: [role, employee_id, agent_id, model_id, model_version, provider_family, error_group, work_order_ref, grant_ref]
+  roles: [manager, candidate, independent_verifier, adversarial_checker]
+  statuses: [draft, validated, running_shadow, needs_human, completed, frozen, rejected]
+  invariants:
+    - "Every participant is bound to one employee identity, Agent identity, model version, work order, and task Grant."
+    - "Candidate, verifier, and adversarial checker cannot share an Agent or Grant."
+    - "A candidate employee cannot verify or adversarially review the same candidate output."
+    - "L3 requires at least two candidates with distinct critical error groups."
+    - "Direct Agent-to-Agent delegation is prohibited; the Broker owns fan-out and fan-in."
+    - "Final adoption remains with the Broker or named human, never a participant Agent."
+    - "Collaboration expands neither data scope nor execution authority."

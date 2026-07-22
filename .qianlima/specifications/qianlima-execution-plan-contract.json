@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-execution-plan",
+  "purpose": "Compile a Qianlima workflow into bounded, read-only, verifiable steps.",
+  "required_fields": [
+    "plan_id",
+    "task_id",
+    "workflow",
+    "goal",
+    "execution_mode",
+    "risk_level",
+    "data_scope",
+    "steps",
+    "budget",
+    "stop_conditions",
+    "verification_policy"
+  ],
+  "execution_mode": ["read_only"],
+  "risk_level": ["L0", "L1", "L2", "L3"],
+  "allowed_step_actions": [
+    "read_selected_sources",
+    "normalize_data",
+    "compute_metrics",
+    "generate_report",
+    "verify_sources",
+    "revise_artifact"
+  ],
+  "allowed_tools": [
+    "read_selected_sources",
+    "local_csv_reader",
+    "local_xlsx_reader",
+    "local_python_readonly",
+    "normalize_data",
+    "compute_metrics",
+    "generate_report",
+    "verify_sources"
+  ],
+  "forbidden_capabilities": [
+    "network",
+    "web",
+    "erp",
+    "external_write",
+    "source_overwrite",
+    "delete",
+    "package_install",
+    "delegation",
+    "secret_read"
+  ],
+  "step_required_fields": ["step_id", "action", "input_refs", "allowed_tools", "expected_output", "verification"],
+  "verification_policy": {
+    "required": ["source_files", "rows_read", "warnings", "pending_verification", "artifact_hash"],
+    "independent_verification": true,
+    "missing_result": "revision_required"
+  },
+  "write_scope": [".qianlima/reports/generated", ".qianlima/run-traces", ".qianlima/working"],
+  "invariants": [
+    "A plan contains references and contracts, never raw source contents.",
+    "A step cannot add a tool or capability outside the plan.",
+    "Read-only execution cannot overwrite source data or call external systems.",
+    "A command-success result is not a business-success result until verification passes.",
+    "A revision creates a new plan reference and does not overwrite a terminal result."
+  ]
+}

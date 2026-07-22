@@ -1,0 +1,22 @@
+# execution-runner-schema.yaml - execution location contract
+execution_runner:
+  version: 1
+  purpose: "Bind every worker run to an approved isolated execution provider."
+  required:
+    - runner_id
+    - provider
+    - trust_zone
+    - supported_agents
+    - allowed_images
+    - isolation
+    - network_policy
+    - secret_policy
+    - receipt_format
+  invariants:
+    - "Host direct execution is denied; a vendor CLI being installed is not an isolation proof."
+    - "A runner cannot grant more authority than the work order, Grant, or runtime policy."
+    - "Execute requires a task-bound verified Sandbox Attestation issued by the runner."
+    - "The runner must not mount the host workspace or export files by default."
+    - "Images must come from an explicit local allowlist; the Runner never pulls arbitrary images."
+    - "Network, web, ERP, arbitrary MCP, and secret material remain denied unless a stricter future policy explicitly permits them."
+    - "Dry-run and mock receipts prove contract handling only; they are not evidence of process isolation."

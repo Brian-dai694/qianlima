@@ -1,0 +1,79 @@
+schema_version: 1
+policy_id: qianlima-enterprise-continuous-agent-trust
+default_action: deny
+evaluation_frequency: before_every_tool_memory_network_artifact_action
+
+identity_binding:
+  required:
+    - tenant_id
+    - organization_id
+    - user_id
+    - agent_id
+    - agent_version
+    - task_id
+    - grant_id
+    - trace_id
+  version_drift: trust_reset_and_freeze
+  capability_expansion: trust_reset_and_human_review
+  direct_agent_to_agent: deny
+
+checks:
+  - identity_and_owner
+  - agent_card_fingerprint
+  - runner_attestation
+  - grant_not_expired_or_revoked
+  - task_and_grant_binding
+  - tool_in_grant
+  - data_classification_and_scope
+  - memory_view_and_scope
+  - budget_and_time_remaining
+  - behavior_baseline
+  - artifact_destination_and_media_type
+
+decisions:
+  allow: action_is_within_current_grant_and_baseline
+  shrink: remove_network_or_sensitive_reference_and_continue_read_only
+  pause: needs_human_or_policy_recheck
+  isolate: block_new_work_for_agent_version_and_preserve_receipts
+  revoke: invalidate_grant_and_deny_before_next_action
+  freeze: stop_downstream_work_and_mark_task_non_terminal
+
+trust_levels:
+  T0_discovered:
+    allowed: [card_read]
+  T1_sandbox_readonly:
+    allowed: [public_reference, internal_sanitized_reference, local_artifact]
+    network: deny
+    write: deny
+  T2_verified_readonly:
+    allowed: [task_selected_reference, independent_verification]
+    network: allowlisted_readonly
+    write: deny
+  T3_controlled_execution:
+    allowed: [single_task_action]
+    requires: [human_approval, preflight_snapshot, rollback_reference, post_change_verification]
+  T4_isolated:
+    allowed: []
+    requires: [human_review, incident_record]
+
+degradation:
+  expired_grant: revoke_and_freeze
+  budget_exhausted: revoke_and_freeze
+  repeated_timeout: isolate_and_route_to_fallback
+  overreach_attempt: revoke_isolate_and_record_incident
+  artifact_integrity_failure: reject_artifact_and_freeze
+  verifier_backlog: stop_upstream_generation
+  external_agent_unhealthy: shrink_to_local_readonly_or_human
+
+zero_exposure:
+  public_listener: deny
+  inbound_external_agent_connection: deny
+  broker_initiated_outbound_only: true
+  agent_card_public_discovery: deny
+  raw_workspace_access: deny
+
+non_goals:
+  - no_permanent_agent_permission
+  - no_credential_values_in_policy_or_events
+  - no_public_agent_server
+  - no_automatic_trust_promotion

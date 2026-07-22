@@ -1,0 +1,38 @@
+# work-order-schema.yaml - Agent 协作工作订单合同
+work_order_schema:
+  version: 1
+  purpose: "Bind a task to one Agent Card without sharing hidden reasoning, full memory, or unrestricted tools."
+  required:
+    - work_order_id
+    - parent_run_id
+    - agent_id
+    - goal
+    - input_refs
+    - allowed_tools
+    - data_scope
+    - budget
+    - risk_ceiling
+    - expected_artifacts
+    - verification
+    - stop_conditions
+    - rollback_required
+  lifecycle: [pending, assigned, running, awaiting_verification, completed, partial, frozen, rejected]
+  field_contract:
+    work_order_id: "Stable per-assignment identifier; no secrets or raw user data."
+    parent_run_id: "Links the order to a parent run receipt."
+    agent_id: "Must resolve to an enabled entry in agent-cards.yaml."
+    input_refs: "References only; raw source content stays outside the order."
+    allowed_tools: "Intersection of the Agent Card and the runtime grant."
+    data_scope: "Explicit minimum source scope; never all workspace data by default."
+    budget: [max_steps, max_tool_calls, timeout_ms]
+    risk_ceiling: "Agent may not exceed the order ceiling or the project ceiling."
+    expected_artifacts: "Paths or logical refs to outputs, never embedded secrets."
+    verification: "Named checker and pass condition."
+    stop_conditions: "Conditions that freeze or finish the order."
+    rollback_required: "Required for any order that can change state or write externally."
+  invariants:
+    - "The manager owns assignment, fan-in, verification, and final status."
+    - "An executor cannot approve its own work order."
+    - "L4 orders require explicit confirmation and a preflight snapshot."
+    - "Missing worker result freezes the parent run with pending verification."
+    - "A receipt may reference an artifact but must not contain its raw contents."

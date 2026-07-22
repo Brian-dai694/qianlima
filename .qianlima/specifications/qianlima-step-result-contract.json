@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-step-execution-result",
+  "required_fields": [
+    "result_id",
+    "plan_id",
+    "task_id",
+    "step_id",
+    "step_status",
+    "source_files",
+    "rows_read",
+    "computed_metrics",
+    "warnings",
+    "pending_verification",
+    "artifact_hash",
+    "output_ref",
+    "created_at"
+  ],
+  "step_status": ["completed", "partial", "failed", "blocked"],
+  "artifact_hash": "sha256:<64 lowercase hexadecimal characters> or null",
+  "forbidden_content": ["raw_prompt", "hidden_reasoning", "credential_value", "api_key", "access_token", "password", "raw_source_content"],
+  "invariants": [
+    "Source files are references only; results never embed source rows.",
+    "Completed results require an output reference and artifact hash.",
+    "Warnings and missing evidence remain explicit and cannot be summarized away.",
+    "A replacement result receives a new result_id."
+  ]
+}
