@@ -2,6 +2,12 @@
 
 本项目遵循语义化版本。日期为公开模板仓的发布日。
 
+## [v2.7.9] - 2026-07-22
+- 千里马新增结构化 Execution Plan、步骤执行回执和 Execute-Verify-Revise 状态机。
+- 新增本地只读 CSV Runner；XLSX/Python 仅预检，不自动安装依赖，不联网、不写回、不删除、不委派。
+- 执行结果必须带来源引用、行数、警告、待验证项和 Artifact Hash，未验证结果不能标记完成。
+- 严格校验脚本纳入执行计划合同、EVR 合同、只读 Runner 合同及其回归测试，并避免因 `.gitattributes` 读取失败中断公开安全扫描。
+
 ## [v2.7.8] - 2026-07-22
 - Low-risk Skill candidates now auto-release after independent validation; approval prompts are removed from the normal personal workflow.
 - High-risk, permission-changing, or attack-surface-changing candidates freeze and keep the prior version active. Automatic rollback remains available.

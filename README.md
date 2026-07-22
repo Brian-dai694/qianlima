@@ -4,10 +4,10 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.8-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.9-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 当前版本：v2.7.8 · 企业版配置版本：0.1.0 · 2026-07-22
+> 当前版本：v2.7.9 · 企业版配置版本：0.1.0 · 2026-07-22
 
 北极星企业版用于统一治理企业员工使用的 Codex、Claude Code、CodeWhale 及其他 Agent。它不替代这些 Agent，而是在其外层决定：谁能使用、可以看到什么数据、能够调用哪些 MCP、预算多少、结果是否可信，以及何时必须审批、撤销或冻结。
 

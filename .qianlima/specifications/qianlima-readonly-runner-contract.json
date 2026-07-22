@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-readonly-data-runner",
+  "mode": "local_read_only",
+  "default_network": false,
+  "source_overwrite": false,
+  "capabilities": {
+    "csv": {"status": "ready", "adapter": "scripts/summarize-csv.ps1"},
+    "xlsx": {"status": "preflight_only", "reason": "No dependency installation or implicit Excel automation."},
+    "python": {"status": "preflight_only", "reason": "Requires a separately verified local runner and allowlisted script."}
+  },
+  "allowed_input": ["selected_workspace_file"],
+  "allowed_outputs": [".qianlima/run-traces", ".qianlima/reports/generated", ".qianlima/working"],
+  "forbidden": ["network", "web", "erp", "external_write", "source_overwrite", "delete", "package_install", "secret_read", "delegation"],
+  "receipt": ".qianlima/specifications/qianlima-step-result-contract.json",
+  "invariants": [
+    "The runner receives selected references, not a whole workspace.",
+    "A file format being recognized does not grant execution capability.",
+    "Unsupported or unverified formats return a blocked result instead of installing dependencies.",
+    "Runner output is a candidate artifact until Qianlima verification passes."
+  ]
+}

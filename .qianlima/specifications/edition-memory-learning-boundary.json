@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-edition-memory-learning-boundary",
+  "contract_version": "1.0.0",
+  "purpose": "Separate personal habit memory from enterprise governed knowledge and learning.",
+  "shared_invariants": [
+    "Every memory record has source, scope, classification, state, created_at, and revocation or deletion path.",
+    "Memory is evidence or preference context; it never grants tool, data, network, or execution authority.",
+    "Raw secrets, hidden reasoning, and unrestricted private data are forbidden in memory contracts.",
+    "A record outside the active task and authorized scope is not retrievable by default."
+  ],
+  "personal_edition": {
+    "goal": "Reduce repeated explanation while preserving user control and safety boundaries.",
+    "memory_classes": {
+      "explicit_preference": {"write": "user_confirmed", "scope": "private_account", "stable": true, "user_editable": true, "user_deletable": true},
+      "observed_habit": {"write": "shadow_candidate_only", "scope": "private_account", "stable": false, "promotion": "repeated_behavior_plus_user_confirmation"},
+      "task_state": {"write": "task_bound", "scope": "current_task", "stable": false, "expiry": "task_completion_or_cancellation"},
+      "local_experience": {"write": "candidate_only", "scope": "private_account", "promotion": "shadow_validation_plus_user_confirmation"}
+    },
+    "chunk_selection": {
+      "stable_preference": "explicit_confirmation_and_editable",
+      "task_habit": "task_type_or_domain_match",
+      "current_task_state": "task_id_match_and_recent_first",
+      "local_experience": "source_ref_and_reproducible_method_required",
+      "temporary_context": "task_bound_with_expiry; never_auto_promote",
+      "versioning": "append_only; old versions retained as superseded or revoked; rollback creates a new version",
+      "irrelevant_domain": "exclude_before_injection",
+      "return": "minimal_summary_with_provenance"
+    },
+    "may_influence": ["response_language", "format", "staged_updates", "context_loading_depth", "shadow_check_preference", "read_only_workflow_routing", "tool_preference_suggestion", "workflow_order_suggestion", "workflow_default_parameter_suggestion"],
+    "must_not_influence": ["grant_scope", "tool_authority", "data_classification", "external_access", "write_permission", "deletion_confirmation", "payment_or_business_action"],
+    "default_parameter_boundary": "suggestion_only; runtime policy and task grant remain authoritative",
+    "success_standard": "fewer_unnecessary_interruptions_without_boundary_crossing",
+    "default_storage": "local_or_account_private",
+    "cross_domain_export": "deny"
+  },
+  "enterprise_edition": {
+    "goal": "Reuse approved organizational knowledge and improve governed workflows without profiling individuals or bypassing policy.",
+    "memory_classes": {
+      "approved_policy": {"write": "named_owner_approval", "scope": "tenant_or_department", "versioned": true},
+      "verified_knowledge": {"write": "evidence_and_verifier", "scope": "tenant_department_project", "versioned": true},
+      "task_evidence": {"write": "receipt_bound", "scope": "task_or_project", "immutable": true},
+      "improvement_candidate": {"write": "sanitized_trace_only", "scope": "governance_candidate", "promotion": "replay_holdout_human_approval"}
+    },
+    "learning_lifecycle": ["sanitized_trace", "candidate", "replay_and_simulation", "independent_verification", "human_approval", "shadow_or_graduated_release", "rollback_on_regression"],
+    "must_not_learn_from": ["unapproved_individual_behavior_profile", "raw_private_conversation", "secret", "unverified_external_artifact"],
+    "access_hierarchy": ["tenant", "department", "role", "project", "task"],
+    "cross_domain_export": "deny"
+  },
+  "cross_edition_rules": {
+    "personal_to_enterprise": "deny",
+    "enterprise_to_personal": "policy_constraint_only_not_memory_write",
+    "personal_preference_overrides_enterprise_policy": false,
+    "enterprise_knowledge_becomes_personal_profile": false,
+    "cross_scope_learning_requires_explicit_separate_consent": true
+  },
+  "failure_actions": {
+    "scope_mismatch": "deny_before_read",
+    "revoked_record": "deny_before_read",
+    "state_conflict": "preserve_conflict_and_require_verification",
+    "unauthorized_promotion": "freeze_candidate_and_audit"
+  }
+}

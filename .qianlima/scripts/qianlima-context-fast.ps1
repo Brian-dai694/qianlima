@@ -16,6 +16,7 @@
   [string]$MemoryRequestPath = '',
   [string]$MemoryGrantPath = '',
   [string]$MemoryPath = '',
+  [string]$PersonalMemoryChunkPath = '',
   [switch]$AsJson
 )
 
@@ -235,6 +236,82 @@ $visibleUpdate = if ($highRiskDetected) {
 } else {
   '已收到任务；路由尚不唯一，先保持最小加载并仅补充必要信息。'
 }
+$preferenceInjection = [ordered]@{
+  status = if ($ContextLevel -in @('L2', 'L3')) { 'empty_or_not_configured' } else { 'not_requested' }
+  task_class = if ($highRiskDetected) { 'high_risk' } elseif ($ContextLevel -eq 'L3') { 'read_only_business' } else { 'chat_or_learning' }
+  task_domain = 'general'
+  selected_count = 0
+  top_k = 5
+  authority = 'none'
+  permissions_changed = $false
+  data_scope_changed = $false
+  confirmation_requirement_changed = $false
+  selected_preferences = @()
+}
+$memoryChunkInjection = [ordered]@{
+  status = if ($ContextLevel -in @('L2', 'L3')) { 'empty_or_not_configured' } else { 'not_requested' }
+  task_class = if ($highRiskDetected) { 'high_risk' } elseif ($ContextLevel -eq 'L3') { 'read_only_business' } else { 'chat_or_learning' }
+  task_domain = 'general'
+  selected_count = 0
+  max_chunks = 8
+  injection_mode = 'minimal_summary_and_provenance'
+  authority = 'none'
+  permissions_changed = $false
+  data_scope_changed = $false
+  temporary_context_auto_promoted = $false
+  selected_chunks = @()
+  external_calls = $false
+}
+if ($ContextLevel -in @('L2', 'L3') -and -not $highRiskDetected) {
+  $preferencePath = Join-Path $projectRoot '.qianlima\working\personal-preferences.json'
+  if (Test-Path -LiteralPath $preferencePath -PathType Leaf) {
+    $preferenceStore = Get-Content -LiteralPath $preferencePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $preferenceDomain = if (Test-ContainsAny $TaskText @('学习', 'learn', 'study', '教程', '解释')) { 'learning' } elseif (Test-ContainsAny $TaskText @('ASIN', 'Amazon', 'FBA', 'ACoS', '广告', '选品', '利润', '库存', 'Listing')) { 'commerce' } else { 'general' }
+    $preferenceCandidates = @()
+    foreach ($preference in @($preferenceStore.preferences)) {
+      if ($preference.state -ne 'validated' -or $preference.user_confirmed -ne $true) { continue }
+      if ($preference.expires_at -and ([DateTime]$preference.expires_at -le [DateTime]::UtcNow)) { continue }
+      if ($preference.domain -notin @('global', $preferenceDomain)) { continue }
+      $score = if ($preference.domain -eq $preferenceDomain) { 40 } else { 20 }
+      if ($preference.confidence -eq 'high') { $score += 20 }
+      $score += [Math]::Min(20, [int]$preference.observation_count)
+      $preferenceCandidates += [PSCustomObject]@{ preference = $preference; score = $score }
+    }
+    $selectedPreferences = @($preferenceCandidates | Sort-Object -Property @{Expression='score';Descending=$true}, @{Expression={$_.preference.updated_at};Descending=$true} | Select-Object -First 5)
+    $preferenceInjection.status = if ($selectedPreferences.Count -gt 0) { 'selected' } else { 'empty' }
+    $preferenceInjection.task_domain = $preferenceDomain
+    $preferenceInjection.selected_count = $selectedPreferences.Count
+    $preferenceInjection.selected_preferences = @($selectedPreferences | ForEach-Object { [ordered]@{ key = $_.preference.key; value = $_.preference.value; domain = $_.preference.domain; confidence = $_.preference.confidence; reason = if ($_.preference.domain -eq $preferenceDomain) { 'task_domain_match' } else { 'global_preference' } } })
+  }
+  $chunkSelector = Join-Path $PSScriptRoot 'select-personal-memory-chunks.ps1'
+  $chunkStorePath = if ([string]::IsNullOrWhiteSpace($PersonalMemoryChunkPath)) { Join-Path $projectRoot '.qianlima\working\personal-memory-chunks.json' } elseif ([IO.Path]::IsPathRooted($PersonalMemoryChunkPath)) { [IO.Path]::GetFullPath($PersonalMemoryChunkPath) } else { [IO.Path]::GetFullPath((Join-Path $projectRoot $PersonalMemoryChunkPath)) }
+  if (Test-Path -LiteralPath $chunkStorePath -PathType Leaf) {
+    $chunkClass = if ($ContextLevel -eq 'L3') { 'read_only_business' } elseif (Test-ContainsAny $TaskText @('learn', 'study', 'explain', '教程', '学习', '解释')) { 'learning' } else { 'chat' }
+    $chunkDomain = if (Test-ContainsAny $TaskText @('learn', 'study', 'explain', '教程', '学习', '解释')) { 'learning' } elseif (Test-ContainsAny $TaskText @('ASIN', 'Amazon', 'FBA', 'ACoS', '广告', '选品', '利润', '库存', 'Listing')) { 'commerce' } elseif (Test-ContainsAny $TaskText @('document', 'PDF', 'Word', 'Excel', '文档', '资料')) { 'documents' } else { 'general' }
+    $chunkOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $chunkSelector -TaskText $TaskText -TaskClass $chunkClass -TaskDomain $chunkDomain -ChunkPath $chunkStorePath -MaxChunks 8 -PassThru 2>&1)
+    if ($LASTEXITCODE -eq 0) {
+      $chunkText = ($chunkOutput -join "`n")
+      $chunkStart = $chunkText.IndexOf('{'); $chunkEnd = $chunkText.LastIndexOf('}')
+      if ($chunkStart -ge 0 -and $chunkEnd -gt $chunkStart) {
+        try {
+          $chunkResult = $chunkText.Substring($chunkStart, $chunkEnd - $chunkStart + 1) | ConvertFrom-Json
+          if ($chunkResult.status -eq 'selected') {
+            $memoryChunkInjection = $chunkResult
+          }
+        } catch { }
+      }
+    }
+  }
+}
+$personalExperience = if ($highRiskDetected) {
+  [ordered]@{ mode = 'controlled'; governance_visibility = 'explicit'; shadow_check = 'candidate_only'; confirmation_required = $true }
+} elseif ($ContextLevel -eq 'L3') {
+  [ordered]@{ mode = 'evidence'; governance_visibility = 'evidence'; shadow_check = 'background_if_budget_allows'; confirmation_required = $false }
+} elseif ($ContextLevel -eq 'L2') {
+  [ordered]@{ mode = 'quick'; governance_visibility = 'quiet'; shadow_check = 'suppressed'; confirmation_required = $false }
+} else {
+  [ordered]@{ mode = 'quick'; governance_visibility = 'silent'; shadow_check = 'suppressed'; confirmation_required = $false }
+}
 
 if (-not $needsFullStartup -and $SessionId -and $routeSummary -and -not $ambiguous -and (-not $leaseValid -or -not $sameRouteAsLease)) {
   if (-not (Test-Path -LiteralPath $leaseDirectory -PathType Container)) {
@@ -259,6 +336,13 @@ $result = [PSCustomObject]@{
   status = if ($needsFullStartup) { 'needs_startup' } else { 'ready' }
   state = if ($needsFullStartup) { 'route_decided' } elseif ($ContextLevel -eq 'L1') { 'fast_result' } else { 'context_loaded' }
   visible_update = $visibleUpdate
+  personal_mode = $personalExperience.mode
+  governance_visibility = $personalExperience.governance_visibility
+  shadow_check = $personalExperience.shadow_check
+  confirmation_required = $personalExperience.confirmation_required
+  learning_action = if ($highRiskDetected) { 'never_promote_from_action' } else { 'accept_explicit_correction_as_shadow_candidate' }
+  preference_injection = $preferenceInjection
+  memory_chunk_injection = $memoryChunkInjection
   context_level = if ($highRiskDetected) { 'L4' } else { $ContextLevel }
   lease_valid = $leaseValid
   lease_invalid_reason = $leaseInvalidReason
