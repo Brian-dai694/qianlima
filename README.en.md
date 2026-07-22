@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.6-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.8-blue.svg)](CHANGELOG.md)
 
-> Current release: v2.7.6 · Enterprise profile: 0.1.0 · 2026-07-18
+> Current release: v2.7.8 · Enterprise profile: 0.1.0 · 2026-07-22
 
 Beijixing Enterprise governs how employees use Codex, Claude Code, CodeWhale, and other Agents. It does not replace those runtimes. It decides who may act, what data they may see, which MCP tools they may call, how much they may spend, whether results are trustworthy, and when work must be approved, revoked, or frozen.
 

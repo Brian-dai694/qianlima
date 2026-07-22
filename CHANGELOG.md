@@ -2,6 +2,14 @@
 
 本项目遵循语义化版本。日期为公开模板仓的发布日。
 
+## [v2.7.8] - 2026-07-22
+- Low-risk Skill candidates now auto-release after independent validation; approval prompts are removed from the normal personal workflow.
+- High-risk, permission-changing, or attack-surface-changing candidates freeze and keep the prior version active. Automatic rollback remains available.
+
+## [v2.7.7] - 2026-07-22
+- Added the Skill self-evolution manager and contract: sanitized feedback, evidence-bound rule abstraction, candidate-only patching, independent replay validation, explicit release records, and rollback events.
+- Added regression coverage proving out-of-order changes are denied, production files are never auto-modified, and the append-only evolution trace survives rollback.
+
 ## [v2.7.6] - 2026-07-18
 - Memory Broker 成为记忆读取的统一入口，支持任务、Grant、状态视图、作用域和撤销校验。
 - Complexity Gate 接入 Agent admission 分析，新增 Agent、Pipeline stage 和复杂度提案必须先通过准入。

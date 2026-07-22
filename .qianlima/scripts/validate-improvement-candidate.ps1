@@ -69,7 +69,7 @@ foreach ($target in @($candidate.target_files)) {
 if (Has-Value $candidate 'proposed_change') {
   if ([bool]$candidate.proposed_change.auto_apply) { Add-Violation 'automatic_production_change_forbidden' }
   if ([bool]$candidate.proposed_change.production_change) { Add-Violation 'production_change_declared' }
-  if (([string]$candidate.proposed_change.apply_mode -notin @('shadow_only', 'candidate_only', 'human_release_only'))) { Add-Violation 'invalid_apply_mode' }
+  if (([string]$candidate.proposed_change.apply_mode -notin @('shadow_only', 'candidate_only', 'auto_release', 'human_release_only'))) { Add-Violation 'invalid_apply_mode' }
 }
 foreach ($benefit in @('quality', 'latency', 'cost')) { if (-not (Has-Value $candidate.expected_benefit $benefit)) { Add-Violation "expected_benefit_missing_$benefit" } }
 if (-not (Has-Value $candidate 'baseline_version')) { Add-Violation 'baseline_version_missing' }
