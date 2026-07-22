@@ -122,6 +122,28 @@ powershell -File .qianlima/scripts/invoke-qianlima-evr.ps1 -Action verify -PlanP
 
 计划、步骤回执和 EVR 事件均写入 `.qianlima/run-traces/`，产物只作为候选结果，必须通过验证后才算完成。合同定义见 `specifications/qianlima-*-contract.json`。
 
+## 期望状态与业务证据包（v2.7.10）
+
+千里马的业务任务可以声明“当前状态”和“期望状态”，先计算差异，再生成候选动作：
+
+```text
+当前状态 + 期望状态
+  -> 差异（Diff）
+  -> 诊断/本地报告候选
+  -> 证据包
+  -> 独立验证
+```
+
+差异计算只产生可审查计划，不执行改价、调预算、发布 Listing、采购、外发或删除。每个证据包必须绑定来源、时间范围、公式、Workflow 版本、假设、不确定性、待验证项和可复跑命令。
+
+回归测试：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .qianlima/scripts/test-qianlima-state-diff.ps1
+```
+
+合同见 `specifications/qianlima-desired-state-diff-contract.json` 和 `specifications/qianlima-evidence-pack-contract.json`。
+
 ## 借鉴 AHE 的三项能力
 
 - 组件可观测：每个 workflow 的数据源、模板、规则、输出和成本都能追踪。

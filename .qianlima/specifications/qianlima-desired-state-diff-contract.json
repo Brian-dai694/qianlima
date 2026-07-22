@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-desired-state-diff",
+  "purpose": "Compare a selected business current state with a declared desired state and produce a reviewable action plan.",
+  "required_fields": ["diff_id", "task_id", "workflow", "current_state", "desired_state", "differences", "candidate_actions", "source_refs", "data_time_range", "formula_refs", "pending_verification", "status"],
+  "statuses": ["candidate", "partially_verified", "verified", "blocked"],
+  "allowed_action_classes": ["observe", "diagnose", "prepare_local_report", "request_confirmation"],
+  "forbidden_action_classes": ["change_bid", "change_budget", "publish_listing", "purchase", "send_external", "delete", "overwrite_source", "delegate"],
+  "invariants": [
+    "Desired state is a declared target, not permission to change a business system.",
+    "The diff contains references and values needed for review, never raw source contents or credentials.",
+    "A candidate action is not executed by the diff generator.",
+    "Missing sources, stale data, formula gaps, or conflicting values remain explicit pending verification items.",
+    "Every replacement diff receives a new diff_id and references the prior diff."
+  ]
+}

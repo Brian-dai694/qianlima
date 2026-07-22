@@ -4,10 +4,10 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.9-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.7.10-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 版本: v2.7.9 | 2026-07-21 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
+> 版本: v2.7.10 | 2026-07-22 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
 > 当前版本：v2.7.9 · 企业版配置版本：0.1.0 · 2026-07-22
 
