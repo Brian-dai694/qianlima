@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-health-check",
+  "purpose": "Run bounded health checks at startup, low-priority background time, or before high-impact actions.",
+  "modes": ["startup", "background", "pre_l4"],
+  "outcomes": ["passed", "degraded", "blocked"],
+  "rules": {
+    "startup": "Missing core routing or policy files blocks the run.",
+    "background": "A failed non-critical check marks capability degraded and never changes production data.",
+    "pre_l4": "Missing scope, source freshness, evidence, or workflow references blocks high-impact execution.",
+    "normal_chat": "Health checks are not loaded for L0/L1 direct answers or continuation shortcuts."
+  },
+  "required_receipt_fields": ["check_id", "mode", "checks", "failed_checks", "outcome", "capability", "created_at"],
+  "invariants": [
+    "Health checks are read-only and do not start a scheduler, network call, or external Agent.",
+    "A failed check lowers capability or blocks the next phase; it cannot be hidden by a summary.",
+    "Checks report the failing location and recovery hint.",
+    "A background check must not mutate the task or business source."
+  ]
+}

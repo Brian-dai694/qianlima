@@ -144,6 +144,32 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .qianlima/scripts/test-qianl
 
 合同见 `specifications/qianlima-desired-state-diff-contract.json` 和 `specifications/qianlima-evidence-pack-contract.json`。
 
+## 业务作用域、数据边界与健康检查（v2.7.11）
+
+千里马把 Amazon 店铺、站点、品牌和产品线作为显式 `Project Scope`。数据源通过 `Service + Repository` 请求边界进入 Workflow：请求只声明来源、作用域、选定字段和时间范围，业务报告不直接依赖供应商原始响应。
+
+```text
+Project Scope
+  -> Service Request（选定字段 + 时间范围）
+  -> Repository Adapter
+  -> normalized business object
+  -> Workflow / Evidence Pack
+```
+
+健康检查分三档，均为显式本地只读调用：
+
+- `startup`：检查核心索引、路由和策略文件。
+- `background`：检查索引新鲜度和 Workflow 引用，失败时标记 `degraded`。
+- `pre_l4`：检查 Project Scope 和 Source Request，缺失时标记 `blocked`。
+
+普通问答和续问不加载这些检查。健康检查失败不会自动重试扩权、联网或写回；失败会生成 `Failure Receipt`，记录失败位置、来源、累计次数、恢复动作和安全终态。
+
+回归测试：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .qianlima/scripts/test-qianlima-operational-controls.ps1
+```
+
 ## 借鉴 AHE 的三项能力
 
 - 组件可观测：每个 workflow 的数据源、模板、规则、输出和成本都能追踪。

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-business-source-request",
+  "purpose": "Define the stable Service/Repository boundary for selected Amazon data reads.",
+  "required_fields": ["request_id", "task_id", "source_id", "service_id", "repository_id", "project_scope_ref", "purpose", "selected_fields", "data_time_range", "access_mode", "created_at"],
+  "access_mode": ["read_only"],
+  "forbidden": ["raw_credentials", "whole_workspace", "unbounded_query", "network_write", "external_write", "delete", "delegate"],
+  "invariants": [
+    "Workflow and report code consume the normalized service result, not provider-specific raw responses.",
+    "Every request is scoped to a project, selected fields, and a time range.",
+    "Repository adapters may read a provider but cannot decide business conclusions or write business state.",
+    "Provider, cache, row count, cost, and freshness metadata remain observable.",
+    "A request envelope contains references and query intent, never credentials or raw rows."
+  ]
+}

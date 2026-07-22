@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-project-scope",
+  "purpose": "Bind Amazon business work to an explicit store, marketplace, brand, and product-line scope.",
+  "required_fields": ["scope_id", "store_id", "marketplace", "brand", "product_line", "classification", "created_at"],
+  "classification": ["public", "internal_sanitized", "private_local"],
+  "invariants": [
+    "A project scope selects business context; it does not grant data, network, or write permission.",
+    "A source, workflow, memory, or evidence pack must reference one explicit scope when the task is scope-sensitive.",
+    "Scope values contain identifiers and labels only, never credentials or raw business rows.",
+    "A changed store, marketplace, brand, or product line creates a new scope reference."
+  ]
+}

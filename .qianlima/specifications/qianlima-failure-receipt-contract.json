@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-failure-receipt",
+  "purpose": "Record precise workflow failures and safe recovery decisions without storing raw prompts or private data.",
+  "required_fields": ["failure_id", "run_id", "task_id", "workflow", "phase", "failure_location", "category", "reason", "source_refs", "occurrence_count", "recovery_action", "safe_state", "created_at"],
+  "categories": ["transient", "task", "verifier", "needs_human"],
+  "safe_states": ["continue", "retry_limited", "frozen", "stopped"],
+  "invariants": [
+    "Every failure names where it occurred, what evidence was involved, and how recovery proceeds.",
+    "Retry is bounded and never expands tools, data, budget, or permissions automatically.",
+    "Insufficient evidence or conflicting verification moves the task to frozen or stopped.",
+    "Failure receipts are append-only artifacts and contain no hidden reasoning, secrets, or raw source data."
+  ]
+}
