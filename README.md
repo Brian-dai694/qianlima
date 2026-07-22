@@ -4,10 +4,10 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.9-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 版本: v2.7.9 | 2026-07-21 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
+> 版本: v2.8.0 | 2026-07-22 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
 千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。v2.7.9 增加个人版渐进式治理、任务相关记忆选择、可清除的个人经验管理、唯一的显式本地 stdio 只读证据工具，以及个人学习管线边界。
 
@@ -21,7 +21,7 @@
 ## 架构
 
 ```text
-千里马 Harness v2.7.9
+千里马 Harness v2.8.0
 ├── 场景智能路由      → 按场景精准加载，减少不必要上下文
 ├── 健康自检          → 启动时自动检查骨架、索引和引用
 ├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环
@@ -45,7 +45,8 @@
 ├── KV Cache 优化     → 稳定前缀与缓存命中策略
 ├── 配置演化追踪      → forward / rollback / diff / audit 迁移记录
 ├── 个人只读 stdio    → 唯一工具、一次性 Grant、证据回执和拒绝回归
-└── 个人学习管线      → 资源摘要、局部提案、只读执行和收敛验证
+├── 个人学习管线      → 资源摘要、局部提案、只读执行和收敛验证
+└── 个人 Governed Loop → Builder/Checker 隔离、原始检查回执和自动冻结
 ```
 
 ## 快速开始
@@ -183,6 +184,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-personal-learning-boundary.ps1"
 ```
 
+个人版代码和本地只读任务可使用 Governed Loop：Builder 只处理任务选定范围，Checker 只读检查，编排器原样保留 Checker 输出并应用停止规则。默认最多 5 轮；同一失败连续 2 次、回归、连续 2 轮无进展、超时或越权会自动冻结，不会扩大 Grant、数据范围或预算。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-personal-governed-loop.ps1"
+```
+
 个人版只预留一个显式启动的本地只读工具：`qianlima_readonly_evidence_task`。千里马内部生成匹配任务的 Grant 后，适配器才会调用已注册的本地证据核验 Agent，并继续写入审计事件、Artifact 和 Evidence Receipt。普通用户不配置端口、URL 或 Agent Card；以下脚本是运行时/测试入口，不是网络服务启动方式：
 
 ```powershell
@@ -233,6 +240,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-dec
 
 | 版本 | 日期 | 变更 |
 |:--:|------|------|
+| v2.8.0 | 2026-07-22 | 个人 Governed Loop：Builder/Checker 硬隔离、原始检查输出保留、最多 5 轮、同错/回归/无进展自动冻结和用户取消停止。 |
 | v2.7.9 | 2026-07-21 | 个人学习管线：资源摘要、局部计划、显式 Grant 只读执行、验证收敛；默认无后台、无自动安装、无网络和无远程/集群执行。 |
 | v2.7.8 | 2026-07-21 | 个人版本地 stdio 只读证据工具：唯一工具合同、任务匹配 Grant、过期/撤销/越权运行时拒绝、审计事件和 Evidence Receipt。无地址、端口、网络监听或业务写入。 |
 | v2.7.7 | 2026-07-20 | 个人版渐进式治理：续问快速路径、任务相关记忆 Chunk、偏好版本化与回退、一键清除个人经验、受限 Skill 安装门禁。 |

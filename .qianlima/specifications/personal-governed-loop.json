@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_governed_loop",
+  "edition": "personal",
+  "loop_id": "personal_builder_checker_loop",
+  "purpose": "Iterate local, bounded work until independent checks converge without expanding authority.",
+  "roles": {
+    "builder": {
+      "responsibility": "task_scoped_change_or_repair",
+      "write_access": "task_selected_scope_only",
+      "network_access": "none",
+      "can_approve": false
+    },
+    "checker": {
+      "responsibility": "read_only_validation",
+      "write_access": "run_trace_only",
+      "network_access": "none",
+      "can_modify_task_files": false,
+      "can_approve": false,
+      "raw_output": "preserve_without_interpretation"
+    },
+    "orchestrator": {
+      "responsibility": "route_raw_checker_result_and_apply_stop_rules",
+      "can_modify_task_files": false,
+      "can_expand_grant": false,
+      "can_approve": false
+    },
+    "qianlima": {
+      "responsibility": "accept_freeze_stop_or_request_confirmation",
+      "final_authority": true
+    }
+  },
+  "default_limits": {
+    "max_rounds": 5,
+    "same_failure_limit": 2,
+    "no_progress_limit": 2,
+    "network_access": "none",
+    "business_write_access": "none",
+    "direct_agent_to_agent": false,
+    "background_loop": false
+  },
+  "terminal_rules": {
+    "all_green": "completed",
+    "max_rounds": "frozen",
+    "same_failure_twice": "frozen",
+    "regression": "frozen",
+    "no_progress_twice": "frozen",
+    "boundary_exceeded": "frozen",
+    "timeout": "frozen",
+    "user_cancel": "stopped"
+  },
+  "allowed_outcomes": ["all_green", "check_failed", "same_failure", "regression", "no_progress", "boundary_exceeded", "timeout", "user_cancel"],
+  "trace": {
+    "state_path": ".qianlima/run-traces/personal-loop-{run_id}.json",
+    "checker_output": ".qianlima/run-traces/personal-loop-{run_id}/checker-{round}.txt",
+    "immutable": true,
+    "required_fields": ["run_id", "task_id", "round", "phase", "outcome", "status", "stop_reason", "checker_output_ref", "checker_output_hash"]
+  },
+  "grant_rule": "Every builder or checker action must remain inside the existing task Grant; loop retries never increase data scope, tools, budget, or network access."
+}

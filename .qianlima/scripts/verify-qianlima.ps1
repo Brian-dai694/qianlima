@@ -31,6 +31,7 @@ function Add-Issue([string]$Message) { $Issues.Add($Message) }
 function Add-Warning([string]$Message) { $Warnings.Add($Message) }
 function Test-Leaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $Root $RelativePath) -PathType Leaf }
 function Test-ProjectLeaf([string]$RelativePath) { Test-Path -LiteralPath (Join-Path $ProjectRoot $RelativePath) -PathType Leaf }
+function Read-Utf8Text([string]$PathValue) { return [IO.File]::ReadAllText($PathValue, [Text.UTF8Encoding]::new($false)) }
 
 foreach ($file in @('WORKSPACE_INDEX.md', 'workspace-index.json', 'CODEX_BOOT.md', 'workflow-index.yaml', 'risk-rules.yaml', 'context-policy.yaml', 'model-adapters.yaml', 'model-pricing.json', 'skill-evolution.yaml', 'response-policy.yaml', 'task-runtime.yaml', 'world-model.yaml', 'data-sources.example.yaml', 'work.example.ws', 'scripts/get-model-cost.ps1', 'scripts/new-staged-response.ps1', 'scripts/save-hot-state.ps1', 'scripts/new-task-contract.ps1', 'scripts/set-task-control.ps1', 'scripts/check-task-contract.ps1', 'scripts/get-snapshot-decision.ps1', 'scripts/summarize-csv.ps1', 'scripts/update-tool-health.ps1', 'scripts/write-experience-event.ps1', 'scripts/get-quality-dashboard.ps1', 'scripts/new-skill-feedback-record.ps1', 'scripts/new-skill-patch-proposal.ps1', 'workflows/skill_evolution.yaml', 'task-cards/skill-evolution.yaml', 'templates/operational-snapshot_template.json', 'templates/experience-event_template.json', 'templates/token-usage-record_template.yaml')) {
   if (-not (Test-Leaf $file)) { Add-Issue "Missing required public-safe Qianlima file: $file" }
@@ -47,7 +48,7 @@ foreach ($file in @('work.ws', 'data-sources.yaml', 'work-hub.ws', 'user-prefere
 
 $indexPath = Join-Path $Root 'WORKSPACE_INDEX.md'
 if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
-  $indexText = Get-Content -LiteralPath $indexPath -Encoding UTF8 -Raw
+  $indexText = Read-Utf8Text $indexPath
   $generatedLine = ($indexText -split "`r?`n" | Where-Object { $_ -match '^Generated at:' } | Select-Object -First 1)
   if ($generatedLine -match '^Generated at:\s*(.+)$') {
     try {
@@ -60,7 +61,7 @@ if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
 
 $workflowIndexPath = Join-Path $Root 'workflow-index.yaml'
 if (Test-Path -LiteralPath $workflowIndexPath -PathType Leaf) {
-  $workflowText = Get-Content -LiteralPath $workflowIndexPath -Encoding UTF8 -Raw
+  $workflowText = Read-Utf8Text $workflowIndexPath
   foreach ($match in [regex]::Matches($workflowText, 'definition:\s*(?<path>workflows/[^\s"'']+)')) {
     $relative = $match.Groups['path'].Value -replace '/', [IO.Path]::DirectorySeparatorChar
     if (-not (Test-Leaf $relative)) { Add-Issue "workflow-index references missing workflow definition: $($match.Groups['path'].Value)" }
@@ -73,7 +74,7 @@ if (Test-Path -LiteralPath $workflowIndexPath -PathType Leaf) {
   $taskCardDir = Join-Path $Root 'task-cards'
   if (Test-Path -LiteralPath $taskCardDir -PathType Container) {
     Get-ChildItem -LiteralPath $taskCardDir -File -Filter '*.yaml' | ForEach-Object {
-      $taskText = Get-Content -LiteralPath $_.FullName -Encoding UTF8 -Raw
+      $taskText = Read-Utf8Text $_.FullName
       $id = $_.BaseName
       if ($taskText -match '(?m)^\s*id:\s*([^\s]+)') { $id = $Matches[1].Trim() }
       if ($workflowText -notmatch "(?m)^\s*-\s*id:\s*$([regex]::Escape($id))\s*$") { Add-Warning "Task card has no workflow-index entry: $id" }
@@ -95,7 +96,12 @@ foreach ($relative in $files) {
   $item = Get-Item -LiteralPath $path -Force
   if ($item.Length -gt 1048576) { continue }
   if ($item.Extension -notin @('.md', '.yaml', '.yml', '.ps1', '.json', '.txt', '.gitignore', '.gitattributes')) { continue }
-  $text = Get-Content -LiteralPath $path -Encoding UTF8 -Raw -Force
+  try {
+    $text = Read-Utf8Text $path
+  } catch {
+    Add-Warning "Could not read tracked file during public-safe scan: $relative"
+    continue
+  }
   foreach ($pattern in $secretPatterns) {
     if ($text -match $pattern) {
       Add-Issue "Potential secret-like value found in public-safe scan: $relative"
