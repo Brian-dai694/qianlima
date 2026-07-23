@@ -3,7 +3,7 @@
   Restores an earlier personal preference as a new immutable version.
 ##>
 param(
-  [Parameter(Mandatory = $true)] [ValidateSet('communication_language', 'response_style', 'response_length', 'presentation_order', 'speed_preference', 'quality_preference', 'collaboration_style', 'architecture_preference', 'shadow_second_opinion', 'tool_preference', 'workflow_order', 'workflow_default_parameters')] [string]$PreferenceKey,
+  [Parameter(Mandatory = $true)] [ValidateSet('communication_language', 'response_style', 'response_length', 'presentation_order', 'speed_preference', 'quality_preference', 'collaboration_style', 'architecture_preference', 'shadow_second_opinion', 'tool_preference', 'workflow_order', 'workflow_default_parameters', 'keyword_preference', 'report_format', 'analysis_habit')] [string]$PreferenceKey,
   [Parameter(Mandatory = $true)] [ValidateRange(1, 10000)] [int]$Version,
   [Parameter(Mandatory = $true)] [switch]$UserConfirmed,
   [switch]$PassThru

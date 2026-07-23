@@ -15,7 +15,7 @@ $chunks = [ordered]@{
   schema_version = 1
   profile = 'personal'
   chunks = @(
-    [ordered]@{ chunk_id='pref-language'; chunk_type='stable_preference'; summary='Answer in Chinese and give a concrete conclusion first.'; state='current'; user_confirmed=$true; domains=@('global'); observed_at=$future; allow_injection=$true },
+    [ordered]@{ chunk_id='pref-language'; chunk_type='stable_preference'; summary='Answer in Chinese and give a concrete conclusion first.'; state='current'; user_confirmed=$true; domains=@('global'); observed_at=$future; access_count=8; allow_injection=$true },
     [ordered]@{ chunk_id='pref-commerce'; chunk_type='stable_preference'; summary='Use Amazon margin terminology.'; state='current'; user_confirmed=$true; domains=@('commerce'); observed_at=$future; allow_injection=$true },
     [ordered]@{ chunk_id='habit-learning'; chunk_type='task_habit'; summary='For attention papers, explain the intuition then give implementation steps.'; state='validated'; user_confirmed=$true; task_classes=@('learning'); task_domains=@('learning'); keywords=@('HiLS-Attention', 'attention'); observed_at=$future; allow_injection=$true },
     [ordered]@{ chunk_id='state-task-1'; chunk_type='current_task_state'; summary='The current research task still needs a comparison with MSA.'; state='current'; task_id='task-1'; observed_at=$future; allow_injection=$true },
@@ -37,6 +37,8 @@ $cases = @(
   [PSCustomObject]@{ name='excludes_unrelated_commerce_context'; passed=($ids -notcontains 'pref-commerce') },
   [PSCustomObject]@{ name='excludes_expired_unconfirmed_and_sensitive_chunks'; passed=($ids -notcontains 'expired-temp' -and $ids -notcontains 'unconfirmed-habit' -and $ids -notcontains 'sensitive') },
   [PSCustomObject]@{ name='temporary_context_is_not_promoted'; passed=($result.temporary_context_auto_promoted -eq $false) },
+  [PSCustomObject]@{ name='recent_and_frequent_memory_uses_fast_tier'; passed=($result.selected_chunks[0].retrieval_tier -eq 'hot' -and [int]$result.selected_chunks[0].access_count -ge 0) },
+  [PSCustomObject]@{ name='retrieval_exposes_tier_metadata_only'; passed=($result.selected_chunks[0].PSObject.Properties.Name -contains 'retrieval_tier' -and $result.selected_chunks[0].PSObject.Properties.Name -contains 'retrieval_score') },
   [PSCustomObject]@{ name='chunk_pack_has_no_authority'; passed=($result.authority -eq 'none' -and $result.permissions_changed -eq $false -and $result.data_scope_changed -eq $false -and $result.confirmation_requirement_changed -eq $false) },
   [PSCustomObject]@{ name='selector_makes_no_external_calls'; passed=($result.external_calls -eq $false) }
 )

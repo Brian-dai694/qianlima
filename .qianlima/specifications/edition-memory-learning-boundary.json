@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "contract_id": "qianlima-edition-memory-learning-boundary",
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "purpose": "Separate personal habit memory from enterprise governed knowledge and learning.",
   "shared_invariants": [
     "Every memory record has source, scope, classification, state, created_at, and revocation or deletion path.",
@@ -26,6 +26,13 @@
       "versioning": "append_only; old versions retained as superseded or revoked; rollback creates a new version",
       "irrelevant_domain": "exclude_before_injection",
       "return": "minimal_summary_with_provenance"
+      ,"retrieval_tiers": {
+        "hot": {"meaning": "recent_task_state_or_frequently_used_memory", "preferred_storage": "fast_local_layer"},
+        "warm": {"meaning": "validated_preferences_and_recent_habits", "preferred_storage": "local_working_layer"},
+        "cold": {"meaning": "long_term_reproducible_experience", "preferred_storage": "low_cost_archive"},
+        "filter_before_recall": ["grant_scope", "task_relevance", "state", "classification", "expiry"],
+        "ranking_after_filter": ["task_match", "domain_match", "retrieval_tier", "recency", "access_frequency"]
+      }
     },
     "may_influence": ["response_language", "format", "staged_updates", "context_loading_depth", "shadow_check_preference", "read_only_workflow_routing", "tool_preference_suggestion", "workflow_order_suggestion", "workflow_default_parameter_suggestion"],
     "must_not_influence": ["grant_scope", "tool_authority", "data_classification", "external_access", "write_permission", "deletion_confirmation", "payment_or_business_action"],

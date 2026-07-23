@@ -7,7 +7,13 @@
     "learning_and_light_research": "topic_relevant_preferences_and_verified_conclusions_only",
     "batch_or_file_analysis": "restricted_local_script_first_then_compact_result",
     "long_or_independent_research": "one_task_scoped_read_only_agent_only_when_justified",
-    "background_tasks": "disabled_by_default"
+    "background_tasks": "disabled_by_default",
+    "external_call_notice": {
+      "required_before": ["network", "external_api", "paid_tool", "remote_agent"],
+      "fields": ["provider", "purpose", "data_scope", "estimated_cost", "cost_source", "confirmation_state"],
+      "unknown_cost": "record_zero_and_mark_unknown",
+      "default_network": "disabled"
+    }
   },
   "improvement_gate": {
     "applies_to": ["prompt", "skill", "router", "context_selector", "memory_selector"],
@@ -42,7 +48,15 @@
       "local_experience_requires_source_and_reproducibility": true,
       "temporary_context_requires_expiry": true,
       "temporary_context_auto_promotion": false,
-      "return_mode": "minimal_summary_and_provenance"
+      "return_mode": "minimal_summary_and_provenance",
+      "retrieval_tiers": {
+        "hot": "current_task_recent_or_frequently_used",
+        "warm": "validated_preference_or_recent_task_habit",
+        "cold": "long_term_reproducible_experience",
+        "ranking": ["grant_scope", "task_relevance", "state", "retrieval_tier", "recent_use", "access_frequency"],
+        "filter_before_recall": true,
+        "full_store_scan_injection": false
+      }
     },
     "selector": ".qianlima/scripts/select-personal-memory-chunks.ps1"
   },
@@ -58,7 +72,10 @@
     "shadow_second_opinion",
     "tool_preference",
     "workflow_order",
-    "workflow_default_parameters"
+    "workflow_default_parameters",
+    "keyword_preference",
+    "report_format",
+    "analysis_habit"
   ],
   "learning": {
     "lifecycle": ["session_context", "observed_candidate", "consistency_check", "user_confirmation", "stable_version", "user_edit_revoke_or_rollback"],
@@ -85,7 +102,7 @@
     "default_top_k": 5,
     "minimum_top_k": 3,
     "maximum_top_k": 8,
-    "filter_order": ["task_class", "task_domain", "user_confirmed", "state_current", "not_expired", "confidence", "recent_use", "observation_count"],
+    "filter_order": ["grant_scope", "task_relevance", "task_class", "task_domain", "user_confirmed", "state_current", "not_expired", "confidence", "retrieval_tier", "recent_use", "observation_count"],
     "inject_only_selected": true,
     "empty_selection_is_valid": true,
     "high_risk_authority": "none",

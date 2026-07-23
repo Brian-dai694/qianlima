@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.1-blue.svg)](CHANGELOG.md)
 
-> 当前版本：`v2.8.0`
+> 当前版本：`v2.8.1`
 
 千里马不是聊天机器人外壳，也不是只会生成标题的关键词工具。它把你的运营任务拆成可复用的工作流，让 Agent 能够：
 
@@ -103,6 +103,16 @@ Codex、Claude Code 等负责交互和推理；千里马负责任务路由、业
 
 记忆不能增加工具权限、网络权限、文件范围、预算、删除权限或外发权限。撤销和清除必须能让后续读取立即失效。
 
+### 记忆检索分层
+
+个人记忆按使用时效分为三层：
+
+- `hot`：当前任务和最近频繁使用的内容，优先从快速本地层读取。
+- `warm`：已验证偏好和近期工作习惯，从本地工作层读取。
+- `cold`：长期、可复现的本地经验，按需从低成本存储读取。
+
+运行时先按 Grant、任务相关性、状态、分类和时效过滤，再按任务匹配、层级、最近使用和访问频次排序；不会把全部记忆扫描后塞进上下文。
+
 ## 执行与 MCP
 
 个人版只预留显式启动的本地 `stdio` 模式。用户不需要配置端口、URL 或公开 Agent Card。
@@ -123,6 +133,8 @@ qianlima_readonly_evidence_task
 - 返回 Artifact 和 Evidence Receipt
 
 MCP 端口和业务适配器只作为能力合同预留。具体连接是否可用，仍由当前任务、数据范围和运行时策略决定。
+
+涉及外部 API、付费工具或远程 Agent 时，调用前必须显示提供方、用途、数据范围、预计成本、成本来源和确认状态。未知成本按 `0` 记录并标记为未知；默认网络仍关闭。
 
 ## 安装与启动
 
@@ -205,7 +217,7 @@ C:\Users\UEFR\Desktop\Work Space\千里马计划-git-safe
 
 ## 版本
 
-当前版本为 `v2.8.0`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本为 `v2.8.1`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 

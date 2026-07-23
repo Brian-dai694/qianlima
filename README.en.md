@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.1-blue.svg)](CHANGELOG.md)
 
-> Current release: v2.8.0 · 2026-07-22
+> Current release: v2.8.1 · 2026-07-23
 
 Qianlima Personal is a local-first Amazon operations workbench. It keeps business workflows, evidence, and result verification in the project while Codex and other Agents provide interaction and execution.
 
@@ -43,6 +43,18 @@ Beijixing is the control plane, Agents are the execution plane, and MCP/Skills a
 Personal L0-L4 routing keeps ordinary conversation fast, loads Skills only when a task needs them, and puts external sends, deletes, overwrites, and business writes behind controlled execution. Local stdio MCP interfaces are reserved, while network access, remote execution, business writes, and background loops remain disabled by default.
 
 The repository contains contracts and enforcement gates only. No real endpoint, credential, or production write permission is enabled.
+
+### Tiered Memory Retrieval
+
+Personal memory uses three local retrieval tiers:
+
+- `hot`: current task state and frequently used items in the fast local layer.
+- `warm`: verified preferences and recent work habits in the local working layer.
+- `cold`: long-term reproducible experience in low-cost storage, loaded only when relevant.
+
+Runtime filters by Grant, task relevance, state, classification, and expiry before recall, then ranks the small result by task match, tier, recency, and access frequency. It does not scan and inject the full memory store.
+
+Before an external API, paid tool, or remote Agent call, the user sees the provider, purpose, data scope, estimated cost, cost source, and confirmation state. Unknown cost is recorded as `0` and marked unknown; network remains disabled by default.
 
 ## Model Collaboration
 

@@ -30,6 +30,9 @@ try {
   [IO.File]::WriteAllText($stepsPath, $stepsJson, (New-Object Text.UTF8Encoding($false)))
   Run $planScript @('-PlanId',$testId,'-TaskId',$testId,'-Workflow','daily_ad_report','-Goal','Aggregate a selected local CSV.','-DataScope','.qianlima/tmp','-StepsPath',$stepsPath,'-RiskLevel','L2') | Out-Null
   Check 'execution_plan_created' (Test-Path -LiteralPath $planPath -PathType Leaf)
+  $createdPlan = Get-Content -LiteralPath $planPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  Check 'task_state_machine_is_declared' (@($createdPlan.task_state_machine.states) -contains 'frozen' -and @($createdPlan.task_state_machine.states) -contains 'stopped')
+  Check 'plan_is_replayable' ($createdPlan.replayable -eq $true -and $createdPlan.task_state_machine.replay_inputs_are_references_only -eq $true)
   Run $evrScript @('-Action','execute','-PlanPath',$planPath,'-PassThru') | Out-Null
   Run $runnerScript @('-PlanPath',$planPath,'-StepId','aggregate','-InputPath',$csvPath,'-NumericColumn','spend,sales','-GroupBy','campaign','-PassThru') | Out-Null
   Run $evrScript @('-Action','verify','-PlanPath',$planPath,'-PassThru') | Out-Null

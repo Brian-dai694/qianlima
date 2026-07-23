@@ -51,6 +51,8 @@ $candidate2 = Invoke-Json $recordScript @('-CorrectionText', 'Use commerce-speci
 $promotion2 = Invoke-Json $promoteScript @('-CandidatePath', $candidate2.candidate_path, '-PreferenceKey', 'quality_preference', '-PreferenceValue', 'commerce_evidence_first', '-ObservationCount', '4', '-TaskDomain', 'commerce', '-UserConfirmed', '-PassThru')
 $candidate3 = Invoke-Json $recordScript @('-CorrectionText', 'Prefer the local read-only evidence checker for evidence review.', '-Scope', 'workflow', '-SourceTaskId', 'personal-test-evidence', '-PassThru')
 $promotion3 = Invoke-Json $promoteScript @('-CandidatePath', $candidate3.candidate_path, '-PreferenceKey', 'tool_preference', '-PreferenceValue', 'local_readonly_evidence_checker', '-ObservationCount', '3', '-TaskDomain', 'documents', '-UserConfirmed', '-PassThru')
+$candidate4 = Invoke-Json $recordScript @('-CorrectionText', 'Keep a reusable keyword set for recurring product research.', '-Scope', 'workflow', '-SourceTaskId', 'personal-test-keywords', '-PassThru')
+$promotion4 = Invoke-Json $promoteScript @('-CandidatePath', $candidate4.candidate_path, '-PreferenceKey', 'keyword_preference', '-PreferenceValue', 'recurring_product_keyword_set', '-ObservationCount', '3', '-TaskDomain', 'commerce', '-UserConfirmed', '-PassThru')
 $contextL3 = Invoke-Json $contextScript @('-TaskText', 'FBA', '-ContextLevel', 'L3', '-AsJson')
 $selection = Invoke-Json $selectScript @('-TaskText', 'study MSA', '-TaskClass', 'learning', '-TaskDomain', 'learning', '-TopK', '3', '-PassThru')
 $edit = Invoke-Json $editScript @('-PreferenceKey', 'response_style', '-PreferenceValue', 'concise_judgment_then_detail', '-UserConfirmed', '-PassThru')
@@ -60,6 +62,7 @@ $preferences = Invoke-Json $getScript @('-PassThru')
 $removal = Invoke-Json $removeScript @('-PreferenceKey', 'response_style', '-PassThru')
 $removal2 = Invoke-Json $removeScript @('-PreferenceKey', 'quality_preference', '-PassThru')
 $removal3 = Invoke-Json $removeScript @('-PreferenceKey', 'tool_preference', '-PassThru')
+$removal4 = Invoke-Json $removeScript @('-PreferenceKey', 'keyword_preference', '-PassThru')
 $preferenceHistory = Get-Content -LiteralPath (Join-Path $projectRoot '.qianlima\working\personal-preferences.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 
 Add-Case 'l1_is_silent_quick_path' ($stageL0.service_level -eq 'L1' -and $stageL0.personal_mode -eq 'quick' -and $stageL0.governance_visibility -eq 'silent' -and $stageL0.shadow_check -eq 'suppressed')
@@ -67,10 +70,11 @@ Add-Case 'l3_shows_evidence_without_confirmation' ($stageL3.service_level -eq 'L
 Add-Case 'l4_shows_explicit_governance' ($stageL4.service_level -eq 'L4' -and $stageL4.personal_mode -eq 'controlled' -and $stageL4.governance_visibility -eq 'explicit' -and $stageL4.confirmation_required -eq $true)
 Add-Case 'context_fast_l1_is_silent' ($contextL1.personal_mode -eq 'quick' -and $contextL1.governance_visibility -eq 'silent' -and $contextL1.shadow_check -eq 'suppressed' -and $contextL1.confirmation_required -eq $false)
 Add-Case 'context_fast_exposes_risk_only_at_l4' ($contextL4.governance_visibility -eq 'explicit' -and $contextL4.confirmation_required -eq $true -and $contextL4.learning_action -eq 'never_promote_from_action')
-Add-Case 'context_fast_injects_sparse_preferences' ($contextL3.preference_injection.status -eq 'selected' -and $contextL3.preference_injection.selected_count -eq 2 -and $contextL3.preference_injection.authority -eq 'none' -and $contextL3.preference_injection.permissions_changed -eq $false)
+Add-Case 'context_fast_injects_sparse_preferences' ($contextL3.preference_injection.status -eq 'selected' -and $contextL3.preference_injection.selected_count -eq 3 -and @($contextL3.preference_injection.selected_preferences | Where-Object { $_.key -eq 'keyword_preference' }).Count -eq 1 -and $contextL3.preference_injection.authority -eq 'none' -and $contextL3.preference_injection.permissions_changed -eq $false)
 Add-Case 'correction_is_shadow_candidate' ($candidate.status -eq 'candidate_recorded' -and $candidate.active_preference_changed -eq $false -and $candidate.permission_changed -eq $false)
 Add-Case 'preference_requires_confirmation_and_repetition' ($promotion.status -eq 'preference_promoted' -and $promotion.user_confirmed -eq $true -and $promotion.permission_changed -eq $false)
 Add-Case 'confirmed_tool_preference_is_suggestion_only' ($promotion3.status -eq 'preference_promoted' -and $promotion3.permission_changed -eq $false -and $promotion3.data_scope_changed -eq $false -and $promotion3.confirmation_requirement_changed -eq $false)
+Add-Case 'keyword_preference_is_learnable_but_not_authority' ($promotion4.status -eq 'preference_promoted' -and $promotion4.permission_changed -eq $false -and $removal4.status -eq 'preference_removed')
 Add-Case 'sparse_selector_returns_top_k_task_relevant_only' ($selection.selected_count -eq 1 -and @($selection.selected_preferences | Where-Object { $_.key -eq 'response_style' }).Count -eq 1 -and @($selection.selected_preferences | Where-Object { $_.key -eq 'quality_preference' }).Count -eq 0 -and $selection.authority -eq 'none')
 Add-Case 'preference_can_be_edited' ($edit.status -eq 'preference_edited' -and $edit.permission_changed -eq $false)
 Add-Case 'preference_history_can_be_restored_as_new_version' ($restore.status -eq 'preference_restored' -and $restore.restored_from_version -eq $promotion.version -and $restore.rollback_available -eq $true -and $restore.permission_changed -eq $false)
@@ -82,6 +86,8 @@ Add-Case 'preference_removal_clears_historical_values' (@($preferenceHistory.pre
 $sensitiveMarker = 'to' + 'ken'
 Add-Case 'sensitive_correction_is_rejected' (Invoke-ExpectedFailure $recordScript @('-CorrectionText', ($sensitiveMarker + ': abcdefghijklmnop'), '-PassThru') 'Sensitive or credential-like')
 Add-Case 'policy_keeps_permissions_outside_learning' (@($policy.preference_limits.cannot_change) -contains 'delete' -and @($policy.preference_limits.cannot_change) -contains 'network' -and $policy.learning.permission_change_allowed -eq $false -and $policy.learning.active_memory_overwrite_allowed -eq $false -and $policy.learning.versioning.append_only -eq $true)
+Add-Case 'policy_requires_external_cost_notice' (@($policy.runtime_loading.external_call_notice.fields) -contains 'estimated_cost' -and $policy.runtime_loading.external_call_notice.default_network -eq 'disabled')
+Add-Case 'policy_filters_memory_before_recall' ($policy.personal_memory_chunks.selection.retrieval_tiers.filter_before_recall -eq $true -and @($policy.sparse_selection.filter_order)[0] -eq 'grant_scope')
 
 $failed = @($cases | Where-Object { -not $_.passed })
 $result = [PSCustomObject]@{ passed = ($failed.Count -eq 0); external_calls = $false; business_writes = $false; sensitive_values_stored = $false; cases = @($cases) }

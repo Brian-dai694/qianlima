@@ -57,7 +57,7 @@ $plan = [ordered]@{
   schema_version = 1; plan_type = 'qianlima_execution_plan'; plan_id = $PlanId; task_id = $TaskId; workflow = $Workflow; goal = $Goal
   execution_mode = 'read_only'; risk_level = $RiskLevel; data_scope = $DataScope; network_access = $false; external_write = $false; source_overwrite = $false; can_delegate = $false
   steps = @($steps); budget = [ordered]@{ max_steps = $MaxSteps; max_tool_calls = $MaxToolCalls; timeout_ms = $TimeoutMs }
-  stop_conditions = @($StopCondition); verification_policy = $contract.verification_policy; status = 'planned'; evr_phase = 'execute'; created_at = (Get-Date).ToUniversalTime().ToString('o')
+  stop_conditions = @($StopCondition); verification_policy = $contract.verification_policy; task_state_machine = $contract.task_state_machine; status = 'planned'; evr_phase = 'execute'; replayable = $true; created_at = (Get-Date).ToUniversalTime().ToString('o')
 }
 if (Test-Path -LiteralPath $full) { throw "Execution plan already exists: $PlanId" }
 [IO.File]::WriteAllText($full, ($plan | ConvertTo-Json -Depth 12), (New-Object Text.UTF8Encoding($false)))

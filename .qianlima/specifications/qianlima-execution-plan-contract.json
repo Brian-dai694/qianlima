@@ -52,6 +52,13 @@
     "independent_verification": true,
     "missing_result": "revision_required"
   },
+  "task_state_machine": {
+    "states": ["planned", "executing", "revision_required", "revised", "completed", "frozen", "stopped"],
+    "terminal_states": ["completed", "frozen", "stopped"],
+    "replay_required_fields": ["plan_id", "task_id", "workflow", "data_scope", "steps", "budget", "stop_conditions", "verification_policy"],
+    "replay_inputs_are_references_only": true,
+    "high_risk_abort_is_irreversible_until_new_plan": true
+  },
   "write_scope": [".qianlima/reports/generated", ".qianlima/run-traces", ".qianlima/working"],
   "invariants": [
     "A plan contains references and contracts, never raw source contents.",

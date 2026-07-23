@@ -30,6 +30,17 @@ function HasAny([string]$Text, [object[]]$Terms) {
   return $false
 }
 function AsList($Value) { if ($null -eq $Value) { return @() }; return @($Value) }
+function ResolveMemoryTier($Chunk, [string]$Type, [double]$AgeDays) {
+  if (-not [string]::IsNullOrWhiteSpace([string]$Chunk.memory_tier)) { return [string]$Chunk.memory_tier }
+  if ($Type -in @('current_task_state', 'temporary_context')) { return 'hot' }
+  if ([double]$AgeDays -le 7 -or [int]$Chunk.access_count -ge 5) { return 'hot' }
+  if ($Type -in @('stable_preference', 'task_habit') -or [double]$AgeDays -le 30) { return 'warm' }
+  return 'cold'
+}
+function GetAgeDays($Chunk, [datetime]$Now) {
+  if ([string]::IsNullOrWhiteSpace([string]$Chunk.observed_at)) { return 9999.0 }
+  try { return [Math]::Max(0.0, ($Now - [DateTime]::Parse([string]$Chunk.observed_at).ToUniversalTime()).TotalDays) } catch { return 9999.0 }
+}
 
 $normalizedText = $TaskText.Trim()
 if ($TaskClass -eq 'auto') {
@@ -64,6 +75,11 @@ foreach ($chunk in $chunks) {
   $matchesClass = @((AsList $chunk.task_classes) | ForEach-Object { [string]$_ }) -contains $TaskClass
   $taskBonus = if ($matchesTask) { 20 } else { 0 }
   $domainBonus = if ($matchesDomain) { 10 } else { 0 }
+  $ageDays = GetAgeDays $chunk $now
+  $tier = ResolveMemoryTier $chunk $type $ageDays
+  $tierBonus = switch ($tier) { 'hot' { 15 } 'warm' { 8 } default { 0 } }
+  $recencyBonus = if ($ageDays -le 7) { 12 } elseif ($ageDays -le 30) { 6 } else { 0 }
+  $frequencyBonus = [Math]::Min(10, [Math]::Max(0, [int]$chunk.access_count))
   $include = $true
   switch ($type) {
     'stable_preference' {
@@ -88,7 +104,10 @@ foreach ($chunk in $chunks) {
       if ($include) { $score = 90; $reason = 'task_bound_temporary_context' }
     }
   }
-  if ($include) { $selected.Add([PSCustomObject]@{ chunk = $chunk; score = $score; reason = $reason }) }
+  if ($include) {
+    $score += $tierBonus + $recencyBonus + $frequencyBonus
+    $selected.Add([PSCustomObject]@{ chunk = $chunk; score = $score; reason = $reason; tier = $tier; age_days = [Math]::Round($ageDays, 2); access_count = [int]$chunk.access_count })
+  }
 }
 $selected = @($selected | Sort-Object -Property @{Expression = 'score'; Descending = $true}, @{Expression = {$_.chunk.observed_at}; Descending = $true} | Select-Object -First $MaxChunks)
 $pack = [ordered]@{
@@ -113,6 +132,10 @@ $pack = [ordered]@{
       source_ref = [string]$_.chunk.source_ref
       observed_at = [string]$_.chunk.observed_at
       expires_at = [string]$_.chunk.expires_at
+      retrieval_tier = $_.tier
+      access_count = $_.access_count
+      age_days = $_.age_days
+      retrieval_score = $_.score
       relevance_reason = $_.reason
     }
   })
