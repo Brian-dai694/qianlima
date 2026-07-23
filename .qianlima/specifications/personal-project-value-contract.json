@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_project_value_contract",
+  "contract_version": "1.0.0",
+  "edition": "personal",
+  "principle": "Increase the value created by each person; never use staff reduction as the default ROI premise.",
+  "project_selection": {
+    "required_signals": [
+      "high_frequency",
+      "rule_stability",
+      "historical_samples_available",
+      "measurable_outcome",
+      "rollback_available",
+      "risk_isolatable",
+      "human_verification_point"
+    ],
+    "minimum_positive_signals": 5,
+    "hard_blockers": ["rollback_unavailable", "risk_not_isolatable", "human_verification_missing"],
+    "data_rule": "Enterprise or industry benchmark numbers are not accepted as proof; use a local baseline and a controlled comparison.",
+    "first_pilot_defaults": ["read_only", "single_workflow", "small_scope", "local_or_sanitized_data", "reversible_output"]
+  },
+  "value_formula": {
+    "positive_terms": ["quality_improvement", "time_saved", "throughput_increase", "risk_reduction", "new_revenue_opportunity"],
+    "negative_terms": ["model_or_compute_cost", "data_governance_cost", "system_change_cost", "training_and_management_cost", "residual_risk_cost"],
+    "result": "positive_terms_minus_negative_terms",
+    "required_comparison": ["baseline", "pilot", "adoption_threshold", "rollback_threshold"]
+  },
+  "metrics": {
+    "quality": ["correctness", "adoption_rate", "rework_rate"],
+    "efficiency": ["completion_time", "human_touchpoints", "throughput"],
+    "cost": ["per_task_cost", "external_api_cost", "human_review_cost"],
+    "risk": ["unauthorized_action_count", "data_exposure_count", "operation_error_count", "rollback_success_rate"],
+    "organization": ["usage_rate", "skill_reuse_rate", "workflow_reuse_rate", "learning_transfer_rate"]
+  },
+  "human_capabilities_to_build": ["business_modeling", "value_judgment", "workflow_orchestration", "risk_governance", "learning_transfer"],
+  "forbidden_success_claims": ["staff_replacement_as_default_roi", "industry_benchmark_as_local_proof", "model_self_score_as_business_value", "command_success_equals_business_success"],
+  "output": {
+    "required": ["decision", "selection_score", "baseline_refs", "metric_plan", "human_check_point", "rollback_condition", "evidence_refs"],
+    "decisions": ["eligible_for_readonly_pilot", "needs_more_evidence", "blocked"],
+    "execution": "evaluation_only; never changes a business system"
+  },
+  "side_effects": {
+    "external_calls": false,
+    "business_writes": false,
+    "permissions_granted": false,
+    "production_changes": false
+  }
+}

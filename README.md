@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.4-blue.svg)](CHANGELOG.md)
 
-> 当前版本：`v2.8.3`
+> 当前版本：`v2.8.4`
 
 千里马不是聊天机器人外壳，也不是只会生成标题的关键词工具。它把你的运营任务拆成可复用的工作流，让 Agent 能够：
 
@@ -163,6 +163,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-pr
 powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-harness-acceptance.ps1'
 ```
 
+## 个人项目价值
+
+个人版衡量的是“每个人能稳定创造更多可复核价值”，不是用“减少人员”作为默认 ROI。项目候选优先满足：高频、规则相对稳定、有历史样本、结果可度量、错误可回退、风险可隔离，并保留人工核验点。
+
+评估必须同时记录质量、效率、成本、风险和组织复用指标，并使用本地基线与受控对照；行业通用数字、模型自评分和命令成功都不能直接证明业务价值。合格候选只能进入只读、小范围、可回退试点。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-project-value.ps1'
+```
+
 ## 安装与启动
 
 ### Windows
@@ -244,7 +254,7 @@ C:\Users\UEFR\Desktop\Work Space\千里马计划-git-safe
 
 ## 版本
 
-当前版本为 `v2.8.3`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本为 `v2.8.4`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 

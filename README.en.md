@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.4-blue.svg)](CHANGELOG.md)
 
-> Current release: v2.8.3 · 2026-07-23
+> Current release: v2.8.4 · 2026-07-23
 
 Qianlima Personal is a local-first Amazon operations workbench. It keeps business workflows, evidence, and result verification in the project while Codex and other Agents provide interaction and execution.
 
@@ -83,6 +83,16 @@ Ordinary tasks use local low-cost filtering first. Only L2+, evidence conflicts,
 powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-harness-acceptance.ps1'
 ```
 
+### Personal Project Value
+
+The personal edition measures whether each person can create more reliable, reviewable value; staff reduction is not its default ROI premise. Candidates should be frequent, relatively stable, supported by historical samples, measurable, reversible, risk-isolatable, and retain a human verification point.
+
+Evaluation records quality, efficiency, cost, risk, and organizational reuse metrics against a local baseline and controlled comparison. Industry benchmarks, model self-scores, and command success are not proof of business value. Eligible candidates enter only a small, read-only, reversible pilot.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-project-value.ps1'
+```
+
 ## Model Collaboration
 
 Model fusion is evidence collaboration, not several models chatting. L0-L2 use one model by default; L3 may use independent candidates plus evidence verification; L4 produces candidates only and requires human confirmation. See `.qianlima/model-portfolio.yaml` and `.qianlima/fusion-plan-schema.yaml`.
@@ -108,7 +118,7 @@ bash './start-qianlima.sh'
 
 ## Readiness
 
-Personal routing, memory, Skill gates, local read-only evidence execution, professional-tool learning simulation, Harness acceptance, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
+Personal routing, memory, Skill gates, local read-only evidence execution, professional-tool learning simulation, Harness acceptance, project value measurement, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
 
 Deployment readiness is not execution authority. Every production write still requires a task Grant, approval, preflight snapshot, audit receipt, and rollback condition.
 
