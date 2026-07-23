@@ -1,310 +1,211 @@
-# 千里马个人版 — 本地优先的 Amazon Agent 工作台
+# 千里马个人版
 
-[中文](README.md) · [English](README.en.md)
+本地优先的 Amazon 运营 AI 工作台。
 
-[![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
+[![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
-> 版本: v2.8.0 | 2026-07-22 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
+> 当前版本：`v2.8.0`
 
-千里马个人版是面向亚马逊卖家的本地优先 AI Agent 工作台。它负责业务工作流、证据与结果验证；Codex 等 Agent 负责交互与执行。v2.8.0 包含个人版渐进式治理、任务相关记忆选择、显式本地只读执行、Execution Plan、EVR 验证闭环和 Governed Loop。
-
-## 北极星协议
-
-> 任何接入的 Agent，都必须经过准入、最小授权、证据核验、预算约束、审计与可撤销控制。
-
-本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.7.8 延续分层启动、运行时策略、命令安全、评估、观测、记忆卡、子代理分工与状态化 Loop 的公开安全模板。
-硬边界：
-
-- Agent Card 只是能力声明，不是权限。
-- API 所有权不代表企业数据访问权。
-- 安装 Agent 不代表获得 MCP 或业务写入权。
-- 员工 Agent 只能使用任务级、短时、可撤销的 Grant。
-- 上传、发送、删除和业务系统写入按企业 L4 治理。
-- 生产规则改进只能生成候选，必须经过回放、仿真、独立核验和人工晋升。
-
-## Harness 架构
+千里马不是聊天机器人外壳，也不是只会生成标题的关键词工具。它把你的运营任务拆成可复用的工作流，让 Agent 能够：
 
 ```text
-千里马 Harness v2.8.0
-├── 场景智能路由      → 按场景精准加载，减少不必要上下文
-├── 健康自检          → 启动时自动检查骨架、索引和引用
-├── Loop Engineering  → SDR / EVR / PBV / EDA 执行循环
-├── 进化式改进        → fix / tune / A/B / extract / evolve 闭环
-├── 子代理编排        → 任务分工、资源限制和交接规范
-├── Context 2.0       → 动态上下文分配、智能压缩、实时监控
-├── 压缩攻击防御      → 防止摘要丢失约束、改写偏好或绕过安全规则
-├── Policy Adapter    → 策略生成、环境观测、动作评分解耦
-├── Skill 注册表      → trigger / scope / capability / quality gate 标准化
-├── 自然语言路由      → 用户发任务后自动匹配 skill / workflow / MCP
-├── 实时成本卡        → 每个非简单任务显示成本、节约、是否继续，使用统一模板
-├── 分层启动          → L0-L4 按风险加载，缓存命中走快速状态检查
-├── 运行时策略        → 预算、沙箱、状态机和 L4 二次确认
-├── 命令安全 Hook     → 删除、覆盖、格式化和越界路径的前置拦截
-├── QianlimaEval      → 来源、风险、账本和首答延迟的分层验收
-├── Memory Cards      → 带来源、有效期与置信度的本地运营对象记忆
-├── Maker / Checker   → 子代理上下文隔离，父代理保留外部决策权
-├── 状态化 EVR Loop  → execute / verify / refine 可追溯循环
-├── 多 Agent 入口     → Codex / Claude / Manus / Qoder CN / Lingma / LinkAI / Obsidian / 桌面端
-├── 本地知识库        → Obsidian Vault、MOC、笔记模板、公私知识分离
-├── KV Cache 优化     → 稳定前缀与缓存命中策略
-├── 配置演化追踪      → forward / rollback / diff / audit 迁移记录
-├── 个人只读 stdio    → 唯一工具、一次性 Grant、证据回执和拒绝回归
-├── 个人学习管线      → 资源摘要、局部提案、只读执行和收敛验证
-└── 个人 Governed Loop → Builder/Checker 隔离、原始检查回执和自动冻结
+理解任务 -> 选择相关资料和 Skill -> 计算或执行 -> 核对证据 -> 给出可复盘结果
 ```
 
-## 个人版边界
+Codex、Claude Code 等负责交互和推理；千里马负责任务路由、业务口径、记忆选择、权限边界、执行回执和结果核验。
 
-个人版按 L0-L4 分层：普通问答和续问走快速路径；学习、研究和文件分析按需加载相关 Skill；外发、删除、覆盖、业务写回和其他高影响动作必须进入受控执行路径。
+## 先看结论
 
-个人版只预留本地 stdio MCP 接口。普通任务不启动运行时；外部网络、远程执行、业务写回和后台循环默认关闭。真实端点、凭据和业务写入权限不进入公开仓。
+- 普通问答和同主题续问走快速路径，不启动复杂运行时。
+- 学习、研究、报表和文件分析按需加载相关上下文，不读取整库历史。
+- Skill 会先检查能力和风险，再在受限范围内使用；不会悄悄扩大文件、网络或写入权限。
+- 低风险改进可以自动测试、自动收敛；高风险改进会冻结旧版本，不把权限变化混进自进化。
+- 高影响动作会给出影响范围、依据和回退信息，再进入受控执行。
+- 默认本地优先。公开仓不包含真实账号、凭据、运营数据或生产端点。
 
-## 模型协作
+## 能做什么
 
-模型融合不是多个模型聊天，而是受治理的证据协作：L0-L2 默认单模型，L3 才允许独立候选与证据核验，L4 只能生成候选并进入人工确认。模型档案和 Fusion Plan 见 `.qianlima/model-portfolio.yaml` 与 `.qianlima/fusion-plan-schema.yaml`。
+千里马的个人版业务目录覆盖一个 Amazon 店铺从判断机会到复盘的完整周期：
 
-## 个人版业务能力
+| 领域 | 能力 |
+|---|---|
+| 经营分析 | 日报、周报、月报、季报、年报；月度、季度、年度计划 |
+| 利润与合规 | 日/周/月/季/年利润口径；税务、海关、产品合规检查 |
+| 市场与选品 | 选品、市场、竞争、关键词、定价、VOC 和机会判断 |
+| Listing | 标题、主图、五点、长描述；事实、关键词和合规校验 |
+| 供应链 | 采购、厂家合作、包装、海运、物流、交期与补货判断 |
+| 库存 | 入仓、上架、本地库存、亚马逊库存、库存风险和清货建议 |
+| 流量与广告 | 流量、广告、转化、活动、关键词排名和竞价诊断 |
+| 售后与复盘 | 售后、退货、清货、利润变化和问题根因复盘 |
 
-千里马个人版覆盖亚马逊运营的完整业务目录，并支持：
+结果不是一段无法复核的结论。业务结果可以附带来源、时间范围、公式、假设、不确定性、待验证项和可重跑入口。
 
-- 日报、周报、月报、季报和年报。
-- 月度、季度和年度计划。
-- 日、周、月、季、年度利润口径。
-- Listing 利润、标题、主图、五点和长描述成果包。
-- 业务端、成果端、失败端、核心问题端和处理端五视图。
-- 踩坑日志、改进候选、回放、仿真和人工晋升的复利系统。
+## 使用方式
 
-## 快速开始
+你不需要记住 Skill 名称、MCP 参数或内部脚本。直接描述目标、资料位置和权限即可：
 
-### 1. 克隆
+```text
+帮我看这 14 天广告数据，先告诉我利润和 ACoS 的主要变化，只读，不改预算。
 
-```bash
-git clone https://github.com/Brian-dai694/beijixing.git
-cd beijixing
+分析这批竞品，给出适合我的产品机会，列出证据和未知项。
+
+优化这个 Listing，先检查产品事实和关键词，再给标题、五点和长描述候选。
+
+管理技能：检查现有 Skill 的健康度，按风险和收益分组，自动处理低风险项。
 ```
 
-### 2. 启动个人版
+千里马按任务风险选择路径：
 
-Windows：
+| 路径 | 典型任务 | 行为 |
+|---|---|---|
+| 快速 | 普通问答、解释、续问 | 直接回答，不启动复杂流程 |
+| 只读 | 学习、研究、报表、文件分析 | 读取最小资料，输出证据和结论 |
+| 受控执行 | 本地计算、生成报告、整理文件 | 先预检，限定目录和步骤，留下回执 |
+| 高影响 | 改价、竞价、预算、采购、发布、外发、删除 | 明确影响范围，保留快照和回退路径 |
+
+## 自进化怎么工作
+
+个人版会持续变得更顺手，但不会把一次偶然行为变成永久权限：
+
+```text
+任务轨迹 / 用户纠正
+        -> 习惯或 Skill 改进候选
+        -> 本地回放与失败注入
+        -> 独立检查
+        -> 低风险自动收敛，风险升高则冻结
+        -> 记录版本、依据和回滚路径
+```
+
+个人版 Governed Loop 将写入和检查分开：
+
+- `Builder` 只修改任务指定范围。
+- `Checker` 只有读取和检查能力，不能顺手改代码。
+- 编排器保留检查器的原始输出，不替它粉饰失败。
+- 最多运行 5 轮；全绿结束。
+- 同一失败连续两次、出现回归、连续两轮没有实质进展、超时或越权时自动冻结。
+- 重试不会自动增加 Grant、预算、数据范围、网络权限或业务写入权限。
+
+低风险候选可以在独立检查通过后自动进入下一版本；涉及权限、数据分类、外部访问或攻击面的候选保持旧版本并冻结，避免“自进化”变成自我扩权。
+
+## 记忆与边界
+
+千里马记住的是工作方式，不是无限保存你的全部资料：
+
+| 记忆层 | 示例 | 规则 |
+|---|---|---|
+| 当前任务 | 当前文件、目标、未完成结论 | 任务结束后自动降权 |
+| 稳定偏好 | 中文、先结论、简洁或详细 | 可查看、编辑、删除和回退 |
+| 观察习惯 | 常用工作流顺序、常用展示方式 | 先影子验证，不直接改变重要行为 |
+| 已验证模式 | 多次成立且没有被纠正的工作方式 | 只影响表达、排序和默认建议 |
+| 敏感资料 | 凭据、原始业务数据、单次附件 | 默认不进入长期记忆，只保留必要引用 |
+
+记忆不能增加工具权限、网络权限、文件范围、预算、删除权限或外发权限。撤销和清除必须能让后续读取立即失效。
+
+## 执行与 MCP
+
+个人版只预留显式启动的本地 `stdio` 模式。用户不需要配置端口、URL 或公开 Agent Card。
+
+当前唯一的本地证据工具是：
+
+```text
+qianlima_readonly_evidence_task
+```
+
+它必须绑定当前任务匹配、未过期、未撤销的最小 Grant，并且强制：
+
+- 无网络
+- 无业务写入
+- 不读凭据
+- 不删除或覆盖原始文件
+- 不直接委派其他 Agent
+- 返回 Artifact 和 Evidence Receipt
+
+MCP 端口和业务适配器只作为能力合同预留。具体连接是否可用，仍由当前任务、数据范围和运行时策略决定。
+
+## 安装与启动
+
+### Windows
 
 ```powershell
+git clone https://github.com/Brian-dai694/qianlima.git
+Set-Location qianlima
 powershell -NoProfile -ExecutionPolicy Bypass -File '.\start-qianlima.ps1'
 ```
 
-macOS/Linux：
+### macOS / Linux
+
+需要 PowerShell 7：
 
 ```bash
-bash './start-qianlima.sh'
+git clone https://github.com/Brian-dai694/qianlima.git
+cd qianlima
+bash ./start-qianlima.sh
 ```
 
-## 当前成熟度
-
-| 范围 | 状态 |
-|---|---|
-| 个人版运行时与快速路由 | 已实现 |
-| 个人记忆与偏好治理 | 已实现 |
-| 本地 stdio 只读证据工具 | 已实现，默认关闭 |
-| MCP/运营接口 | 已预留，默认禁用 |
-| 外部网络、远程执行、业务写回 | 未在个人版启用 |
-
-部署就绪不等于执行授权。任何真实业务写入仍需任务级 Grant、审批、预检快照、审计和回滚条件。
+普通用户只需要使用自然语言。脚本、合同和回归测试是开发与排查入口，不是日常操作界面。
 
 ## 验证
 
-GitHub Actions 在 Windows 和 macOS 验证个人版 Harness、运行时边界、记忆、Skill 和证据回归；不会安装 Docker、访问网络或获取生产凭据。
+提交前运行：
 
-## 主 Harness
-
-个人版运行时仍复用 `.qianlima/`、`start-qianlima.ps1`、AGENTS/Claude/其他 Agent 入口和既有安全门。主 Harness 的开发说明见 [.qianlima/README.md](.qianlima/README.md)。
-
-## 隐私与安全
-
-```text
-.qianlima/WORKSPACE_INDEX.md
-.qianlima/workspace-index.json
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\verify-qianlima.ps1'
 ```
 
-Agent 进入本仓库后，应先读取 `.qianlima/WORKSPACE_INDEX.md`，再按索引加载最小启动包。
+个人版关键回归：
 
-不同 Agent 可使用专用入口：
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-learning-boundary.ps1'
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-skill-gate.ps1'
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-memory-chunks.ps1'
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-governed-loop.ps1'
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-readonly-evidence-task.ps1'
+```
 
-- Codex：`AGENTS.md`、`.qianlima/CODEX_BOOT.md`
-- Claude Code：`CLAUDE.md`
-- Manus：`MANUS.md`、`.qianlima/MANUS_BOOT.md`
-- 通义灵码 / Qoder CN：`QODER.md`、`LINGMA.md`
-- LinkAI Cloud：`LINKAI.md`、`.qianlima/templates/linkai-agent-prompt_template.md`
-- Obsidian：`OBSIDIAN.md`、`.qianlima/rules/obsidian-vault-policy.md`
-- 桌面端产品：`DESKTOP_AGENT_BRIEF.md`
+CI 会检查启动骨架、公开安全、运行时边界、记忆、Skill、证据和 Governed Loop。校验不安装 Docker，不访问生产系统，也不获取真实凭据。
 
-### 4. 触发任务
-
-在 CodeWhale、Claude Code 或其他支持本仓库规则的 Agent 框架中，可以直接用自然语言触发：
-
-- “跑一下关键词排名” → `keyword_rank_scan`
-- “生成广告日报” → `daily_ad_report`
-- “竞品对比” → `competitor_comparison`
-- “算利润” → `profit_check`
-- “管理技能，健康检查并分组” → `skill_management`
-- “自动规划技能路径” → `skill_path_planning`
-
-## 文件结构
+## 仓库结构
 
 ```text
+AGENTS.md                 Codex 最小入口和工作规则
+start-qianlima.ps1       Windows 启动入口
+start-qianlima.sh        macOS/Linux 启动入口
 .qianlima/
-├── work.example.ws              # 公开示例工作状态
-├── data-sources.example.yaml     # 公开示例数据源配置
-├── risk-rules.yaml               # 风险规则
-├── rules/cost-savings-principle.md # 成本节约中心原则
-├── rules/compression-attack-defense.md # 压缩攻击防御规则
-├── context-policy.yaml           # 上下文策略
-├── model-adapters.yaml           # 模型适配与 KV Cache 策略
-├── meta-scenario-router.md       # 场景智能路由
-├── workflow-index.yaml           # Workflow 索引
-├── improvement-loop.yaml         # 进化式反馈闭环
-├── harness-health-check.yaml     # 健康自检
-├── loop-engineering.yaml         # Loop Engineering 框架
-├── subagent-orchestration.yaml   # 子代理编排
-├── evolutionary-workflow.yaml    # 进化式 Workflow
-├── skill-registry.yaml           # Skill 注册表
-├── task-cards/                   # 任务卡定义
-├── workflows/                    # Workflow 定义
-├── specifications/               # 可执行合同（个人版只读工具等）
-├── local-a2a-agents.json         # 个人版本地 stdio 注册信息，无地址/监听器
-├── templates/                    # 报告模板
-└── playbooks/                    # 操作手册
+├── task-cards/           任务卡
+├── workflows/            业务工作流
+├── specifications/       执行、证据、记忆和权限合同
+├── scripts/              运行时、校验和回归脚本
+├── working/              本地偏好与受限 Skill 工作区
+├── run-traces/           本地执行轨迹，默认不提交
+└── templates/            报告和回执模板
 ```
 
-## 隐私边界
+## Git-safe 规则
 
-本仓库是 **Git-safe 公开模板**，不应提交任何真实运营数据。
-
-不要提交：
-
-- API key、token、密码、cookie 或其他凭证
-- 真实客户姓名、邮箱、电话、地址、合同信息
-- 真实账号 ID、广告后台导出、ERP 导出、Marketplace 后台数据
-- 私有成本台账、usage ledger、decision log、截图或报告
-- 本地机器路径、用户目录或个人工作区路径
-
-默认 `.gitignore` 会排除生成索引、运行日志、usage ledger、decision log、报告、截图、媒体文件和本地密钥文件。
-
-发布或提交 PR 前，请运行公开安全校验：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-qianlima.ps1"
-```
-
-## 自动校验
-
-本仓库包含 GitHub Actions 工作流：
+本项目的唯一提交和推送工作副本是：
 
 ```text
-.github/workflows/qianlima-verify.yml
+C:\Users\UEFR\Desktop\Work Space\千里马计划-git-safe
 ```
 
-该工作流会在 push 和 pull request 时执行：
+所有千里马提交都在该目录的 `main` 分支完成并推送到 `origin/main`。另一个工作目录只作为迁移或参考来源，不在其中提交、不创建分支、不 fork。
 
-- 启动索引和骨架校验
-- public-safe 严格校验
-- runtime 安全门检查
-- 未确认高风险动作拦截检查
+## 隐私
 
-## Runtime 辅助脚本
+公开仓只保存脱敏模板、合同、规则和测试。禁止提交：
 
-个人版学习/研究任务采用四段式管线：`资源摘要 -> 局部计划 -> 受控只读执行 -> 验证收敛`。普通任务默认只返回摘要或提案，不自动安装 Skill、不联网、不启动后台循环；只有用户显式继续并提供匹配 Grant，才可使用唯一的本地只读证据工具。计划边界校验：
+- API key、Token、密码、Cookie、私钥或真实 URL
+- Amazon、ERP、广告后台、税务和海关原始导出
+- 客户信息、账号信息、真实成本和利润台账
+- usage ledger、decision log、运行日志、截图和本机绝对路径
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-personal-learning-boundary.ps1"
-```
+运行产生的索引、报告、轨迹和本地配置默认由 `.gitignore` 排除。发现凭据或敏感资料时，先停止提交并清除 Git 暂存区。
 
-个人版代码和本地只读任务可使用 Governed Loop：Builder 只处理任务选定范围，Checker 只读检查，编排器原样保留 Checker 输出并应用停止规则。默认最多 5 轮；同一失败连续 2 次、回归、连续 2 轮无进展、超时或越权会自动冻结，不会扩大 Grant、数据范围或预算。
+## 版本
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-personal-governed-loop.ps1"
-```
-
-个人版只预留一个显式启动的本地只读工具：`qianlima_readonly_evidence_task`。千里马内部生成匹配任务的 Grant 后，适配器才会调用已注册的本地证据核验 Agent，并继续写入审计事件、Artifact 和 Evidence Receipt。普通用户不配置端口、URL 或 Agent Card；以下脚本是运行时/测试入口，不是网络服务启动方式：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\invoke-personal-readonly-evidence-task.ps1" `
-  -EnvelopePath ".\.qianlima\run-traces\<task-envelope>.json" `
-  -GrantPath ".\.qianlima\run-traces\delegation-grants\<grant>.json" `
-  -ExplicitStart
-```
-
-适配器拒绝缺少或不匹配的 Grant、过期/撤销 Grant、网络/写入/委派权限、其他工具，以及任何地址或远程派发字段。回归测试：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-personal-readonly-evidence-task.ps1"
-```
-
-生成本地 usage ledger 记录（默认会被 `.gitignore` 排除）：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-usage-record.ps1" -RunId "demo-run" -TaskName "demo" -WorkflowId "knowledge_digest" -EstimatedCost 0.03 -BaselineCost 0.10 -SavingsSource "context_reduction" -TaskSuccess
-```
-
-生成用户可见的实时成本卡。脚本输出使用 ASCII，避免 Windows PowerShell 编码问题；中文展示格式见 `.qianlima/templates/realtime-cost-card_template.md`：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-cost-card.ps1" -EstimatedCost 0.03 -BaselineCost 0.10 -SavingsSource "context_reduction"
-```
-
-导出 Obsidian Git-safe Vault：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\export-obsidian-vault.ps1" -OutputRoot ".\obsidian-export"
-```
-
-为已确认的高风险动作生成本地 decision log：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-decision-log-entry.ps1" -RunId "demo-run" -Scenario "ad_ops" -WorkflowId "daily_ad_report" -ActionType "change_bid" -RiskLevel high -Recommendation "example" -ExpectedImpact "example" -ExpectedRisks "example" -SourceRefs "data:sample_ads_daily:daily_snapshot" -UserConfirmationRef "user-confirmation-example"
-```
-
-## 依赖
-
-- **Agent 框架**：CodeWhale、Claude Code 或其他支持 YAML 治理文件的 Agent 系统
-- **MCP 工具**：Sorftime MCP、Pangolinfo MCP
-- **浏览器自动化**：Kimi WebBridge，可选，用于领星 ERP 数据提取
-- **飞书**：lark-cli，可选，用于表格同步
-
-## 版本历史
-
-| 版本 | 日期 | 变更 |
-|:--:|------|------|
-| v2.8.0 | 2026-07-22 | 个人 Governed Loop：Builder/Checker 硬隔离、原始检查输出保留、最多 5 轮、同错/回归/无进展自动冻结和用户取消停止。 |
-| v2.7.9 | 2026-07-21 | 个人学习管线：资源摘要、局部计划、显式 Grant 只读执行、验证收敛；默认无后台、无自动安装、无网络和无远程/集群执行。 |
-| v2.7.8 | 2026-07-21 | 个人版本地 stdio 只读证据工具：唯一工具合同、任务匹配 Grant、过期/撤销/越权运行时拒绝、审计事件和 Evidence Receipt。无地址、端口、网络监听或业务写入。 |
-| v2.7.7 | 2026-07-20 | 个人版渐进式治理：续问快速路径、任务相关记忆 Chunk、偏好版本化与回退、一键清除个人经验、受限 Skill 安装门禁。 |
-| v2.7.3 | 2026-07-15 | Codex 体感提速：普通对话、L0/L1 快答和同主题续问不重复启动；新增单调用上下文装配、会话租约和 L4 启动门禁。 |
-| v2.7.2 | 2026-07-14 | 跨平台启动：新增 macOS/Linux PowerShell 与 bash 入口及公开 CI 检查。 |
-| v2.7.1 | 2026-07-13 | Agent Harness 运行时升级：L0-L4 分层启动、快速状态检查、预算/沙箱/状态机、命令安全 Hook、QianlimaEval、延迟观测、私有 Memory Cards、Maker/Checker 分工与状态化 EVR Loop；公开模板完成隐私清理。 |
-| v2.6.6 | 2026-07-09 | 新增 Obsidian 本地知识库适配：Vault 策略、笔记模板、MOC 模板和 Git-safe 导出脚本 |
-| v2.6.5 | 2026-07-09 | 新增 LinkAI Cloud 发布入口和 Agent Prompt 模板，限定为 Git-safe 知识库问答与多渠道入口 |
-| v2.6.4 | 2026-07-09 | 新增通义灵码 / Qoder CN 专用入口：`QODER.md`、`LINGMA.md`，并同步启动提示 |
-| v2.6.3 | 2026-07-09 | 标准化实时成本卡：新增成本卡模板和生成脚本，统一 Agent 输出字段 |
-| v2.6.2 | 2026-07-09 | 实时成本卡和节约中心原则：usage ledger 增加基线成本、节约金额、节约率、成本状态和是否继续 |
-| v2.6.1 | 2026-07-09 | 吸收 XPolicyLab 策略适配器思想；加入 COMA / Comattack 压缩攻击防御、评估门禁和高风险摘要拦截 |
-| v2.6 | 2026-07-09 | 自然语言任务自动匹配：新增 natural-language-router、技能打分、置信度阈值、缺参追问和高风险确认 |
-| v2.5.1 | 2026-07-09 | Agent 启动入口补丁：Codex、Claude Code、Manus、桌面端 Agent 简报 |
-| v2.5 | 2026-07-09 | Git-safe 公开模板：中文 README、隐私边界、CI 校验、runtime gate、workflow 补齐 |
-| v2.4 | 2026-07-08 | 公开模板强化：隐私边界、校验脚本、runtime gate、workflow 补齐 |
-| v2.2 | 2026-07-08 | SOTA 落地：KV Cache / memgovern / nemo-skills / alembic / gdpo / marshal / celery |
-| v2.1 | 2026-07-08 | Loop Engineering：SDR / EVR / PBV / EDA 嵌入 workflow |
-| v2.0 | 2026-07-08 | Harness 核心：健康自检 / 进化改进 / 子代理编排 / Context 2.0 |
-| v1.3 | 2026-07-08 | 基础治理：场景路由 / 风险规则 / 验证门禁 |
-
-## 引用
-
-- Lilian Weng. “Harness Engineering for Self-Improvement.” 2026.
-- XPolicyLab/XPolicyLab. Policy adapter and server-client separation pattern.
-- zsLiu2003/Comattack. COMA compression attack threat model.
-- 机器之心 SOTA：loop-engineering / memgovern / nemo-skills / alembic / gdpo / marshal / celery / awesome-kv-cache-optimization
-公开仓只允许脱敏模板。禁止提交 API Key、Token、客户数据、账号信息、真实成本、业务导出、截图、运行日志、审计账本和本机绝对路径。凭据只能使用 Secret Reference，由操作系统或批准的密钥管理器保存。
+当前版本为 `v2.8.0`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 
