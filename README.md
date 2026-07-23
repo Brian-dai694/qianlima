@@ -1,4 +1,4 @@
-# 北极星企业版 — 可信 Agent 治理控制平面
+# 千里马个人版 — 本地优先的 Amazon Agent 工作台
 
 [中文](README.md) · [English](README.en.md)
 
@@ -9,9 +9,7 @@
 
 > 版本: v2.7.11 | 2026-07-22 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
-> 当前版本：v2.7.9 · 企业版配置版本：0.1.0 · 2026-07-22
-
-千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统；北极星企业版是其面向企业 Agent 的可信治理控制平面。千里马负责业务工作流、证据与结果验证，北极星负责身份、最小授权、预算、审计和撤销。v2.7.9 增加个人版渐进式治理、任务相关记忆选择、显式本地只读执行、Execution Plan 与 EVR 验证闭环。
+千里马个人版是面向亚马逊卖家的本地优先 AI Agent 工作台。它负责业务工作流、证据与结果验证；Codex 等 Agent 负责交互与执行。v2.7.11 包含个人版渐进式治理、任务相关记忆选择、显式本地只读执行、Execution Plan 与 EVR 验证闭环。
 
 ## 北极星协议
 
@@ -27,7 +25,7 @@
 - 上传、发送、删除和业务系统写入按企业 L4 治理。
 - 生产规则改进只能生成候选，必须经过回放、仿真、独立核验和人工晋升。
 
-## 企业架构
+## Harness 架构
 
 ```text
 千里马 Harness v2.7.9
@@ -56,76 +54,19 @@
 ├── 个人只读 stdio    → 唯一工具、一次性 Grant、证据回执和拒绝回归
 └── 个人学习管线      → 资源摘要、局部提案、只读执行和收敛验证
 
-企业部署的控制面与执行面关系：
-老板 / 业务负责人 / 员工 / IT 安全管理员
-                    |
-             北极星治理 Broker
-     ┌──────────────┼──────────────┐
-     |              |              |
-  身份与组织      策略与预算      审批与审计
-     |              |              |
-     └──────────────┼──────────────┘
-                    |
-          本机 Connector + 沙箱 Runner
-                    |
-       Codex / Claude Code / CodeWhale / 其他 Agent
-                    |
-       MCP / Skills / 文件 / ERP / 业务系统
-```
+## 个人版边界
 
-北极星是控制平面；Agent 是执行平面；MCP 和 Skills 是工具平面。默认禁止 Agent-to-Agent 直连，所有二次委派都必须回到 Broker 重新授权。
+个人版按 L0-L4 分层：普通问答和续问走快速路径；学习、研究和文件分析按需加载相关 Skill；外发、删除、覆盖、业务写回和其他高影响动作必须进入受控执行路径。
 
-## 四种部署模式
-
-企业只需回答两个问题：是否统一购买 API，是否要求统一 Agent。
-
-| 模式 | API | Agent | 默认治理 |
-|---|---|---|---|
-| E1 | 企业统一 | 企业统一 | 标准化程度最高 |
-| E2 | 企业统一 | 员工从批准名单选择 | 默认推荐 |
-| E3 | 员工或部门自带 | 企业统一 | BYOK，仅保存密钥引用 |
-| E4 | 员工或部门自带 | 员工自选 | 默认 T1，验收后逐步授权 |
-
-选择模式不会自动授予内部数据、MCP、网络或执行权限。
-
-## 企业 L0-L4
-
-| 等级 | 企业含义 | 典型动作 |
-|---|---|---|
-| L0 | 无企业数据的普通交流 | 解释、公开知识问答 |
-| L1 | 公开或低敏只读分析 | 公开资料研究、草稿 |
-| L2 | 部门内部只读任务 | 脱敏数据分析、报告生成 |
-| L3 | 跨系统或受控内部协作 | 受控 MCP、跨部门引用 |
-| L4 | 产生外部或业务状态变化 | 上传、发送、删除、改价、预算、采购、ERP 写入 |
-
-L4 不等于全部交给老板逐条审批。系统按业务责任人、金额阈值、可逆性和批量授权路由；重大治理变更才要求老板或双人确认。
-
-## 组织与员工
-
-企业版提供四种新手角色：
-
-- 老板：查看结果、重大风险和治理决策，不承担日常逐条审批。
-- 业务负责人：管理项目、员工范围、MCP 准入和异常处理。
-- 员工：用自然语言发起任务，只看到与当前工作相关的权限和结果。
-- IT/安全管理员：管理身份、设备、Runner、密钥引用和安全事件，不读取无关业务内容。
-
-员工生命周期覆盖入职、调岗、停职、离职和紧急隔离。调岗执行“先撤销、后授权”，员工记录和审计事件不可物理删除。
-
-## MCP 与业务能力
-
-企业版预留通用 MCP 平台，不绑定单一厂商，覆盖 ERP、财务、税务、海关、物流、库存、广告、市场研究、协作平台和文件系统等能力。
-
-员工 Agent 经业务负责人批准后，可以通过本机 Connector 使用短时 MCP 会话；Connector 仍会逐次检查员工、设备、Agent 版本、任务、数据范围、预算和 Grant 状态。
-
-当前领星、税务、海关及其他 MCP 均为接口合同与机械门禁，未在公开仓中配置真实端点、凭据或业务写入权限。
+个人版只预留本地 stdio MCP 接口。普通任务不启动运行时；外部网络、远程执行、业务写回和后台循环默认关闭。真实端点、凭据和业务写入权限不进入公开仓。
 
 ## 模型协作
 
 模型融合不是多个模型聊天，而是受治理的证据协作：L0-L2 默认单模型，L3 才允许独立候选与证据核验，L4 只能生成候选并进入人工确认。模型档案和 Fusion Plan 见 `.qianlima/model-portfolio.yaml` 与 `.qianlima/fusion-plan-schema.yaml`。
 
-## 业务成果
+## 个人版业务能力
 
-企业版覆盖选品上架、采购、物流履约、库存、流量转化、广告、活动、售后、清货与复盘，并支持：
+千里马个人版覆盖亚马逊运营的完整业务目录，并支持：
 
 - 日报、周报、月报、季报和年报。
 - 月度、季度和年度计划。
@@ -143,76 +84,39 @@ git clone https://github.com/Brian-dai694/beijixing.git
 cd beijixing
 ```
 
-### 2. 选择 E1-E4
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File '.\enterprise 企业版\select-enterprise-deployment-mode.ps1'
-```
-
-### 3. 创建组织配置
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File '.\enterprise 企业版\new-enterprise-organization.ps1'
-```
-
-私有组织配置只写入 `.qianlima/local-data/enterprise/`，不会进入 Git。
-
-### 4. 检查企业运行环境
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File '.\enterprise 企业版\test-enterprise-environment.ps1' -PassThru
-```
-
-企业版默认要求批准的隔离 Runner。缺少 Docker、Linux 容器后端、批准镜像或虚拟化能力时会返回 `blocked`，不会降级为不受控执行。
-
-### 5. 启动企业版
+### 2. 启动个人版
 
 Windows：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File '.\enterprise 企业版\start-enterprise.ps1'
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\start-qianlima.ps1'
 ```
 
 macOS/Linux：
 
 ```bash
-bash 'enterprise 企业版/start-enterprise.sh'
+bash './start-qianlima.sh'
 ```
-
-完整说明见 [企业版 README](enterprise%20企业版/README.md) 和 [分层使用说明书](enterprise%20企业版/企业版分层使用说明书.md)。
 
 ## 当前成熟度
 
 | 范围 | 状态 |
 |---|---|
-| 企业治理合同 | 已实现并有离线回归 |
-| E1-E4 部署模式 | 已实现 |
-| 组织、员工和 L0-L4 | 已实现 |
-| MCP/领星接口 | 已预留，默认禁用 |
-| 真实企业身份与 SSO | 需要部署配置 |
-| 真实沙箱 Runner | 需要 Docker/批准镜像与 Attestation |
-| ERP、税务、海关写入 | 未在公开仓启用 |
+| 个人版运行时与快速路由 | 已实现 |
+| 个人记忆与偏好治理 | 已实现 |
+| 本地 stdio 只读证据工具 | 已实现，默认关闭 |
+| MCP/运营接口 | 已预留，默认禁用 |
+| 外部网络、远程执行、业务写回 | 未在个人版启用 |
 
 部署就绪不等于执行授权。任何真实业务写入仍需任务级 Grant、审批、预检快照、审计和回滚条件。
 
 ## 验证
 
-GitHub Actions 在 Windows 和 macOS 验证共享 Harness，并在 Windows 运行全部企业版离线回归。环境部署检查不会在公共 CI 中尝试安装 Docker 或获取企业凭据。
-
-本地运行企业回归：
-
-```powershell
-$tests = Get-ChildItem -LiteralPath '.\enterprise 企业版' -Filter 'test-*.ps1' -File |
-  Where-Object { $_.Name -ne 'test-enterprise-environment.ps1' }
-foreach ($test in $tests) {
-  powershell -NoProfile -ExecutionPolicy Bypass -File $test.FullName -PassThru
-  if ($LASTEXITCODE -ne 0) { throw "Failed: $($test.Name)" }
-}
-```
+GitHub Actions 在 Windows 和 macOS 验证个人版 Harness、运行时边界、记忆、Skill 和证据回归；不会安装 Docker、访问网络或获取生产凭据。
 
 ## 主 Harness
 
-企业版是 Overlay，不复制或修改主 Harness。内部仍复用 `.qianlima/`、`start-qianlima.ps1`、AGENTS/Claude/其他 Agent 入口和既有安全门。主 Harness 的开发说明见 [.qianlima/README.md](.qianlima/README.md)。
+个人版运行时仍复用 `.qianlima/`、`start-qianlima.ps1`、AGENTS/Claude/其他 Agent 入口和既有安全门。主 Harness 的开发说明见 [.qianlima/README.md](.qianlima/README.md)。
 
 ## 隐私与安全
 

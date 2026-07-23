@@ -26,21 +26,6 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\test-evolution-policy.ps1"
 
-      - name: Enterprise offline regression
-        shell: powershell
-        run: |
-          $enterpriseRoot = Get-ChildItem -LiteralPath . -Directory |
-            Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'edition.yaml') } |
-            Select-Object -First 1
-          if ($null -eq $enterpriseRoot) { throw 'Enterprise overlay directory was not found.' }
-          $tests = Get-ChildItem -LiteralPath $enterpriseRoot.FullName -Filter 'test-*.ps1' -File |
-            Where-Object { $_.Name -ne 'test-enterprise-environment.ps1' }
-          foreach ($test in $tests) {
-            Write-Host ("Running " + $test.Name)
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $test.FullName -PassThru
-            if ($LASTEXITCODE -ne 0) { throw ("Enterprise regression failed: " + $test.Name) }
-          }
-
       - name: Model fusion regression
         shell: powershell
         run: |
