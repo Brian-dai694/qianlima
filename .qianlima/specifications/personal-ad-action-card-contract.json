@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_ad_action_card",
+  "contract_version": "1.0.0",
+  "edition": "personal",
+  "purpose": "A read-only, evidence-backed candidate for one Amazon advertising target. It is not an execution command.",
+  "required_fields": [
+    "action_id",
+    "status",
+    "problem",
+    "evidence",
+    "recommendation",
+    "impact",
+    "permissions",
+    "rollback",
+    "verification"
+  ],
+  "status_enum": ["candidate", "awaiting_confirmation", "executed", "readback_pending", "verified", "frozen"],
+  "recommendation_enum": ["pause", "decrease_bid", "increase_bid", "adjust_budget", "keep"],
+  "problem": {
+    "required": ["campaign", "target", "diagnostic", "statement", "time_range"]
+  },
+  "evidence": {
+    "required": ["source_name", "input_hash", "rows", "metrics", "rule"]
+  },
+  "impact": {
+    "required": ["risk_level", "budget_impact", "expected_effect", "assumptions"]
+  },
+  "permissions": {
+    "required": ["mode", "write_status", "confirmation_required", "control_plane_handoff", "executed"],
+    "personal_default": "read_only",
+    "business_write": "never_from_personal_loop"
+  },
+  "rollback": {
+    "required": ["available", "original_bid", "original_budget", "restore_instruction", "snapshot_required"]
+  },
+  "verification": {
+    "required": ["windows", "metrics", "readback_required"],
+    "fixed_windows": ["3d", "7d"],
+    "metrics": ["spend", "sales", "orders", "acos", "cpc", "ctr", "cvr"]
+  },
+  "invariants": [
+    "candidate_only",
+    "external_calls_false",
+    "business_writes_false",
+    "permissions_granted_false",
+    "no_automatic_budget_or_bid_change",
+    "missing_baseline_blocks_write_handoff"
+  ]
+}

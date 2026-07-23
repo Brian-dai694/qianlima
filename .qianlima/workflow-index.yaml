@@ -1,8 +1,8 @@
 # workflow-index.yaml — Workflow 索引
-# 版本: v2.7.6 | 更新: 2026-07-18
+# 版本: v2.8.5 | 更新: 2026-07-23
 # 变更: 新增 QianlimaEval 运行质量评估，吸收 MiniAppBench / MiniAppEval 的多维评分和证据轨迹思想
 
-# Release version: v2.7.6 | Updated: 2026-07-18
+# Release version: v2.8.5 | Updated: 2026-07-23
 workflows:
   - id: daily_ad_report
     name: 每日广告运营日报
@@ -314,6 +314,27 @@ workflows:
       - purchase_order
       - write_back
       - delete_data
+
+  - id: personal_ad_ops_loop
+    name: 个人广告异常诊断与行动卡
+    scenario: ad_ops
+    status: active_local_readonly
+    definition: workflows/personal_ad_ops_loop.yaml
+    task_card: task-cards/personal-ad-ops-loop.yaml
+    required_inputs:
+      - local_csv
+      - date_or_date_range
+      - marketplace
+      - target_acos_optional
+    required_permissions:
+      - read
+      - aggregate
+    forbidden_operations:
+      - change_bid
+      - change_budget
+      - pause_campaign
+      - write_back
+      - send_external
 
   - id: skill_evolution
     name: Skill 自进化观察与候选 Patch

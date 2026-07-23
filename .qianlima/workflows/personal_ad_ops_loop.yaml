@@ -1,0 +1,26 @@
+workflow:
+  id: personal_ad_ops_loop
+  name: 个人广告运营只读闭环
+  status: active_local_readonly
+  contract: specifications/personal-ad-ops-loop-contract.json
+  action_card_contract: specifications/personal-ad-action-card-contract.json
+  execution_mode: local_script_single_agent
+  stages:
+    - read_and_validate
+    - diagnose
+    - prepare_structured_action_cards
+    - verify_receipt
+    - optional_readback
+    - personal_review
+  fast_path:
+    local_csv_only: true
+    external_calls: false
+    default_multi_agent: false
+  handoff:
+    business_write: control_plane_only
+    confirmation_ref_required: true
+    readback_required_after_write: true
+  outputs:
+    - reports/personal-ad-ops/*.md
+    - run-traces/personal-ad-ops/*.json
+    - evidence-receipts/personal-ad-ops/*.json

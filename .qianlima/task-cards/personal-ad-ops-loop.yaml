@@ -1,0 +1,33 @@
+task_card:
+  id: personal_ad_ops_loop
+  name: 广告运营只读闭环
+  plain_language_trigger:
+    - 看广告异常并给我下一步
+    - 跑广告运营闭环
+    - 分析广告并复盘上次动作
+    - 看看哪些广告需要处理
+  when_to_use: 想从本地广告导出中快速发现异常、形成可审核行动候选，并在后续导出可用时回读结果。
+  user_needs_to_provide:
+    - 本地 CSV 文件
+    - 数据日期或日期范围
+    - 站点
+    - 目标 ACoS，可选
+    - 后续动作后的新 CSV，可选
+  agent_will_do:
+    - 读取并校验选定日期和站点的数据
+    - 计算花费、销售额、订单、ACoS、CPC、CTR、CVR
+    - 识别高花费无单、高 ACoS、高点击低转化和表现良好项
+    - 输出包含问题、证据、建议、影响、权限、回滚和 3/7 天验证的行动卡
+    - 生成本地报告、证据回执和运行记录
+    - 有后续导出时比较动作前后的指标变化
+  output:
+    type: markdown_report_and_json_receipt
+    contract: specifications/personal-ad-ops-loop-contract.json
+    action_card_contract: specifications/personal-ad-action-card-contract.json
+  forbidden_actions:
+    - 自动改竞价
+    - 自动改预算
+    - 自动暂停广告
+    - 自动发布 Listing
+    - 自动外发
+    - 自动写回业务系统

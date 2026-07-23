@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.4-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.5-blue.svg)](CHANGELOG.md)
 
-> 当前版本：`v2.8.4`
+> 当前版本：`v2.8.5`
 
 千里马不是聊天机器人外壳，也不是只会生成标题的关键词工具。它把你的运营任务拆成可复用的工作流，让 Agent 能够：
 
@@ -64,6 +64,31 @@ Codex、Claude Code 等负责交互和推理；千里马负责任务路由、业
 | 只读 | 学习、研究、报表、文件分析 | 读取最小资料，输出证据和结论 |
 | 受控执行 | 本地计算、生成报告、整理文件 | 先预检，限定目录和步骤，留下回执 |
 | 高影响 | 改价、竞价、预算、采购、发布、外发、删除 | 明确影响范围，保留快照和回退路径 |
+
+## V1 广告异常诊断闭环
+
+个人版先把一个高频生产闭环做实：
+
+```text
+本地广告 CSV
+-> 异常诊断
+-> 结构化行动卡
+-> 证据回执
+-> 后续导出回读
+-> 3 天 / 7 天复盘
+```
+
+输入至少包括广告活动、广告组、搜索词、花费、销售额、订单、预算和时间范围。每张行动卡都说明：
+
+- 哪个 Campaign / Target 出现什么问题；
+- 原始文件、时间范围、行号和指标证据；
+- 暂停、降价、升价、调整预算或保持的候选建议；
+- 预期影响、预算暴露和风险；
+- 当前只读权限、是否需要后续确认；
+- 原始出价/预算回滚基线；
+- 执行后 3 天和 7 天需要回读的指标。
+
+运行入口为 `.qianlima/scripts/invoke-personal-ad-ops-loop.ps1`。它只处理本地 CSV，不联网、不改广告、不改预算、不外发，也不启动多 Agent。真正的业务写入不属于个人版闭环。
 
 ## 自进化怎么工作
 
@@ -254,7 +279,7 @@ C:\Users\UEFR\Desktop\Work Space\千里马计划-git-safe
 
 ## 版本
 
-当前版本为 `v2.8.4`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本为 `v2.8.5`。详细变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 
