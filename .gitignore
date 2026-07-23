@@ -10,6 +10,8 @@
 .qianlima/*.local.yaml
 .qianlima/*secret*
 .qianlima/*credential*
+# This file contains references and policy only; it never contains secret values.
+!.qianlima/credential-policy.json
 
 # 工作状态（含 ASIN/价格/利润）
 .qianlima/work.ws
@@ -50,6 +52,7 @@ daily-summaries/
 
 # 反馈
 .qianlima/feedback/
+.qianlima/snapshots/
 
 # Evolution experiments may contain real-task feedback. Keep only public templates and decisions.
 .qianlima/evolution/candidates/*
@@ -122,3 +125,15 @@ SESSION-STATE.md
 MEMORY.md
 requirements.txt
 *.lock
+
+# Root-level business data and generated deliverables are local-only.
+/.qianlima/specifications/drafts/
+/_tmp_*
+/~$*
+/*.xlsx
+/*.csv
+/YB1_*.json
+/webbridge-req-*.json
+/amazon-collector-extension*/
+/*.zip
+/产出/

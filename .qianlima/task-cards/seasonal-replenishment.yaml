@@ -1,0 +1,39 @@
+task_card:
+  id: seasonal_replenishment_review
+  name: 淡旺季补货复盘
+  plain_language_trigger:
+    - 淡旺季补货
+    - 旺季前备货
+    - 库存还能撑多久
+    - 这个 ASIN 要补多少
+    - 断货风险
+    - 淡季控广告
+  when_to_use: 想判断 ASIN/SKU 在淡旺季、促销节点或增长期是否需要补货，以及库存、现金和广告节奏是否匹配。
+  user_needs_to_provide:
+    - ASIN 或 SKU
+    - 站点
+    - 当前库存，可选
+    - 在途和 ETA，可选
+    - 供应商交期和 MOQ，可选
+    - 采购成本和现金上限，可选
+  agent_will_do:
+    - 整理销量、库存、在途、交期和广告数据
+    - 判断淡旺季窗口和销量情景
+    - 计算可售天数、补货点和建议补货量
+    - 给出广告节奏、促销节奏和风险提示
+  output:
+    type: markdown_report
+    template: templates/seasonal-replenishment_template.md
+  must_include:
+    - 数据来源
+    - 淡旺季判断
+    - 三种销量情景
+    - 可售天数
+    - 补货建议
+    - 广告库存联动
+    - 待验证项
+  forbidden_actions:
+    - 自动下采购单
+    - 自动改价
+    - 自动改广告预算
+    - 自动清仓

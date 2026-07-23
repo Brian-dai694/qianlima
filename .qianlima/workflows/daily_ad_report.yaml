@@ -16,6 +16,12 @@ workflow:
     state_machine: agent_runtime_policy.state_machine
     first_delivery: status_card_then_preliminary_judgment
 
+  flow_runtime:
+    source: workflow-runtime.yaml
+    flow_id: daily_ad_report
+    retry_profile: conservative
+    on_failure: partial_with_pending_verification
+
   subagent_plan:
     source: subagent-orchestration.yaml
     pattern: build_verify_pair

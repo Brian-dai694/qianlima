@@ -1,0 +1,215 @@
+# agent-cards.yaml - 内部 Agent 能力与权限合同
+# 版本: v1 | 仅声明能力边界，不承载密钥、原始数据或模型输出
+agent_cards:
+  version: 1
+  exchange_contract: "Agents exchange capability, work-order, status, artifact, and receipt data only."
+  default_policy:
+    no_shared_hidden_reasoning: true
+    no_shared_full_memory: true
+    no_secret_in_order_or_receipt: true
+    project_rules_may_only_narrow_permissions: true
+
+  interoperability:
+    a2a_protocol_target: "1.0"
+    current_mode: internal_contract_only
+    rule: "An Agent Card describes capability; it never grants authority."
+    externally_declarable_fields: [id, role, accepts, returns, risk_ceiling, budget, stop_when]
+    prohibited_from_external_card: [allowed_tools, data_scope, hidden_reasoning, full_memory, secrets, runtime_grants]
+    network_exposure: prohibited_until_audited_gateway_exists
+
+  cards:
+    - id: fast_router
+      role: 快速路由
+      accepts: [user_request]
+      returns: [route, context_level, risk_level, next_agent]
+      allowed_tools: [read_router, read_session_lease]
+      data_scope: request_metadata_only
+      risk_ceiling: L1
+      can_write: false
+      budget: {max_steps: 2, max_tool_calls: 1, timeout_ms: 2000}
+      stop_when: [route_decided, ambiguous_request]
+
+    - id: planner
+      role: 任务规划
+      accepts: [work_order_request, route_result, selected_source_refs]
+      returns: [plan, required_evidence, proposed_artifacts]
+      allowed_tools: [read_task_card, read_workflow, read_selected_sources]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L3
+      can_write: false
+      budget: {max_steps: 6, max_tool_calls: 5, timeout_ms: 120000}
+      stop_when: [minimum_evidence_defined, budget_exhausted]
+
+    - id: evidence_checker
+      role: 独立证据审核
+      accepts: [claim_pack, source_refs, artifact_ref]
+      returns: [pass, partial, fail, missing_evidence, conflicts]
+      allowed_tools: [read_selected_sources, verify_calculation]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L3
+      can_write: false
+      budget: {max_steps: 4, max_tool_calls: 3, timeout_ms: 90000}
+      stop_when: [evidence_sufficient, conflict_found, budget_exhausted]
+      independence: planner_context_isolation_required
+
+    - id: executor
+      role: 受控执行
+      accepts: [approved_action_order, verified_evidence]
+      returns: [operation_trace, artifact_ref, execution_status]
+      allowed_tools: [approved_tool_only]
+      data_scope: order_explicit_scope_only
+      risk_ceiling: L4
+      can_write: true
+      budget: {max_steps: 3, max_tool_calls: 3, timeout_ms: 120000}
+      stop_when: [operation_complete, authorization_missing, safety_denied]
+      requirements: [single_use_grant, explicit_confirmation, preflight_snapshot]
+
+    - id: rollback_sentinel
+      role: 回滚哨兵
+      accepts: [preflight_snapshot, operation_trace, anomaly_signal]
+      returns: [rollback_recommendation, recovery_status, pending_human_decision]
+      allowed_tools: [read_snapshot, read_operation_trace, propose_rollback]
+      data_scope: current_run_artifacts_only
+      risk_ceiling: L3
+      can_write: false
+      budget: {max_steps: 4, max_tool_calls: 3, timeout_ms: 90000}
+      stop_when: [recovery_plan_ready, no_anomaly, needs_human]
+
+    - id: result_attributor
+      role: 结果归因与演进
+      accepts: [run_receipt, baseline_result, outcome_feedback]
+      returns: [attribution, candidate_change_ref, regression_risks]
+      allowed_tools: [read_receipt, read_eval_case, write_sanitized_candidate]
+      data_scope: sanitized_evolution_inputs_only
+      risk_ceiling: L2
+      can_write: true
+      budget: {max_steps: 5, max_tool_calls: 4, timeout_ms: 120000}
+      stop_when: [attribution_complete, candidate_recorded, insufficient_feedback]
+      production_change: prohibited
+
+    - id: codex_supervisor
+      role: supervisor_planner_verifier
+      accepts: [work_order_request, selected_artifact_refs, evidence_receipt]
+      returns: [plan, verification_result, summary]
+      allowed_tools: [read_selected_sources, verify_receipt]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      budget: {max_steps: 6, max_tool_calls: 4, timeout_ms: 120000}
+      stop_when: [plan_ready, evidence_verified, budget_exhausted]
+      execution_adapter: invoke-codex-supervisor.ps1
+
+    - id: codewhale_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      budget: {max_steps: 5, max_tool_calls: 3, timeout_ms: 120000}
+      stop_when: [artifact_ready, evidence_missing, budget_exhausted]
+      execution_adapter: invoke-codewhale.ps1
+      default_mode: dry_run
+
+    - id: claude_code_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      budget: {max_steps: 5, max_tool_calls: 3, timeout_ms: 120000}
+      stop_when: [artifact_ready, evidence_missing, budget_exhausted]
+      execution_adapter: invoke-claude-code.ps1
+      default_mode: dry_run
+
+    - id: raven_worker
+      role: bounded_agent_framework_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      budget: {max_steps: 5, max_tool_calls: 3, timeout_ms: 120000}
+      stop_when: [artifact_ready, evidence_missing, budget_exhausted]
+      execution_adapter: invoke-raven.ps1
+      default_mode: dry_run
+
+    - id: mimo_cli_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-mimo-cli.ps1
+      availability: discover_only
+
+    - id: kimi_cli_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-kimi-cli.ps1
+      availability: discover_only
+
+    - id: gemini_cli_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-gemini-cli.ps1
+      availability: discover_only
+
+    - id: aider_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-aider.ps1
+      availability: discover_only
+
+    - id: opencode_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-opencode.ps1
+      availability: discover_only
+
+    - id: goose_worker
+      role: bounded_cli_execution_worker
+      accepts: [approved_work_order, selected_artifact_refs]
+      returns: [candidate_artifact, execution_summary, evidence_receipt]
+      allowed_tools: [read_selected_sources, emit_candidate_artifact]
+      data_scope: task_selected_sources_only
+      risk_ceiling: L2
+      can_write: false
+      can_delegate: false
+      execution_adapter: invoke-goose.ps1
+      availability: discover_only

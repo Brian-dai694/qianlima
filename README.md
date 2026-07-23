@@ -1,24 +1,31 @@
-# 千里马 — 亚马逊运营 AI Agent Harness
+# 千里马个人版 — 本地优先的 Amazon Agent 工作台
 
-[中文](README.md) · **English** → [README.en.md](README.en.md)
+[中文](README.md) · [English](README.en.md)
 
-[![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
+[![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 
 > 版本: v2.8.0 | 2026-07-22 · 变更历史见 [CHANGELOG.md](CHANGELOG.md)
 
-千里马计划是一个面向亚马逊卖家的 AI Agent Harness 系统。它不是另一个“关键词工具”或“广告管理面板”，而是 **Agent 治理层**：让 LLM 能可靠、安全、可追溯地执行亚马逊运营任务。v2.7.9 增加个人版渐进式治理、任务相关记忆选择、可清除的个人经验管理、唯一的显式本地 stdio 只读证据工具，以及个人学习管线边界。
+千里马个人版是面向亚马逊卖家的本地优先 AI Agent 工作台。它负责业务工作流、证据与结果验证；Codex 等 Agent 负责交互与执行。v2.8.0 包含个人版渐进式治理、任务相关记忆选择、显式本地只读执行、Execution Plan、EVR 验证闭环和 Governed Loop。
 
-## 核心理念
+## 北极星协议
 
-> Harness 不是 prompt 模板，而是运行时系统。  
-> 它观察自己、诊断问题、积累经验，并持续自我改进。
+> 任何接入的 Agent，都必须经过准入、最小授权、证据核验、预算约束、审计与可撤销控制。
 
 本项目借鉴了 [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) 以及多个 SOTA 项目的设计理念。v2.7.8 延续分层启动、运行时策略、命令安全、评估、观测、记忆卡、子代理分工与状态化 Loop 的公开安全模板。
+硬边界：
 
-## 架构
+- Agent Card 只是能力声明，不是权限。
+- API 所有权不代表企业数据访问权。
+- 安装 Agent 不代表获得 MCP 或业务写入权。
+- 员工 Agent 只能使用任务级、短时、可撤销的 Grant。
+- 上传、发送、删除和业务系统写入按企业 L4 治理。
+- 生产规则改进只能生成候选，必须经过回放、仿真、独立核验和人工晋升。
+
+## Harness 架构
 
 ```text
 千里马 Harness v2.8.0
@@ -49,42 +56,71 @@
 └── 个人 Governed Loop → Builder/Checker 隔离、原始检查回执和自动冻结
 ```
 
+## 个人版边界
+
+个人版按 L0-L4 分层：普通问答和续问走快速路径；学习、研究和文件分析按需加载相关 Skill；外发、删除、覆盖、业务写回和其他高影响动作必须进入受控执行路径。
+
+个人版只预留本地 stdio MCP 接口。普通任务不启动运行时；外部网络、远程执行、业务写回和后台循环默认关闭。真实端点、凭据和业务写入权限不进入公开仓。
+
+## 模型协作
+
+模型融合不是多个模型聊天，而是受治理的证据协作：L0-L2 默认单模型，L3 才允许独立候选与证据核验，L4 只能生成候选并进入人工确认。模型档案和 Fusion Plan 见 `.qianlima/model-portfolio.yaml` 与 `.qianlima/fusion-plan-schema.yaml`。
+
+## 个人版业务能力
+
+千里马个人版覆盖亚马逊运营的完整业务目录，并支持：
+
+- 日报、周报、月报、季报和年报。
+- 月度、季度和年度计划。
+- 日、周、月、季、年度利润口径。
+- Listing 利润、标题、主图、五点和长描述成果包。
+- 业务端、成果端、失败端、核心问题端和处理端五视图。
+- 踩坑日志、改进候选、回放、仿真和人工晋升的复利系统。
+
 ## 快速开始
 
-### 1. 克隆仓库
+### 1. 克隆
 
 ```bash
-git clone <repo-url>
-cd qianlima
+git clone https://github.com/Brian-dai694/beijixing.git
+cd beijixing
 ```
 
-### 2. 配置私有数据
+### 2. 启动个人版
 
-公开仓只保留脱敏模板。真实数据请只放在你的私有 fork 或本地工作副本中。
-
-```bash
-# 复制脱敏模板
-cp .qianlima/data-sources.example.yaml .qianlima/data-sources.yaml
-cp .qianlima/work.example.ws .qianlima/work.ws
-
-# 然后在本地编辑真实数据
-# data-sources.yaml: 飞书 token、ERP URL 等
-# work.ws: ASIN、成本、利润率、关键词等
-```
-
-### 3. 初始化工作区
+Windows：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\start-qianlima.ps1'
 ```
 
-macOS / Linux（需先装 PowerShell 7，例如 `brew install --cask powershell`）：
+macOS/Linux：
 
 ```bash
-./start-qianlima.sh
+bash './start-qianlima.sh'
 ```
 
-启动脚本会生成：
+## 当前成熟度
+
+| 范围 | 状态 |
+|---|---|
+| 个人版运行时与快速路由 | 已实现 |
+| 个人记忆与偏好治理 | 已实现 |
+| 本地 stdio 只读证据工具 | 已实现，默认关闭 |
+| MCP/运营接口 | 已预留，默认禁用 |
+| 外部网络、远程执行、业务写回 | 未在个人版启用 |
+
+部署就绪不等于执行授权。任何真实业务写入仍需任务级 Grant、审批、预检快照、审计和回滚条件。
+
+## 验证
+
+GitHub Actions 在 Windows 和 macOS 验证个人版 Harness、运行时边界、记忆、Skill 和证据回归；不会安装 Docker、访问网络或获取生产凭据。
+
+## 主 Harness
+
+个人版运行时仍复用 `.qianlima/`、`start-qianlima.ps1`、AGENTS/Claude/其他 Agent 入口和既有安全门。主 Harness 的开发说明见 [.qianlima/README.md](.qianlima/README.md)。
+
+## 隐私与安全
 
 ```text
 .qianlima/WORKSPACE_INDEX.md
@@ -268,6 +304,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\new-dec
 - XPolicyLab/XPolicyLab. Policy adapter and server-client separation pattern.
 - zsLiu2003/Comattack. COMA compression attack threat model.
 - 机器之心 SOTA：loop-engineering / memgovern / nemo-skills / alembic / gdpo / marshal / celery / awesome-kv-cache-optimization
+公开仓只允许脱敏模板。禁止提交 API Key、Token、客户数据、账号信息、真实成本、业务导出、截图、运行日志、审计账本和本机绝对路径。凭据只能使用 Secret Reference，由操作系统或批准的密钥管理器保存。
 
 ## 许可证
 

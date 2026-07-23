@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-skill-self-evolution-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Manage skill improvement as an evidence-bound, reversible state machine.",
+  "state_order": [
+    "feedback_recorded",
+    "evidence_collected",
+    "rule_abstracted",
+    "patch_candidate_created",
+    "replay_validated",
+    "released",
+    "rolled_back",
+    "frozen"
+  ],
+  "allowed_actions": [
+    "record_feedback",
+    "collect_evidence",
+    "abstract_rule",
+    "create_patch",
+    "validate",
+    "auto_release",
+    "rollback",
+    "status"
+  ],
+  "transition_rules": {
+    "record_feedback": {
+      "from": ["none"],
+      "to": "feedback_recorded",
+      "requires": ["feedback_ref", "skill_id"]
+    },
+    "collect_evidence": {
+      "from": ["feedback_recorded"],
+      "to": "evidence_collected",
+      "requires": ["evidence_refs"]
+    },
+    "abstract_rule": {
+      "from": ["evidence_collected"],
+      "to": "rule_abstracted",
+      "requires": ["rule_summary"]
+    },
+    "create_patch": {
+      "from": ["rule_abstracted"],
+      "to": "patch_candidate_created",
+      "requires": ["candidate_path"]
+    },
+    "validate": {
+      "from": ["patch_candidate_created"],
+      "to": "replay_validated",
+      "requires": ["candidate_path", "independent_validation"]
+    },
+    "auto_release": {
+      "from": ["replay_validated"],
+      "to": "released",
+      "requires": ["automatic_release_gate", "release_ref"]
+    },
+    "rollback": {
+      "from": ["released"],
+      "to": "rolled_back",
+      "requires": ["rollback_ref", "reason"]
+    }
+  },
+  "hard_stops": [
+    "missing_feedback_or_evidence",
+    "private_or_raw_evidence",
+    "candidate_validation_failed",
+    "state_transition_out_of_order",
+    "automatic_release_gate_failed",
+    "production_file_auto_modified",
+    "permission_or_attack_surface_expanded",
+    "rollback_reference_missing"
+  ],
+  "storage": {
+    "event_log": ".qianlima/evolution/skill-self-evolution-events.jsonl",
+    "candidate_root": ".qianlima/evolution/candidates",
+    "feedback_root": ".qianlima/feedback/skill-evolution",
+    "evidence_root": ".qianlima/evolution/eval-cases",
+    "private_data_must_not_be_written": true
+  },
+  "invariants": [
+    "Events are append-only and never overwrite prior evidence.",
+    "A low-risk skill patch may release automatically only after independent validation.",
+    "Automatic release never grants permission or edits a protected production file.",
+    "A failed validation freezes the candidate and preserves the prior version.",
+    "Rollback records reference a prior release and do not delete original evidence.",
+    "Skill evolution cannot grant network, write, delete, export, or delegation permission."
+  ]
+}

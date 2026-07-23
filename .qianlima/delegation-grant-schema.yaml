@@ -1,0 +1,15 @@
+# delegation-grant-schema.yaml - per-task temporary authorization
+delegation_grant:
+  version: 1
+  required: [grant_id, agent_id, task_id, work_order_id, data_refs, allowed_tools, budget, risk_ceiling, expires_at, verifier_agent_id, can_delegate, status]
+  defaults:
+    can_delegate: false
+    network_access: none
+    write_access: none
+    status: issued
+  invariants:
+    - "A grant is scoped to one task and one Agent; it cannot be transferred or reused."
+    - "Permissions are the intersection of Agent Card, work order, grant, and runtime policy."
+    - "L4 grants require explicit confirmation, a preflight snapshot, and a rollback reference."
+    - "Expired, revoked, cancelled, or completed grants cannot authorize new tool calls."
+    - "Failure defaults to revoke and shrink scope; it never expands authorization."

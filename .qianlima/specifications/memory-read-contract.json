@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-controlled-memory-read-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Make memory retrieval a task-scoped, grant-bound evidence action.",
+  "required_fields": ["request_id", "task_id", "grant_id", "agent_id", "memory_refs", "requested_state_view", "requested_scope", "risk_level", "max_items", "purpose"],
+  "allowed_state_views": ["current", "historical", "audit"],
+  "allowed_risk_levels": ["L0", "L1", "L2", "L3", "L4"],
+  "allowed_classifications": ["public", "internal_sanitized", "confidential_reference_only"],
+  "rules": {
+    "grant_required": true,
+    "task_and_agent_must_match_grant": true,
+    "memory_ref_must_be_in_grant_data_refs": true,
+    "grant_must_be_issued_and_unexpired": true,
+    "revoked_grant_denied": true,
+    "current_view_excludes_non_current": true,
+    "historical_view_must_label_non_current": true,
+    "audit_view_read_only": true,
+    "l4_requires_original_source_reload": true,
+    "max_items_must_be_positive_and_bounded": true,
+    "full_memory_forbidden": true
+  },
+  "prohibited_fields": ["raw_prompt", "hidden_reasoning", "secret_value", "raw_private_data", "full_memory", "api_key", "token", "password", "cookie"]
+}

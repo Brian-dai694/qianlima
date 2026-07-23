@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-complexity-admission-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Admit new Agent or pipeline complexity only when independent value is demonstrated and failures remain governable.",
+  "required_fields": ["proposal_id", "proposal_version", "lifecycle_state", "target_layer", "change_type", "goal", "single_agent_sufficient", "independent_benefit", "input_contract", "output_contract", "failure_terminals", "permission_impact", "simulation_evidence", "independent_verifier", "rollback_plan", "human_approval", "proposed_change", "privacy"],
+  "lifecycle_states": ["draft", "analyzed", "shadow_converged", "promotion_candidate", "frozen", "rejected"],
+  "allowed_change_types": ["new_agent", "new_pipeline_stage", "new_memory_operation", "new_retrier", "new_verifier", "new_runner"],
+  "allowed_target_layers": ["specification", "workflow", "router", "middleware", "runtime"],
+  "required_simulation_fields": ["status", "report_ref", "case_count", "failure_injection_cases", "terminal_state_checked", "source_classification"],
+  "allowed_evidence_classifications": ["public", "internal_sanitized"],
+  "rules": {
+    "single_agent_sufficiency_blocks_unnecessary_split": true,
+    "independent_benefit_must_be_measured": true,
+    "input_output_contract_required": true,
+    "failure_terminal_required": true,
+    "simulation_required": true,
+    "independent_verifier_required": true,
+    "permission_expansion_requires_human_approval": true,
+    "production_change_forbidden": true,
+    "rollback_required": true
+  },
+  "prohibited_fields": ["raw_prompt", "hidden_reasoning", "secret_value", "raw_private_data", "full_tool_parameters", "api_key", "token", "password", "cookie"]
+}

@@ -15,6 +15,13 @@ evolution_policy:
     never_auto_modify: [AGENTS.md, .qianlima/risk-rules.yaml, .qianlima/agent-runtime-policy.yaml, .qianlima/scripts]
   candidate_contract:
     required_fields: [candidate_id, target_layer, target_files, hypothesis, expected_benefit, tested_with, baseline_version, rollback_plan]
+    structured_contract: .qianlima/specifications/improvement-candidate-contract.json
+    validator: .qianlima/scripts/validate-improvement-candidate.ps1
+    independent_verifier_required: true
+    permission_expansion_requires_human_approval: true
+    private_or_raw_evidence: deny
+    complexity_contract: .qianlima/specifications/complexity-admission-contract.json
+    complexity_validator: .qianlima/scripts/validate-complexity-admission.ps1
     one_target_layer_per_candidate: true
     allowed_target_layers: [entry_rule, task_card, workflow, skill, router, middleware, runtime]
     forbidden_content: [credentials, raw_private_data, customer_identifiers, browser_exports]
@@ -40,4 +47,6 @@ evolution_policy:
     frequency: low_batch
     max_candidates_per_review: 3
     automatic_promotion: false
+    promotion_script: .qianlima/scripts/promote-improvement-candidate.ps1
+    production_change: forbidden_without_separate_release_decision
     automatic_rollback_of_production: false

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-business-evidence-pack",
+  "purpose": "Bind a Qianlima business conclusion to state, diff, sources, formulas, version, and verification metadata.",
+  "required_fields": ["evidence_pack_id", "task_id", "workflow", "conclusion", "current_state_ref", "desired_state_ref", "diff_ref", "source_refs", "data_time_range", "formula_refs", "workflow_version", "assumptions", "uncertainties", "pending_verification", "replay_command", "verification_status", "artifact_hash"],
+  "verification_statuses": ["candidate", "partial", "passed", "failed", "blocked"],
+  "forbidden_content": ["raw_source_content", "hidden_reasoning", "credential_value", "api_key", "access_token", "password"],
+  "invariants": [
+    "A business conclusion is not complete without source references, time range, formula references, and verification status.",
+    "Evidence packs contain references and summaries, never raw private rows or secrets.",
+    "A producer cannot mark its own pack independently verified.",
+    "Artifact hash covers the immutable pack artifact, not the source data.",
+    "A replacement pack gets a new evidence_pack_id and preserves the prior reference."
+  ]
+}

@@ -1,0 +1,86 @@
+workflow:
+  id: seasonal_replenishment_review
+  name: 淡旺季补货复盘
+  scenario: inventory_monitor
+  status: draft
+  mode: on_demand
+  description: 根据销量、库存、在途、交期、季节性、现金和广告节奏，生成只读补货建议。
+
+  user_intents:
+    - 淡旺季补货
+    - 旺季前备货
+    - 库存还能撑多久
+    - 这个 ASIN 要补多少
+    - 断货风险
+    - 淡季控广告
+
+  required_inputs:
+    - asin_or_sku
+    - marketplace
+
+  optional_inputs:
+    - available_inventory
+    - inbound_units
+    - inbound_eta
+    - supplier_lead_time_days
+    - shipping_days
+    - moq
+    - landed_cost
+    - cash_limit
+    - seasonality_window
+
+  required_data_sources:
+    - lingsing_product
+    - lark_asin_sales
+
+  optional_data_sources:
+    - lingsing_ads
+    - lark_ads_daily
+    - sorftime_mcp
+    - pangolinfo_mcp
+    - sif_mcp
+    - supplier_quotes
+    - logistics_quotes
+
+  execution_steps:
+    - step: collect_inventory_sales
+      inputs: [asin_or_sku, marketplace]
+      outputs: [available_inventory, inbound_units, sales_velocity_7_14_30_60_90]
+      rule: 优先使用卖家私有数据；缺失项必须标注待验证。
+
+    - step: collect_supply_constraints
+      inputs: [supplier_lead_time_days, shipping_days, moq, landed_cost, cash_limit]
+      outputs: [total_lead_time, cash_required, moq_constraint]
+      rule: 缺交期、MOQ 或成本时，不输出确定采购量，只输出风险预估。
+
+    - step: assess_seasonality
+      inputs: [sales_history, keyword_trend, promotion_calendar, category_context]
+      outputs: [seasonality_window, confidence, peak_or_downside_signal]
+      rule: 站外和关键词趋势只能辅助判断，不能替代真实销量。
+
+    - step: calculate_scenarios
+      inputs: [inventory, inbound, sales_velocity, seasonality_signal]
+      outputs: [conservative_days_of_cover, baseline_days_of_cover, peak_days_of_cover]
+      rule: 至少输出保守、基准、旺季三种情景。
+
+    - step: generate_replenishment_plan
+      inputs: [days_of_cover, total_lead_time, safety_stock_days, moq, cash_limit]
+      outputs: [reorder_point, recommended_reorder_qty, cash_required, decision]
+      rule: 输出补货、少量补货、观察、停止补货或清仓建议。
+
+    - step: ad_inventory_pacing
+      inputs: [inventory_status, ad_sales_share, acos, tacos, rank]
+      outputs: [ad_pacing_adjustment]
+      rule: 只给建议，不执行改预算、改价、改竞价或否词。
+
+  output:
+    template: templates/seasonal-replenishment_template.md
+    default_output_path: "reports/{date}_淡旺季补货_{asin_or_sku}_{marketplace}_V{version}.md"
+
+  forbidden_operations:
+    - purchase_order
+    - change_price
+    - change_bid
+    - change_budget
+    - write_back
+    - delete_data

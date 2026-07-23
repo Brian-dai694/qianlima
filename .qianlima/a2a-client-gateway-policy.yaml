@@ -1,0 +1,28 @@
+# a2a-client-gateway-policy.yaml - Phase 2 preflight boundary
+a2a_client_gateway:
+  version: 1
+  mode: dry_run_only
+  registry: a2a-remote-registry.json
+  preflight: scripts/preflight-a2a-client.ps1
+  default_action: deny
+  network_dispatch_enabled: false
+  dispatch_contract:
+    require_enabled_registry_entry: true
+    require_protocol_negotiation: true
+    require_source_classification: true
+    require_manager_owner: true
+    require_verifier: true
+    require_human_approval: true
+    maximum_risk_ceiling: L2
+    external_write: prohibited
+    secrets_in_context: prohibited
+  circuit_breaker:
+    max_consecutive_failures: 2
+    open_for_minutes: 30
+    open_on: [timeout, protocol_mismatch, artifact_integrity_failure, policy_violation]
+  budgets:
+    max_timeout_ms: 30000
+    max_steps: 5
+    max_tool_calls: 3
+    max_cost_usd: 0
+  rule: "Preflight can approve only a configured read-only request; it never performs network I/O."

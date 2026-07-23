@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "map_id": "qianlima-shared-mcp-capability-port-map",
+  "map_version": "1.0.0",
+  "profiles": ["personal", "enterprise"],
+  "purpose": "Reserve stable local slots for governed MCP adapters without opening listeners by default.",
+  "network_defaults": {
+    "enabled": false,
+    "bind_address": "127.0.0.1",
+    "public_listener": false,
+    "allowed_transports": ["stdio", "loopback_http"],
+    "external_dispatch": "deny_by_default",
+    "task_end_action": "revoke_and_close",
+    "port_range": {"start": 15800, "end": 15899},
+    "port_reservation_is_not_enablement": true
+  },
+  "shared_slots": [
+    {"slot_id": "mcp_gateway", "port": 15800, "purpose": "governed MCP broker and grant check", "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_health", "port": 15801, "purpose": "local health and contract probe", "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_reporting", "port": 15810, "capability_ids": ["reporting"], "adapters": ["local_report_reader", "lark_readonly"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_planning_profit", "port": 15820, "capability_ids": ["planning", "profit_accounting"], "adapters": ["local_calculation", "lark_finance_readonly"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_compliance", "port": 15830, "capability_ids": ["tax_customs_product_compliance"], "adapters": ["official_source_reader", "compliance_document_reader"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_research", "port": 15840, "capability_ids": ["product_market_competition_keyword_pricing"], "adapters": ["sorftime_readonly", "pangolinfo_readonly", "sif_readonly"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_listing", "port": 15850, "capability_ids": ["listing_content"], "adapters": ["local_content_reader", "image_brief_checker"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_supply_chain", "port": 15860, "capability_ids": ["procurement_supplier_packaging_logistics"], "adapters": ["supplier_quote_reader", "logistics_quote_reader"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_inventory", "port": 15870, "capability_ids": ["inventory_fulfillment"], "adapters": ["lingsing_inventory_readonly", "lark_inventory_readonly"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_marketing", "port": 15880, "capability_ids": ["traffic_advertising_conversion_campaigns"], "adapters": ["lingsing_ads_readonly", "lark_ads_readonly"], "status": "reserved_not_enabled"},
+    {"slot_id": "mcp_after_sales", "port": 15890, "capability_ids": ["after_sales_clearance_root_cause"], "adapters": ["lark_after_sales_readonly", "local_feedback_reader"], "status": "reserved_not_enabled"}
+  ],
+  "adapter_contract": {
+    "before_call": ["agent_admission", "task_and_grant_binding", "data_classification", "budget_check", "continuous_trust_check"],
+    "input": ["reference", "hash", "sanitized_summary"],
+    "forbidden_input": ["secret_value", "full_memory", "unrestricted_workspace_path", "raw_customer_data"],
+    "after_call": ["content_scan", "artifact_metadata", "evidence_receipt", "append_only_event"],
+    "failure": "deny_or_shrink_then_freeze",
+    "business_write": "never_authorized_by_MCP_slot",
+    "provider_credentials": "secret_ref_only"
+  },
+  "enablement_gate": {
+    "required": ["approved_adapter", "health_probe_passed", "runner_attestation", "task_scoped_grant", "human_approval_for_L4"],
+    "default": "disabled",
+    "port_conflict": "block_start",
+    "listener_bind_failure": "block_start",
+    "version_change": "reset_trust_and_require_re_admission"
+  }
+}

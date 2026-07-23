@@ -96,6 +96,80 @@ v2.7.0 使用 `task-runtime.yaml` 管理任务状态：`classify -> initial_judg
 
 快照采用 SWR：合格快照可用于初判，实时结果可推翻初判；价格、竞价、预算、采购、删除、外部写回前必须刷新原始来源并走确认门禁。原始 CSV 必须先经过 `scripts/summarize-csv.ps1` 本地聚合，保留公式版本与重跑入口。工具健康与体验事件仅存本地运行目录，用来诊断“慢在哪里”并验证优化没有降低证据完整率。
 
+## 执行计划与 EVR（v2.7.9）
+
+千里马的业务 Workflow 可以编译为结构化 `Execution Plan`，再由本地只读 Runner 执行。执行器只处理计划声明的步骤，不负责业务判断，也不能临时增加工具、预算或数据范围。
+
+```text
+Execution Plan
+  -> Execute（按计划读取和计算）
+  -> Verify（核对来源、行数、警告、待验证项和产物哈希）
+  -> Revise（发现缺口时生成新计划引用）
+  -> Completed / Frozen / Stopped
+```
+
+个人版首期只开放本地只读数据处理：CSV 使用 `scripts/invoke-qianlima-readonly-runner.ps1` 和既有 `scripts/summarize-csv.ps1`；XLSX、Python 只做预检，不自动安装依赖。默认无网络、无 ERP、无写回、无删除、无密钥读取、无二次委派。
+
+示例入口：
+
+```powershell
+$steps = '[{"step_id":"aggregate","action":"read_selected_sources","input_refs":[".qianlima/tmp/report.csv"],"allowed_tools":["local_csv_reader","compute_metrics"],"expected_output":"numeric_summary","verification":"row count and metric fields are present"}]'
+powershell -File .qianlima/scripts/new-qianlima-execution-plan.ps1 -PlanId report-001 -TaskId report-001 -Workflow daily_ad_report -Goal 'Aggregate a selected local CSV' -DataScope '.qianlima/tmp' -StepsJson $steps
+powershell -File .qianlima/scripts/invoke-qianlima-evr.ps1 -Action execute -PlanPath .qianlima/run-traces/execution-plans/report-001.json
+powershell -File .qianlima/scripts/invoke-qianlima-readonly-runner.ps1 -PlanPath .qianlima/run-traces/execution-plans/report-001.json -StepId aggregate -InputPath .qianlima/tmp/report.csv -NumericColumn spend,sales -GroupBy campaign
+powershell -File .qianlima/scripts/invoke-qianlima-evr.ps1 -Action verify -PlanPath .qianlima/run-traces/execution-plans/report-001.json
+```
+
+计划、步骤回执和 EVR 事件均写入 `.qianlima/run-traces/`，产物只作为候选结果，必须通过验证后才算完成。合同定义见 `specifications/qianlima-*-contract.json`。
+
+## 期望状态与业务证据包（v2.7.10）
+
+千里马的业务任务可以声明“当前状态”和“期望状态”，先计算差异，再生成候选动作：
+
+```text
+当前状态 + 期望状态
+  -> 差异（Diff）
+  -> 诊断/本地报告候选
+  -> 证据包
+  -> 独立验证
+```
+
+差异计算只产生可审查计划，不执行改价、调预算、发布 Listing、采购、外发或删除。每个证据包必须绑定来源、时间范围、公式、Workflow 版本、假设、不确定性、待验证项和可复跑命令。
+
+回归测试：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .qianlima/scripts/test-qianlima-state-diff.ps1
+```
+
+合同见 `specifications/qianlima-desired-state-diff-contract.json` 和 `specifications/qianlima-evidence-pack-contract.json`。
+
+## 业务作用域、数据边界与健康检查（v2.7.11）
+
+千里马把 Amazon 店铺、站点、品牌和产品线作为显式 `Project Scope`。数据源通过 `Service + Repository` 请求边界进入 Workflow：请求只声明来源、作用域、选定字段和时间范围，业务报告不直接依赖供应商原始响应。
+
+```text
+Project Scope
+  -> Service Request（选定字段 + 时间范围）
+  -> Repository Adapter
+  -> normalized business object
+  -> Workflow / Evidence Pack
+```
+
+健康检查分三档，均为显式本地只读调用：
+
+- `startup`：检查核心索引、路由和策略文件。
+- `background`：检查索引新鲜度和 Workflow 引用，失败时标记 `degraded`。
+- `pre_l4`：检查 Project Scope 和 Source Request，缺失时标记 `blocked`。
+
+普通问答和续问不加载这些检查。健康检查失败不会自动重试扩权、联网或写回；失败会生成 `Failure Receipt`，记录失败位置、来源、累计次数、恢复动作和安全终态。
+
+回归测试：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .qianlima/scripts/test-qianlima-operational-controls.ps1
+```
+
 ## 借鉴 AHE 的三项能力
 
 - 组件可观测：每个 workflow 的数据源、模板、规则、输出和成本都能追踪。

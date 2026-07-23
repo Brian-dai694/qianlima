@@ -148,7 +148,8 @@ function Build-StrongRows($items) {
 $reportFile = "$Date" + '_ad-ops_daily-report_' + "$Marketplace" + '_' + "$Version.md"
 $reportPath = Join-Path (Join-Path $Root 'reports') $reportFile
 $tracePath = Join-Path (Join-Path $Root 'logs') "$Date`_daily_ad_report_trace.json"
-$usagePath = Join-Path (Join-Path $Root 'usage-ledger') '2026-06_usage_cost.yaml'
+$usageScriptPath = Join-Path $Root 'scripts\record-qianlima-usage.ps1'
+$runId = "daily_ad_report-$Date-$Marketplace-$Version-$((Get-Date).ToString('yyyyMMdd-HHmmss-fff'))"
 
 $summary = @"
 # Daily Ad Operations Report
@@ -221,7 +222,7 @@ $(Build-StrongRows $strongRows)
 Set-Content -LiteralPath $reportPath -Value $summary -Encoding UTF8
 
 $trace = [PSCustomObject]@{
-  run_id = "daily_ad_report-$Date-$Marketplace-$Version"
+  run_id = $runId
   workflow_id = 'daily_ad_report'
   source_file = $inputPath
   report_file = $reportPath
@@ -231,20 +232,20 @@ $trace = [PSCustomObject]@{
 }
 $trace | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $tracePath -Encoding UTF8
 
-$usage = @"
-records:
-  - run_id: daily_ad_report-$Date-$Marketplace-$Version
-    workflow_id: daily_ad_report
-    source_id: file_ads_us_daily
-    rows_read: $($filtered.Count)
-    model_calls: 0
-    input_tokens: 0
-    output_tokens: 0
-    estimated_cost_usd: 0
-    generated_at: $((Get-Date).ToString('o'))
-"@
-Set-Content -LiteralPath $usagePath -Value $usage -Encoding UTF8
+$usageResult = & $usageScriptPath `
+  -WorkflowId 'daily_ad_report' `
+  -RunId $runId `
+  -Provider 'local' `
+  -Model 'local-script' `
+  -ToolCalls 1 `
+  -RowsRead $filtered.Count `
+  -OutcomeUnits $filtered.Count `
+  -OutcomeUnit 'ad_data_rows' `
+  -Status 'completed' `
+  -Notes 'Generated local daily ad report.' `
+  -PassThru
+$usagePath = $usageResult.LedgerPath
 
 Write-Host "Report generated: $reportPath"
 Write-Host "Trace generated: $tracePath"
-Write-Host "Usage ledger updated: $usagePath"
+Write-Host "Usage ledger appended: $usagePath"

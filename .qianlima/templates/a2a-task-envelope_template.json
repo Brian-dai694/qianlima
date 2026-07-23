@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_a2a_internal_task_envelope",
+  "protocol_target": "A2A 1.0 semantics",
+  "context_id": "ctx-example",
+  "task_id": "task-example",
+  "parent_run_id": "run-example",
+  "work_order_ref": "work-order-example",
+  "agent_ref": "evidence_checker",
+  "goal": "Verify source-backed claims in a bounded evidence package.",
+  "input_refs": [
+    {
+      "artifact_id": "artifact-claim-pack",
+      "source_classification": "internal_sanitized",
+      "media_type": "application/json",
+      "integrity_hash": "sha256:replace-before-use"
+    }
+  ],
+  "delegation": {
+    "risk_ceiling": "L3",
+    "allowed_tools": ["read_selected_sources", "verify_calculation"],
+    "data_scope": "task_selected_sources_only",
+    "budget": {
+      "max_steps": 4,
+      "max_tool_calls": 3,
+      "timeout_ms": 90000
+    },
+    "network_access": "none",
+    "write_access": "none"
+  },
+  "expected_artifacts": ["verification_receipt"],
+  "verification": {
+    "owner": "parent_agent",
+    "pass_condition": "Every load-bearing claim has a permitted source reference or is marked pending."
+  },
+  "stop_conditions": ["evidence_sufficient", "conflict_found", "budget_exhausted"],
+  "status_policy": {
+    "input_required": "Return a named missing field or source reference.",
+    "auth_required": "Not permitted for this read-only template.",
+    "terminal_task_immutable": true,
+    "revision_rule": "Create a new task_id referencing this task; never overwrite a terminal task."
+  },
+  "prohibited": ["hidden_reasoning", "full_memory", "secrets", "raw_workspace_export", "external_write"]
+}

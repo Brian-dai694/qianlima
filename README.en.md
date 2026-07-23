@@ -1,122 +1,86 @@
-# Qianlima — An AI Agent Harness for Amazon Operations
+# Qianlima Personal Edition — Local-First Amazon Agent Workbench
 
-**English** · [中文](README.md)
+[中文](README.md) · [English](README.en.md)
 
-[![CI](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/qianlima/actions/workflows/qianlima-verify.yml)
+[![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.7.3-blue.svg)](CHANGELOG.md)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
+[![Version](https://img.shields.io/badge/version-v2.8.0-blue.svg)](CHANGELOG.md)
 
-> Version v2.7.3 | 2026-07-15 · See [CHANGELOG.md](CHANGELOG.md)
+> Current release: v2.8.0 · 2026-07-22
 
-Qianlima is an **AI Agent Harness** for Amazon sellers. It is not another "keyword tool" or "ad management dashboard" — it is an **agent governance layer** that lets an LLM execute Amazon operations tasks reliably, safely, and traceably.
+Qianlima Personal is a local-first Amazon operations workbench. It keeps business workflows, evidence, and result verification in the project while Codex and other Agents provide interaction and execution.
 
-## Core idea
+## North Star Protocol
 
-> A harness is not a prompt template — it is a runtime system.
-> It observes itself, diagnoses problems, accumulates experience, and keeps improving.
+> Every connected Agent must pass admission, least-privilege authorization, evidence verification, budget control, audit, and revocable enforcement.
 
-This project draws on [Lilian Weng — Harness Engineering for Self-Improvement (2026)](https://lilianweng.github.io/posts/2026-07-04-harness/) and several SOTA projects. v2.7.1 completes public, safe templates for layered startup, runtime policy, command safety, evaluation, observability, memory cards, sub-agent orchestration, and stateful loops.
+- An Agent Card is a capability claim, not authority.
+- API ownership does not grant access to enterprise data.
+- Installing an Agent does not grant MCP or business-write permissions.
+- Employee Agents receive task-scoped, short-lived, revocable Grants.
+- Upload, send, delete, and business-system writes remain Enterprise L4.
+- Improvements create candidates only; production promotion requires replay, simulation, independent verification, and human approval.
 
 ## Architecture
 
 ```text
-Qianlima Harness v2.7.3
-├── Scenario router        → load per scenario, minimize unnecessary context
-├── Health self-check      → validate skeleton, index, and references at startup
-├── Loop Engineering       → SDR / EVR / PBV / EDA execution loops
-├── Evolutionary refine    → fix / tune / A/B / extract / evolve feedback loop
-├── Sub-agent orchestration→ task splitting, resource limits, handoff protocol
-├── Context 2.0            → dynamic context allocation, smart compression, live monitoring
-├── Compression defense    → prevents summaries from dropping constraints or bypassing safety
-├── Policy Adapter         → decouples policy generation, env observation, action scoring
-├── Skill registry         → standardized trigger / scope / capability / quality gate
-├── Natural-language router→ maps a user request to a skill / workflow / MCP
-├── Realtime cost card     → shows cost, savings, continue-or-stop per non-trivial task
-├── Layered startup        → L0-L4 risk-based loading, fast state check on cache hit
-├── Runtime policy         → budget, sandbox, state machine, L4 second confirmation
-├── Command-safety hook    → pre-blocks delete / overwrite / format / out-of-bounds paths
-├── QianlimaEval           → layered acceptance on source, risk, ledger, first-token latency
-├── Memory Cards           → local operational memory with source, TTL, and confidence
-├── Maker / Checker        → sub-agent context isolation; parent keeps external decision rights
-├── Stateful EVR loop      → traceable execute / verify / refine cycle
-├── Multi-agent entrypoints→ Codex / Claude / Manus / Qoder CN / Lingma / LinkAI / Obsidian / Desktop
-├── Local knowledge base   → Obsidian Vault, MOC, note templates, public/private separation
-├── KV-cache optimization  → stable prefixes and cache-hit strategy
-└── Config evolution trace → forward / rollback / diff / audit migration records
+Owner / Business Manager / Employee / IT & Security
+                         |
+               Beijixing Governance Broker
+          identity | policy | budget | approval | audit
+                         |
+             Local Connector + Sandbox Runner
+                         |
+        Codex / Claude Code / CodeWhale / other Agents
+                         |
+          MCP / Skills / files / ERP / business systems
 ```
 
-## Quick start
+Beijixing is the control plane, Agents are the execution plane, and MCP/Skills are the tool plane. Direct Agent-to-Agent delegation is denied by default.
 
-### 1. Clone
+## Personal Boundaries
+
+Personal L0-L4 routing keeps ordinary conversation fast, loads Skills only when a task needs them, and puts external sends, deletes, overwrites, and business writes behind controlled execution. Local stdio MCP interfaces are reserved, while network access, remote execution, business writes, and background loops remain disabled by default.
+
+The repository contains contracts and enforcement gates only. No real endpoint, credential, or production write permission is enabled.
+
+## Model Collaboration
+
+Model fusion is evidence collaboration, not several models chatting. L0-L2 use one model by default; L3 may use independent candidates plus evidence verification; L4 produces candidates only and requires human confirmation. See `.qianlima/model-portfolio.yaml` and `.qianlima/fusion-plan-schema.yaml`.
+
+## Quick Start
 
 ```bash
-git clone https://github.com/Brian-dai694/qianlima.git
-cd qianlima
+git clone https://github.com/Brian-dai694/beijixing.git
+cd beijixing
 ```
 
-### 2. Configure private data
+Start on Windows:
 
-The public repo keeps only sanitized templates. Put real data only in your private fork or local working copy.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\start-qianlima.ps1'
+```
+
+Start on macOS/Linux:
 
 ```bash
-cp .qianlima/data-sources.example.yaml .qianlima/data-sources.yaml
-cp .qianlima/work.example.ws .qianlima/work.ws
-# Then edit locally with real values:
-# data-sources.yaml: tokens, ERP URLs, etc.
-# work.ws: ASINs, cost, margin, keywords, etc.
+bash './start-qianlima.sh'
 ```
 
-### 3. Initialize the workspace
+## Readiness
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\start-qianlima.ps1"
-```
+Personal routing, memory, Skill gates, local read-only evidence execution, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
 
-The startup script generates `.qianlima/WORKSPACE_INDEX.md` and `.qianlima/workspace-index.json`. An agent entering the repo should read `WORKSPACE_INDEX.md` first, then load the minimal startup pack by index.
+Deployment readiness is not execution authority. Every production write still requires a task Grant, approval, preflight snapshot, audit receipt, and rollback condition.
 
-Per-agent entrypoints: `AGENTS.md` (Codex), `CLAUDE.md` (Claude Code), `MANUS.md` (Manus), `QODER.md` / `LINGMA.md`, `LINKAI.md`, `OBSIDIAN.md`, `DESKTOP_AGENT_BRIEF.md`.
+## Harness
 
-### 4. Trigger a task
+The personal runtime uses `.qianlima/`, `start-qianlima.ps1`, and the repository Agent entrypoints. Internal Harness documentation remains in [.qianlima/README.md](.qianlima/README.md).
 
-In any agent framework that honors this repo's rules, trigger in natural language:
+## Privacy
 
-- "run keyword ranks" → `keyword_rank_scan`
-- "generate the daily ad report" → `daily_ad_report`
-- "compare competitors" → `competitor_comparison`
-- "calculate profit" → `profit_check`
-
-## Privacy boundary
-
-This repo is a **Git-safe public template**. Never commit real operational data: API keys, tokens, credentials, customer PII, account IDs, backend exports, private cost ledgers, decision logs, screenshots, reports, or local machine paths. The default `.gitignore` excludes generated indexes, run logs, ledgers, decision logs, reports, and local secrets.
-
-Before publishing or opening a PR, run the public-safe check:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\.qianlima\scripts\verify-qianlima.ps1"
-```
-
-## CI
-
-`.github/workflows/qianlima-verify.yml` runs on push and PR: startup skeleton validation, strict public-safe verification, runtime safety-gate checks, and a negative test asserting that an unconfirmed high-risk action is blocked.
-
-## Dependencies
-
-- **Agent framework**: CodeWhale, Claude Code, or any agent system that reads YAML governance files
-- **MCP tools**: Sorftime MCP, Pangolinfo MCP
-- **Browser automation**: Kimi WebBridge (optional, for Lingxing ERP extraction)
-- **Feishu**: lark-cli (optional, for sheet sync)
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Please read the privacy rules and run `verify-qianlima.ps1` before submitting.
-
-## References
-
-- Lilian Weng. "Harness Engineering for Self-Improvement." 2026.
-- XPolicyLab. Policy adapter and server-client separation pattern.
-- zsLiu2003/Comattack. COMA compression attack threat model.
+The public repository accepts sanitized templates only. Never commit API keys, tokens, customer data, account identifiers, real costs, business exports, screenshots, run logs, audit ledgers, or local absolute paths. Credentials must remain Secret References backed by the operating system or an approved secret manager.
 
 ## License
 
-[MIT](LICENSE)
+MIT

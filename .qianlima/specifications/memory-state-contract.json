@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-memory-state-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Treat memory as time-scoped evidence rather than permanent truth.",
+  "states": ["current", "historical", "transitional", "superseded", "disputed", "revoked"],
+  "required_entry_fields": ["memory_id", "kind", "state", "fact", "source_refs", "observed_at", "valid_from", "valid_to", "scope", "confidence", "classification", "created_by", "version"],
+  "kinds": ["fact", "preference", "task_state", "learned_rule"],
+  "classifications": ["public", "internal_sanitized", "confidential_reference_only"],
+  "query_views": {
+    "current": {"allowed_states": ["current"], "exclude_states": ["historical", "transitional", "superseded", "disputed", "revoked"], "requires_source_reload_for": ["stale", "conflict", "L4", "financial_decision", "inventory_decision"]},
+    "historical": {"allowed_states": ["current", "historical", "transitional", "superseded", "disputed"], "exclude_states": ["revoked"], "must_label_non_current": true},
+    "audit": {"allowed_states": ["current", "historical", "transitional", "superseded", "disputed", "revoked"], "read_only": true}
+  },
+  "rules": {
+    "superseded_not_current_decision": true,
+    "revoked_never_returned_as_usable": true,
+    "transitional_is_pending_verification": true,
+    "disputed_is_not_decision_ready": true,
+    "high_risk_must_reload_original_source": true,
+    "memory_write_requires_receipt": true,
+    "memory_scope_must_match_grant": true,
+    "agent_cannot_promote_state": true
+  },
+  "prohibited_fields": ["api_key", "token", "password", "cookie", "raw_customer_data", "hidden_reasoning"]
+}

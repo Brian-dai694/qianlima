@@ -1,0 +1,60 @@
+plugin_registry:
+  version: 1
+  purpose: "Register reusable capabilities with explicit inputs, outputs, permissions, and health checks."
+  source_of_truth: skill-registry.yaml
+  lifecycle: [registered, enabled, disabled, unhealthy]
+  plugins:
+    - id: fast_router
+      type: local_runtime
+      status: enabled
+      capability: "Route clear low-risk intents from a compact index."
+      entrypoint: scripts/qianlima-status-fast.ps1
+      inputs: [user_intent, relevant_paths]
+      outputs: [ready_or_needs_startup]
+      risk: low
+      permissions: [read_local_config]
+      health_check: "codex-router.json exists and startup cache schema is valid"
+    - id: command_safety_guard
+      type: local_guard
+      status: enabled
+      capability: "Classify destructive commands as allow, confirmation_required, or deny."
+      entrypoint: scripts/check-command-safety.ps1
+      inputs: [command]
+      outputs: [classification, targets, reasons]
+      risk: high
+      permissions: [read_command_text]
+      write_back: forbidden
+      health_check: "dangerous paths and recursive delete regression cases return deny"
+      health_check_script: scripts/test-command-safety.ps1
+    - id: memory_cards
+      type: local_memory
+      status: enabled
+      capability: "Store and retrieve expiring ASIN, SKU, campaign, and keyword recall cards."
+      entrypoints: [scripts/set-qianlima-memory-card.ps1, scripts/get-qianlima-memory-card.ps1]
+      inputs: [entity_type, entity_id, source_refs]
+      outputs: [fresh_or_stale_memory_card]
+      risk: medium
+      permissions: [read_private_memory, write_private_memory]
+      write_back: local_only
+      health_check: "card has source_refs, confidence, updated_at, and expires_at"
+    - id: qianlima_eval
+      type: local_evaluator
+      status: enabled
+      capability: "Evaluate intent, evidence, runtime quality, cost, latency, and risk gates."
+      entrypoint: scripts/new-qianlima-eval-report.ps1
+      inputs: [workflow_id, context_level, artifact_paths]
+      outputs: [eval_report, weighted_score, status]
+      risk: low
+      permissions: [read_artifacts, write_private_evaluation]
+      health_check: "public evaluation cases are present"
+    - id: evr_loop_runner
+      type: workflow_runtime
+      status: enabled
+      capability: "Persist execute, verify, refine, completed, failed, frozen, or stopped states."
+      entrypoint: scripts/invoke-qianlima-loop.ps1
+      inputs: [workflow_id, run_id, outcome]
+      outputs: [private_state_trace]
+      risk: medium
+      permissions: [write_private_trace]
+      write_back: forbidden_without_L4_confirmation
+      health_check: "EVR state transitions only end in terminal states"

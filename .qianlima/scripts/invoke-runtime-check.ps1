@@ -15,6 +15,10 @@
   Marks a high-risk action as explicitly user-confirmed, allowing it to pass.
 .PARAMETER WorkflowId
   Workflow being executed, used for policy lookup.
+.PARAMETER TargetPath
+  File or directory target for the protected-invariants gate.
+.PARAMETER Operation
+  Target operation passed to the protected-invariants gate.
 .EXAMPLE
   ...invoke-runtime-check.ps1 -Phase BeforeToolUse -Action change_bid -Confirmed
 #>
@@ -24,6 +28,9 @@ param(
   [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
   [string]$WorkflowId = '',
   [string]$Action = '',
+  [string]$TargetPath = '',
+  [ValidateSet('read', 'write', 'modify', 'execute', 'external_write')]
+  [string]$Operation = 'write',
   [string]$OutputPath = '',
   [string]$RunId = '',
   [string]$UsageLedgerPath = '',
@@ -97,6 +104,19 @@ switch ($Phase) {
     $highRisk = @('change_bid', 'change_budget', 'delete_data', 'send_to_group', 'write_back', 'change_price', 'purchase_order', 'update_listing')
     if ($Action -and ($Action -in $highRisk) -and (-not $Confirmed)) {
       Add-Issue "High-risk action requires explicit confirmation: $Action"
+    }
+    if ($TargetPath) {
+      $invariantScript = Join-Path $PSScriptRoot 'check-protected-invariants.ps1'
+      if (-not (Test-Path -LiteralPath $invariantScript -PathType Leaf)) {
+        Add-Issue 'Missing protected-invariants checker.'
+      } else {
+        $invariantRaw = & $invariantScript -TargetPath $TargetPath -Operation $Operation -Confirmed:$Confirmed -AsJson -NoExit
+        $invariant = $invariantRaw | ConvertFrom-Json
+        if ($invariant.classification -ne 'allow') {
+          Add-Issue "Protected invariant gate: $($invariant.classification) for $TargetPath"
+          foreach ($reason in @($invariant.reasons)) { Add-Issue $reason }
+        }
+      }
     }
   }
   'AfterToolUse' {

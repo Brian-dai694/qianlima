@@ -1,0 +1,32 @@
+workflow_runtime:
+  version: 1
+  purpose: "Prefect-inspired flow and task contract without a mandatory external scheduler."
+  states: [pending, running, retrying, completed, skipped, failed, frozen, awaiting_confirmation]
+  terminal_states: [completed, skipped, failed, frozen]
+  retry_profiles:
+    none: {max_retries: 0}
+    conservative:
+      max_retries: 1
+      backoff_seconds: 2
+      retry_on: [timeout, temporary_network_error, http_429, http_503]
+      do_not_retry_on: [permission_denied, invalid_input, confirmation_required]
+  failure_policies:
+    partial_with_pending_verification:
+      final_state: frozen
+      required_output: [partial_result, pending_verification, recovery_action]
+    stop_for_confirmation:
+      final_state: awaiting_confirmation
+      required_output: [proposed_action, risk_level, confirmation_question]
+  flows:
+    daily_ad_report:
+      retry_profile: conservative
+      on_failure: partial_with_pending_verification
+      tasks:
+        - {id: check_sources, depends_on: [], state: pending, retry: none}
+        - {id: fetch_ad_data, depends_on: [check_sources], state: pending, retry: conservative}
+        - {id: validate_data, depends_on: [fetch_ad_data], state: pending, retry: none}
+        - {id: calculate_metrics, depends_on: [validate_data], state: pending, retry: none}
+        - {id: generate_report, depends_on: [calculate_metrics], state: pending, retry: none}
+        - {id: verify_report, depends_on: [generate_report], state: pending, retry: none}
+        - {id: record_usage, depends_on: [verify_report], state: pending, retry: none}
+      completion_gate: "verify_report completed and usage ledger written"

@@ -1,0 +1,10 @@
+# capability-contract-schema.yaml - capability declaration, never authority
+capability_contract:
+  version: 1
+  required: [agent_id, owner_ref, version, accepts, returns, risk_ceiling, data_scope, allowed_tools, budget, verification_contract]
+  invariants:
+    - "A capability contract describes what an Agent claims to do; it grants no permission."
+    - "Hidden reasoning, full memory, secrets, runtime grants, and raw workspace paths are prohibited."
+    - "Version or capability expansion invalidates the current passport and requires re-admission."
+    - "Trust score can prioritize selection but cannot override hard policy gates."
+  trust_levels: [T0_discovered, T1_sandbox_readonly, T2_verified_readonly, T3_controlled_execution, T4_isolated]

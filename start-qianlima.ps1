@@ -1,20 +1,3 @@
-<#
-.SYNOPSIS
-Boots the Qianlima workspace, rebuilding its index and fast router.
-.DESCRIPTION
-Fingerprints workspace source files and directories and compares them against
-startup-cache.json. On a fresh cache hit it exits immediately; otherwise it runs
-bootstrap, optional validation, and the fast-router compiler, then rewrites the
-cache. Prints the elapsed startup time and the key files each agent should read.
-.PARAMETER SkipValidation
-Skips the workspace skeleton validation step during a refresh.
-.PARAMETER Force
-Ignores the startup cache and forces a full rebuild.
-.PARAMETER Quiet
-Suppresses informational console output.
-.EXAMPLE
-.\start-qianlima.ps1 -Force
-#>
 param(
   [switch]$SkipValidation,
   [switch]$Force,

@@ -1,0 +1,33 @@
+# agent-trust-policy.yaml - zones, dynamic trust, and failure shrinkage
+agent_trust_policy:
+  version: 1
+  default_zone: zone_4_unverified
+  default_trust: T0_discovered
+  zones:
+    zone_0_core:
+      data_access: policy_and_audit_metadata
+      external_dispatch: prohibited
+    zone_1_local_controlled:
+      data_access: public_or_internal_sanitized_references
+      external_dispatch: prohibited
+    zone_2_verified_internal:
+      data_access: approved_internal_references
+      external_dispatch: allowlisted_only
+    zone_3_external_partner:
+      data_access: public_or_internal_sanitized_only
+      external_dispatch: allowlisted_readonly_only
+    zone_4_unverified:
+      data_access: agent_card_only
+      external_dispatch: prohibited
+  trust_levels:
+    T0_discovered: {allowed: [read_card], max_risk: L0}
+    T1_sandbox_readonly: {allowed: [sanitized_read], max_risk: L1}
+    T2_verified_readonly: {allowed: [approved_read], max_risk: L2}
+    T3_controlled_execution: {allowed: [single_use_grant], max_risk: L4}
+    T4_isolated: {allowed: [], max_risk: L0}
+  hard_rules:
+    - "Trust score never overrides data classification, L4 confirmation, or command safety."
+    - "Version change, capability expansion, or new network/write/delegation request resets trust to T0."
+    - "Three consecutive failures, any越权 attempt, or artifact integrity failure moves the Agent to T4."
+    - "Broker must re-evaluate both caller and callee; direct Agent-to-Agent delegation is prohibited."
+  score_dimensions: [identity_version, contract_pass_rate, evidence_completeness, independent_verification, overreach_attempts, budget_overrun, retry_storm, capability_drift]

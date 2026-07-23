@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-evr-loop",
+  "purpose": "Manage Execute, Verify, and Revise without treating execution success as business correctness.",
+  "states": ["planned", "executing", "verifying", "completed", "revision_required", "stopped", "frozen"],
+  "actions": {
+    "execute": {"from": ["planned", "revised"], "to": "executing"},
+    "verify": {"from": ["executing"], "to": ["completed", "revision_required", "frozen"]},
+    "revise": {"from": ["revision_required"], "to": "revised"},
+    "stop": {"from": ["planned", "executing", "verifying", "revision_required", "revised"], "to": "stopped"},
+    "status": {"from": ["*"], "to": "*"}
+  },
+  "verification_rules": {
+    "all_steps_completed": "completed",
+    "missing_step_result": "revision_required",
+    "partial_or_failed_step": "revision_required",
+    "critical_warning_or_budget_exhaustion": "frozen",
+    "pending_verification_present": "revision_required"
+  },
+  "max_revisions": 3,
+  "invariants": [
+    "Execute does not imply Verify.",
+    "Revision references the prior plan and creates a new plan id.",
+    "The loop never retries a failed step with expanded tools, data, or budget automatically.",
+    "Terminal result and verification events are append-only."
+  ]
+}

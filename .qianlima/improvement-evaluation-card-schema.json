@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-improvement-evaluation-card",
+  "required_fields": ["card_id", "candidate_id", "candidate_content_sha256", "problem_statement", "object_type", "change_scope", "immutable_boundaries", "baseline_metrics", "replay_result", "simulation_result", "independent_verification", "canary_scope", "rollback_conditions", "approval", "effective_version", "current_state", "canary_result"],
+  "object_policy": {
+    "prompt": {"candidate_generation": "allowed", "automatic_release": "deny"},
+    "summary_template": {"candidate_generation": "allowed", "automatic_release": "deny"},
+    "context_ordering": {"candidate_generation": "allowed", "automatic_release": "deny"},
+    "skill_workflow": {"candidate_generation": "allowed", "release": "human_approved_canary_only"},
+    "model_routing": {"candidate_generation": "allowed", "release": "human_approved_canary_only"},
+    "retrieval_policy": {"candidate_generation": "allowed", "release": "human_approved_canary_only"},
+    "memory_candidate": {"candidate_generation": "allowed", "automatic_release": "deny"},
+    "knowledge_extraction": {"candidate_generation": "allowed", "automatic_release": "deny"},
+    "permission": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "data_scope": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "budget": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "external_call": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "risk_rule": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "audit_rule": {"candidate_generation": "suggestion_only", "release": "deny"},
+    "deletion_policy": {"candidate_generation": "suggestion_only", "release": "deny"}
+  },
+  "states": ["candidate", "evaluated", "awaiting_human", "canary_authorized", "canary_running", "release_candidate", "rollback_required", "frozen", "rejected"],
+  "invariants": [
+    "An evaluation card cannot change permission, data, budget, or external-call authority.",
+    "Replay and simulation use frozen sanitized evidence.",
+    "The proposer and independent verifier must be different.",
+    "No object type is automatically released to production.",
+    "Canary authorization always requires a named human approval reference.",
+    "A passed canary creates only a versioned release candidate; a separate release action is required.",
+    "Any rollback condition immediately produces rollback_required and preserves evidence."
+  ]
+}

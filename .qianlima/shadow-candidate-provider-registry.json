@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "registry_id": "qianlima-shadow-candidate-providers",
+  "default_action": "deny",
+  "network_dispatch_enabled": false,
+  "providers": [
+    {
+      "provider_id": "openai-shadow-readonly",
+      "provider_family": "openai",
+      "enabled": false,
+      "model_id": "runtime-selected",
+      "model_version": "must_be_pinned_before_enablement",
+      "credential_ref": "model_provider_openai",
+      "network_allowlist": ["api.openai.com"],
+      "allowed_data": ["public", "internal_sanitized"],
+      "risk_level": "L3",
+      "max_calls": 1,
+      "max_cost_usd": 1,
+      "max_latency_ms": 120000,
+      "tools": [],
+      "mcp": false,
+      "file_export": false,
+      "business_write": false
+    },
+    {
+      "provider_id": "anthropic-shadow-readonly",
+      "provider_family": "anthropic",
+      "enabled": false,
+      "model_id": "runtime-selected",
+      "model_version": "must_be_pinned_before_enablement",
+      "credential_ref": "model_provider_anthropic",
+      "network_allowlist": ["api.anthropic.com"],
+      "allowed_data": ["public", "internal_sanitized"],
+      "risk_level": "L3",
+      "max_calls": 1,
+      "max_cost_usd": 1,
+      "max_latency_ms": 120000,
+      "tools": [],
+      "mcp": false,
+      "file_export": false,
+      "business_write": false
+    }
+  ],
+  "invariants": [
+    "The registry grants no credential, network, MCP, file, or business-write authority.",
+    "A provider must be enabled, version-pinned, task-approved, budget-bounded, and selected by a validated Fusion Plan.",
+    "Only public or internal_sanitized references may be dispatched.",
+    "Every result remains a candidate Claim Pack and cannot affect the primary result."
+  ]
+}

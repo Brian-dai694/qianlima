@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "contract_id": "qianlima-agent-pipeline-contract",
+  "contract_version": "1.0.0",
+  "purpose": "Declare a governed Agent data pipeline with stage ordering, artifact metadata, hooks, and backpressure.",
+  "control_plane": ["admission", "policy_decision", "delegation_grant", "budget", "revocation", "audit", "verification", "adoption"],
+  "data_plane": ["input_reference", "data_minimization", "agent_execution", "artifact_exchange"],
+  "required_stage_order": [
+    "input_reference",
+    "classify_and_minimize",
+    "authorize",
+    "execute",
+    "artifact_scan",
+    "independent_verify",
+    "adopt_or_freeze"
+  ],
+  "stage_contract": {
+    "input_reference": {"owner": "broker", "writes_business_state": false},
+    "classify_and_minimize": {"owner": "broker", "writes_business_state": false},
+    "authorize": {"owner": "broker", "requires": ["agent_card", "work_order", "delegation_grant", "runner_policy"], "writes_business_state": false},
+    "execute": {"owner": "worker_agent", "requires": ["active_grant", "verified_runner_attestation"], "writes_business_state": false},
+    "artifact_scan": {"owner": "broker", "requires": ["integrity_hash", "supported_media_type"], "writes_business_state": false},
+    "independent_verify": {"owner": "independent_checker", "requires": ["source_refs", "data_time_range", "assumptions", "uncertainties"], "writes_business_state": false},
+    "adopt_or_freeze": {"owner": "broker", "requires": ["verification_status", "budget_snapshot", "audit_lineage"], "writes_business_state": false}
+  },
+  "artifact_metadata_required": [
+    "task_id",
+    "grant_id",
+    "agent_id",
+    "agent_version",
+    "runner_id",
+    "input_hash",
+    "source_classification",
+    "created_at",
+    "budget_snapshot",
+    "verification_status"
+  ],
+  "event_contract": {
+    "allowed_events": ["session_start", "prompt_submitted", "grant_issued", "tool_requested", "tool_allowed", "tool_denied", "tool_completed", "tool_failed", "artifact_created", "artifact_scanned", "verification_completed", "grant_revoked", "session_end", "pipeline_frozen"],
+    "required_fields": ["event_id", "event_type", "task_id", "agent_id", "created_at", "decision"],
+    "prohibited_fields": ["raw_prompt", "hidden_reasoning", "secret_value", "full_tool_parameters", "raw_private_data"],
+    "storage": "append_only_run_trace"
+  },
+  "backpressure": {
+    "max_concurrent_agents": 1,
+    "max_pending_artifacts": 3,
+    "max_failed_attempts": 2,
+    "on_tool_budget_exhausted": "freeze_and_revoke",
+    "on_verifier_backlog": "stop_upstream_generation",
+    "on_artifact_scan_backlog": "stop_upstream_generation",
+    "on_repeated_failure": "circuit_break_and_human_review",
+    "never": ["auto_expand_budget", "auto_skip_verifier", "auto_bypass_artifact_scan", "auto_retry_needs_human"]
+  },
+  "hook_mapping": {
+    "pre_tool_use": "authorize -> tool_allowed_or_denied",
+    "post_tool_use": "artifact_created -> artifact_scanned",
+    "post_tool_use_failure": "tool_failed -> backpressure_decision",
+    "session_start": "session_start -> grant_and_budget_context",
+    "session_end": "verification -> revoke -> session_end"
+  },
+  "adoption_rule": "An artifact without the required metadata or independent verification cannot enter adopt_or_freeze as completed."
+}

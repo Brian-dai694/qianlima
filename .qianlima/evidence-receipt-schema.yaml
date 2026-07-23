@@ -1,0 +1,11 @@
+# evidence-receipt-schema.yaml - evidence chain and adoption input
+evidence_receipt:
+  version: 1
+  required: [receipt_id, task_id, grant_id, agent_id, conclusion_summary, source_refs, data_time_range, assumptions, uncertainties, method_ref, artifact_ref, integrity_hash, verification_status]
+  verification_status: [pending, passed, partial, failed, rejected]
+  invariants:
+    - "A receipt records evidence metadata and references, never raw source contents."
+    - "A conclusion is a candidate result until an independent verifier passes it."
+    - "Missing evidence, stale data, or conflicting sources must remain explicit."
+    - "A replacement receipt receives a new receipt_id and references the prior receipt."
+    - "The Broker retains adoption or rejection authority; an Agent cannot self-adopt its result."

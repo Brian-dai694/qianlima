@@ -1,0 +1,18 @@
+fusion_plan:
+  version: 1
+  required: [fusion_id, task_id, risk_level, selected_models, selection_reason, independence_requirement, allowed_input_refs, data_classification, candidate_budget, fusion_method, verifier, claim_pack_refs, stop_conditions, human_approval_requirement, status]
+  defaults:
+    fusion_method: evidence_first_claim_pack
+    status: draft
+    can_delegate: false
+  allowed_methods: [evidence_first_claim_pack, independent_claims_then_verification]
+  allowed_status: [draft, approved, running, verifying, needs_human, completed, frozen, rejected]
+  invariants:
+    - "Models receive minimum input references and never share hidden reasoning."
+    - "L0, L1, and L2 fusion is denied by default."
+    - "L3 fusion requires independent candidates and a named verifier."
+    - "L3 and L4 fusion require Claim Pack references from each candidate."
+    - "L4 fusion produces candidates only and always requires human confirmation."
+    - "Evidence conflict is preserved or escalated; it is never resolved by majority vote alone."
+    - "Expired or revoked model versions cannot contribute new artifacts."
+    - "Fusion Plan authority is separate from Delegation Grant authority."

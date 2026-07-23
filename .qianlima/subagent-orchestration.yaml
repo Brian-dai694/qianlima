@@ -12,6 +12,20 @@ orchestration:
     每个 workflow 在设计时就应该考虑：哪些步骤适合拆分为子代理？
     哪些步骤必须由父代理亲自执行？
 
+  fan_in_policy:
+    manager_owner_required: true
+    rule: "Parallel workers are not complete until the manager collects, verifies, and summarizes every required result."
+    missing_worker_result: freeze_with_pending_verification
+    verifier_independence_required: true
+    final_decision_owner: parent_agent
+
+  contract_policy:
+    agent_cards: agent-cards.yaml
+    work_order_schema: work-order-schema.yaml
+    assignment_rule: "A worker receives a work order, not the parent's full context or unrestricted tool list."
+    handoff_fields: [work_order_id, status, artifact_refs, evidence_refs, failure_category, verifier_status]
+    forbidden_handoff_fields: [hidden_reasoning, full_memory, secrets, unrestricted_tool_grants]
+
   # ── 何时使用子代理 ──────────────────────────────────────────
 
   decision_tree:

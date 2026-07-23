@@ -2,17 +2,16 @@
 .SYNOPSIS
   Load a cached Qianlima memory card and report its freshness.
 .DESCRIPTION
-  Resolves memory\cards\<EntityType>\<EntityId>.json under the project root and reads it
-  as JSON. Compares the card's expires_at against current UTC time to mark it fresh or
-  stale and to flag whether a source reload is required. Throws if the card file is missing.
+  Compatibility shell for the governed Memory Broker. A task-bound RequestPath
+  and GrantPath are mandatory; direct memory reads are no longer supported.
 .PARAMETER EntityType
   Card category: asin, sku, campaign, or keyword.
 .PARAMETER EntityId
   File-safe identifier of the card to load.
 .PARAMETER AsJson
-  Emit the full result including the card as JSON.
+  Emit the broker result as JSON.
 .EXAMPLE
-  .\get-qianlima-memory-card.ps1 -EntityType asin -EntityId B0ABC12345 -AsJson
+  .\get-qianlima-memory-card.ps1 -EntityType asin -EntityId B0ABC12345 -RequestPath .qianlima\run-traces\memory-read-tests\request.json -GrantPath .qianlima\run-traces\delegation-grants\grant.json -AsJson
 #>
 param(
   [Parameter(Mandatory = $true)]
@@ -22,6 +21,10 @@ param(
   [Parameter(Mandatory = $true)]
   [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$')]
   [string]$EntityId,
+  [Parameter(Mandatory = $true)]
+  [string]$RequestPath,
+  [Parameter(Mandatory = $true)]
+  [string]$GrantPath,
   [switch]$AsJson
 )
 
@@ -31,16 +34,16 @@ $cardPath = Join-Path $projectRoot "memory\cards\$EntityType\$EntityId.json"
 if (-not (Test-Path -LiteralPath $cardPath -PathType Leaf)) {
   throw "Memory card not found: $cardPath"
 }
-$card = Get-Content -LiteralPath $cardPath -Raw -Encoding UTF8 | ConvertFrom-Json
-$isFresh = ([datetime]$card.expires_at).ToUniversalTime() -gt (Get-Date).ToUniversalTime()
-$result = [PSCustomObject]@{
-  card_path = $cardPath
-  freshness = if ($isFresh) { 'fresh' } else { 'stale' }
-  reload_source_required = -not $isFresh
-  card = $card
-}
+$brokerScript = Join-Path $PSScriptRoot 'invoke-memory-broker.ps1'
+$brokerOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $brokerScript -RequestPath $RequestPath -GrantPath $GrantPath -MemoryPath $cardPath -PassThru 2>&1)
+$brokerCode = $LASTEXITCODE
+$brokerText = ($brokerOutput -join "`n")
+$jsonStart = $brokerText.IndexOf('{'); $jsonEnd = $brokerText.LastIndexOf('}')
+$result = $null
+if ($jsonStart -ge 0 -and $jsonEnd -gt $jsonStart) { try { $result = $brokerText.Substring($jsonStart, $jsonEnd - $jsonStart + 1) | ConvertFrom-Json } catch { } }
+if ($brokerCode -ne 0 -or $null -eq $result -or $result.status -ne 'allowed') { throw 'Memory Broker denied the card read.' }
 if ($AsJson) { $result | ConvertTo-Json -Depth 8 }
 else {
-  Write-Host "Memory card: $($card.entity_type)/$($card.entity_id) ($($result.freshness))"
-  Write-Host "Source reload required: $($result.reload_source_required)"
+  Write-Host "Memory Broker allowed: $($result.memory_pack.memory_id) ($($result.state_view))"
+  Write-Host "Source reload required: $($result.source_reload_required)"
 }

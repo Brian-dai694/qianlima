@@ -1,0 +1,31 @@
+version: 1
+contract_type: qianlima_sandbox_attestation
+required:
+  - attestation_id
+  - runner_id
+  - provider
+  - agent_id
+  - task_id
+  - status
+  - sandbox_type
+  - isolation_root
+  - host_workspace_mounted
+  - agent_network
+  - mcp_mode
+  - mcp_servers
+  - file_export
+  - web_access
+  - erp_access
+  - secret_mode
+  - expires_at
+  - evidence_hash
+invariants:
+  status: verified
+  host_workspace_mounted: false
+  agent_network: none
+  mcp_mode: allowlist_read_only
+  file_export: false
+  web_access: false
+  erp_access: false
+  secret_mode: secret_ref_only
+  terminal_task_mutability: prohibited

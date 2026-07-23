@@ -1,0 +1,291 @@
+amazon_operations_architecture:
+  id: qianlima_amazon_ops_os
+  version: "1.0"
+  updated: 2026-07-10
+  purpose: "用生命周期状态机组织亚马逊选品、开发、供应链、上线、运营和退出。"
+
+  principles:
+    - "生命周期阶段负责定义业务状态和门禁。"
+    - "Skill 负责需要判断和专业推理的工作。"
+    - "Workflow 负责可重复、可监控、可恢复的执行流程。"
+    - "MCP、ERP、浏览器和文件只作为数据源或执行工具。"
+    - "高风险动作必须通过 risk-rules.yaml，不因自动化而放宽权限。"
+    - "阶段总分不能抵消利润、合规、规格、库存或现金流硬门槛。"
+
+  control_plane:
+    entry: natural_language_router
+    orchestrator: lifecycle_controller
+    state_store: work.ws
+    capability_registry: skill-registry.yaml
+    workflow_registry: workflow-index.yaml
+    data_registry: data-sources.yaml
+    artifact_registry: file-registry.yaml
+    risk_gate: risk-rules.yaml
+    evaluation: qianlima-eval.yaml
+    observability: observability.yaml
+
+  lifecycle:
+    - stage_id: S0_strategy
+      name: 战略与组合规划
+      objective: "明确站点、资金、品类边界、年度目标和产品组合缺口。"
+      entry_when: "新年度、新站点、组合失衡或现金流目标变化。"
+      inputs: [年度目标, 现金流, 团队能力, 合规边界, 现有产品组合]
+      skills: [portfolio_strategy]
+      workflows: [monthly_portfolio_review]
+      outputs: [strategy_brief, opportunity_search_brief]
+      gate:
+        gate_id: G0_search_authorized
+        pass_when:
+          - "目标站点和品类边界明确"
+          - "可用资金和最大损失明确"
+          - "禁止进入的认证、侵权和售后领域明确"
+      next_on_pass: S1_selection
+
+    - stage_id: S1_selection
+      name: 选品与机会判断
+      objective: "判断市场和产品方向是否值得进入。"
+      inputs: [opportunity_search_brief, Amazon市场数据, 关键词数据, 竞品数据]
+      skills: [amazon-selection-human-plus]
+      workflows: [product_discovery, competitor_comparison, profit_check]
+      outputs: [opportunity_brief]
+      required_sections:
+        - 市场边界
+        - 需求真实性
+        - 新品窗口
+        - 竞争与流量结构
+        - 初步利润与广告承受力
+        - 差异化假设
+        - 风险初筛
+      gate:
+        gate_id: G1_opportunity_approved
+        decisions: [可做, 有条件可做, 调整后再看, 不做]
+        pass_when:
+          - "有可追溯的需求或订单证据"
+          - "广告前利润率情景不低于35%"
+          - "至少一个可验证的差异化假设"
+          - "重大合规风险没有命中淘汰线"
+        fail_state: archived_opportunity
+      next_on_pass: S2_development
+
+    - stage_id: S2_development
+      name: 产品开发
+      objective: "把获批机会转换成可报价、可打样、可测试的产品定义。"
+      inputs: [opportunity_brief, VOC, 竞品样品, 兼容与规格资料]
+      skills: [amazon-product-development]
+      workflows: [voc_analysis, specification_design, rfq_preparation, sample_test]
+      outputs: [product_requirement_document, specification_matrix, sample_test_plan, rfq_package]
+      required_sections:
+        - 目标买家与使用失败
+        - 基础款和升级款配置
+        - 尺寸材料接口与兼容范围
+        - BOM目标和目标售价
+        - 包装说明书与内容证据
+        - 样品测试和验收标准
+      gate:
+        gate_id: G2_sample_validated
+        pass_when:
+          - "关键规格无冲突"
+          - "样品通过适配、功能、耐用和包装测试"
+          - "买家能一眼理解升级点"
+          - "初步专利、商标和认证检查通过"
+      next_on_pass: S3_supply_readiness
+
+    - stage_id: S3_supply_readiness
+      name: 供应链与上市准备
+      objective: "锁定成本、质量、交期、合规和首批现金风险。"
+      inputs: [rfq_package, supplier_quotes, sample_results, freight_plan]
+      skills: [supplier_sourcing, amazon-profit-model, compliance_review]
+      workflows: [supplier_comparison, landed_cost_check, qc_plan, purchase_readiness]
+      outputs: [supplier_decision, final_bom, qc_standard, landed_cost_model, purchase_brief]
+      gate:
+        gate_id: G3_purchase_ready
+        risk_level: high
+        confirmation_required: true
+        pass_when:
+          - "最终广告前利润率和绝对贡献利润达标"
+          - "供应商、交期、付款条款和替代方案明确"
+          - "质检和验货标准可执行"
+          - "首批数量符合现金流和验证周期"
+          - "采购由用户明确确认"
+      next_on_pass: S4_launch_readiness
+
+    - stage_id: S4_launch_readiness
+      name: 上市准备
+      objective: "完成Listing、品牌资产、库存入仓和冷启动计划。"
+      inputs: [final_bom, qc_standard, product_evidence, keyword_map, inventory_eta]
+      skills: [listing_optimization, launch_planning]
+      workflows: [listing_build, asset_check, keyword_map_build, inventory_readiness]
+      outputs: [listing_package, launch_brief, keyword_baseline, inventory_baseline]
+      gate:
+        gate_id: G4_launch_ready
+        pass_when:
+          - "标题、五点、图片、A+和实物规格一致"
+          - "库存、价格、Coupon、Vine和广告预算就绪"
+          - "核心词、探索词和否词边界明确"
+          - "上线、改价和广告动作获得必要确认"
+      next_on_pass: S5_cold_start
+
+    - stage_id: S5_cold_start
+      name: 冷启动验证
+      objective: "验证点击、转化、关键词承接和产品市场匹配。"
+      default_window_days: 30
+      inputs: [launch_brief, live_listing, ads, orders, rank, reviews]
+      skills: [amazon-launch-operator, traffic_anomaly_diagnosis]
+      workflows: [daily_ad_report, keyword_rank_scan, sales_ledger, review_monitor, inventory_alert]
+      outputs: [cold_start_scorecard, search_term_decisions, listing_issues, reorder_signal]
+      gate:
+        gate_id: G5_product_market_fit
+        decisions: [扩大, 继续验证, 调整, 停止]
+        pass_when:
+          - "目标关键词产生相关点击和订单"
+          - "CVR、CPA、ACoS和退货风险在阈值内"
+          - "至少一个核心自然位形成或持续改善"
+          - "规格、质量和评价未出现P0问题"
+      next_on_pass: S6_growth
+      next_on_adjust: S2_development
+      next_on_stop: S8_exit
+
+    - stage_id: S6_growth
+      name: 增长运营
+      objective: "在利润和库存约束内扩大自然流量、广告效率和销售规模。"
+      inputs: [cold_start_scorecard, ads, ranks, sessions, orders, inventory, profit, seasonality_signal, supplier_lead_time]
+      skills: [ad_bid_adjuster, keyword_growth, inventory_planning, seasonal_replenishment_planning, listing_optimization]
+      workflows: [daily_ad_report, bid_review, keyword_rank_scan, weekly_profit_review, inventory_alert, seasonal_replenishment_review]
+      outputs: [growth_plan, budget_decisions, keyword_expansion, replenishment_plan, seasonal_ad_inventory_plan]
+      gate:
+        gate_id: G6_scale_healthy
+        pass_when:
+          - "TACoS和净利润率达到阶段目标"
+          - "自然订单占比或自然关键词承接持续改善"
+          - "补货周期、旺季峰值和淡季库存消化速度匹配"
+          - "旺季前不断货，淡季不过量压货"
+          - "扩量没有依赖明显错意图流量"
+      next_on_pass: S7_maturity
+      next_on_adjust: S5_cold_start
+
+    - stage_id: S7_maturity
+      name: 成熟与防守
+      objective: "守住利润、排名和库存效率，并寻找版本迭代。"
+      inputs: [profit_history, rank_history, competitor_changes, VOC, inventory_age, seasonality_history]
+      skills: [portfolio_review, competitor_comparison, product_iteration, seasonal_replenishment_planning]
+      workflows: [monthly_business_review, competitor_radar, lifecycle_health_check, seasonal_replenishment_review]
+      outputs: [defense_plan, iteration_brief, replenishment_or_harvest_decision, harvest_or_exit_decision]
+      gate:
+        gate_id: G7_lifecycle_decision
+        decisions: [防守, 迭代, 收割, 清仓]
+      next_on_iteration: S2_development
+      next_on_harvest: S7_maturity
+      next_on_clearance: S8_exit
+
+    - stage_id: S8_exit
+      name: 清仓、退出与复盘
+      objective: "控制现金损失，回收库存资金，把经验送回下一轮。"
+      inputs: [inventory_age, contribution_margin, ad_efficiency, lifecycle_decision]
+      skills: [clearance_planning, postmortem]
+      workflows: [clearance_monitor, payment_reconciliation, product_postmortem]
+      outputs: [clearance_plan, final_profit_report, lessons_learned, reusable_rules]
+      gate:
+        gate_id: G8_closed
+        pass_when:
+          - "库存、广告、付款和费用完成核对"
+          - "停止或保留的资产已登记"
+          - "规格、流量、供应链和运营经验已回写"
+      feedback_to: [S0_strategy, S1_selection, S2_development]
+
+  artifact_contracts:
+    opportunity_brief:
+      owner_stage: S1_selection
+      required_fields:
+        - marketplace
+        - market_boundary
+        - target_buyer
+        - demand_evidence
+        - target_product_form
+        - price_band
+        - target_cost
+        - differentiation_hypotheses
+        - risks
+        - assumptions_to_validate
+        - selection_decision
+    product_requirement_document:
+      owner_stage: S2_development
+      required_fields:
+        - buyer_problem
+        - product_configuration
+        - specifications
+        - compatibility
+        - materials
+        - packaging
+        - test_protocol
+        - acceptance_criteria
+        - evidence_plan
+    launch_brief:
+      owner_stage: S4_launch_readiness
+      required_fields:
+        - asin_or_sku
+        - listing_package
+        - price_coupon
+        - keyword_map
+        - ad_structure
+        - inventory_baseline
+        - launch_targets
+        - stop_conditions
+    replenishment_plan:
+      owner_stage: S6_growth
+      required_fields:
+        - asin_or_sku
+        - seasonality_window
+        - baseline_daily_sales
+        - peak_daily_sales
+        - supplier_lead_time_days
+        - production_moq
+        - inbound_eta
+        - safety_stock_days
+        - reorder_point
+        - recommended_reorder_qty
+        - cash_required
+        - ad_pacing_adjustment
+        - overstock_exit_plan
+    operating_ledger:
+      owner_stage: S5_cold_start
+      append_only: true
+      fields: [date, sales, units, sessions, cvr, ad_spend, ad_sales, acos, tacos, rank, inventory, inbound, days_of_cover, returns, alerts]
+
+  cross_cutting_capabilities:
+    data:
+      amazon_public: [Pangolinfo, Sorftime, SIF]
+      seller_private: [Amazon后台, 领星ERP, 广告报表, 付款报告]
+      supply: [1688, 供应商报价, 物流报价, 验货报告, 生产交期, 起订量]
+      customer: [Amazon评论, 退货原因, 客服记录, 站外讨论]
+    automation_policy:
+      automate:
+        - "重复取数、去重、分类、日报、排名扫描、库存预警、淡旺季补货测算和对账"
+        - "有明确阈值、可回滚且无外部写回的判断前置步骤"
+      human_in_loop:
+        - "选品最终决策、产品定义、样品验收、采购、改价、预算、否词、旺季压货决策和清仓"
+    closed_loops:
+      - "VOC -> 产品开发"
+      - "搜索词 -> Listing与广告"
+      - "利润与现金流 -> 预算和补货"
+      - "淡旺季需求 -> 补货数量、广告节奏和促销节奏"
+      - "库存与交期 -> 广告节奏"
+      - "复盘 -> 选品规则和开发标准"
+
+  implementation_priority:
+    P0:
+      - amazon-product-development
+      - opportunity_brief_schema
+      - product_requirement_document_schema
+      - lifecycle_controller
+    P1:
+      - launch_readiness_workflow
+      - cold_start_scorecard
+      - seasonal_replenishment_planning
+      - replenishment_plan_schema
+      - lifecycle_health_check
+    P2:
+      - supplier_comparison
+      - product_iteration
+      - clearance_planning
+    P3:
+      - autonomous_portfolio_optimization

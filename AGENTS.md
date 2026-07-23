@@ -22,3 +22,10 @@
 读取 `.qianlima/CODEX_BOOT.md`，再按任务选择 task-card/workflow。运行时预算、状态机、沙箱和风险规则以 `.qianlima/agent-runtime-policy.yaml`、`.qianlima/risk-rules.yaml` 为准。
 
 macOS/Linux 使用 `pwsh` 和 `bash start-qianlima.sh`；安装见 `MACOS.md`。
+
+## Git 工作副本
+
+- 千里马唯一的 Git 提交与推送目录是 `C:\Users\UEFR\Desktop\Work Space\千里马计划-git-safe`。
+- 所有千里马改动必须在该目录的 `main` 分支完成、提交并推送到 `origin/main`。
+- `C:\Users\UEFR\Desktop\Work Space\千里马计划` 仅作为参考/迁移来源，不在其中提交或推送。
+- 默认不创建分支、不 fork；同步其他副本时合并到 git-safe 的 `main`，先检查状态并保留未跟踪用户目录。

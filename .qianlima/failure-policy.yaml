@@ -1,0 +1,25 @@
+failure_policy:
+  version: 1
+  categories:
+    transient:
+      examples: [network_timeout, process_exit, rate_limit, heartbeat_timeout]
+      retry: true
+      max_retries: 2
+      requires_human: false
+    task:
+      examples: [missing_input, invalid_parameters, unsupported_request]
+      retry: false
+      max_retries: 0
+      requires_human: false
+    verifier:
+      examples: [artifact_invalid, evidence_missing, quality_gate_failed]
+      retry: limited
+      max_retries: 1
+      requires_human: false
+    needs_human:
+      examples: [authorization_missing, conflicting_evidence, protected_invariant, external_write]
+      retry: false
+      max_retries: 0
+      requires_human: true
+  classification_order: [needs_human, verifier, task, transient]
+  rule: "Never retry a needs_human failure automatically, and never report an unverified artifact as completed."
