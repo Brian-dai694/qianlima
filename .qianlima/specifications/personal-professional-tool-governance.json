@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_professional_tool_governance",
+  "contract_version": "1.0.0",
+  "edition": "personal",
+  "purpose": "Learn professional MCP tool design without installing or running the tool.",
+  "learning_only": true,
+  "installation_allowed": false,
+  "runtime_enablement_allowed": false,
+  "transport": {
+    "preferred": "stdio",
+    "allowed": ["stdio"],
+    "network": "none",
+    "address_fields_forbidden": ["url", "endpoint", "remote_endpoint", "host", "port"]
+  },
+  "target_binding": {
+    "required": true,
+    "input_kind": "reference_only",
+    "absolute_path_allowed": false,
+    "raw_binary_or_database_allowed": false
+  },
+  "capability_tiers": {
+    "L0_query": ["function_list", "strings", "imports", "exports", "xrefs"],
+    "L1_analysis": ["disassembly", "decompile", "call_graph", "data_flow"],
+    "L2_modify": ["rename", "comment", "type_edit"],
+    "L3_high_risk": ["patch", "debug", "memory_write", "py_eval", "shell"]
+  },
+  "profiles": {
+    "reverse-readonly": {
+      "allowed_tiers": ["L0_query", "L1_analysis"],
+      "requires_preview": false,
+      "requires_confirmation": false,
+      "network": "none",
+      "write": "none"
+    },
+    "reverse-triage": {
+      "allowed_tiers": ["L0_query"],
+      "requires_preview": false,
+      "requires_confirmation": false,
+      "network": "none",
+      "write": "none"
+    },
+    "reverse-edit": {
+      "allowed_tiers": ["L0_query", "L1_analysis", "L2_modify"],
+      "requires_preview": true,
+      "requires_confirmation": true,
+      "network": "none",
+      "write": "scoped_only",
+      "personal_learning_status": "blocked_learning_only"
+    },
+    "reverse-debug": {
+      "allowed_tiers": ["L0_query", "L1_analysis", "L2_modify", "L3_high_risk"],
+      "requires_preview": true,
+      "requires_confirmation": true,
+      "network": "none",
+      "write": "scoped_only",
+      "personal_learning_status": "blocked_learning_only"
+    }
+  },
+  "hard_denials": [
+    "installation",
+    "runtime_start",
+    "network_call",
+    "remote_endpoint",
+    "unrestricted_path",
+    "raw_binary_upload",
+    "py_eval",
+    "memory_write",
+    "agent_delegation"
+  ],
+  "receipt": {
+    "required_fields": ["tool_id", "profile", "target_ref", "decision", "issues", "installation_performed", "execution_started", "external_calls", "permissions_granted"],
+    "evidence_owner": "qianlima_personal_broker",
+    "append_only": true
+  }
+}

@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.2-blue.svg)](CHANGELOG.md)
 
-> Current release: v2.8.1 · 2026-07-23
+> Current release: v2.8.2 · 2026-07-23
 
 Qianlima Personal is a local-first Amazon operations workbench. It keeps business workflows, evidence, and result verification in the project while Codex and other Agents provide interaction and execution.
 
@@ -56,6 +56,23 @@ Runtime filters by Grant, task relevance, state, classification, and expiry befo
 
 Before an external API, paid tool, or remote Agent call, the user sees the provider, purpose, data scope, estimated cost, cost source, and confirmation state. Unknown cost is recorded as `0` and marked unknown; network remains disabled by default.
 
+### Professional Tool Learning Mode
+
+The personal edition may learn the design of a professional MCP tool without installing or running it. The adapter only evaluates sanitized tool manifests offline:
+
+| Profile | Learned design | Personal simulation result |
+|---|---|---|
+| `reverse-readonly` | Read-only queries, decompilation, call graphs, and data flow | Restricted simulation allowed |
+| `reverse-triage` | Minimal function, string, import/export, and cross-reference triage | Restricted simulation allowed |
+| `reverse-edit` | Renaming, comments, and type changes | Blocked in learning mode |
+| `reverse-debug` | Patching, debugging, memory writes, and `py_eval` | Blocked in learning mode |
+
+Every simulation requires a stdio design, a reference-only target, and a minimal capability list. URLs, ports, absolute paths, network access, installation, runtime startup, and permission grants are rejected. The adapter returns a structured decision only; it does not connect to IDA, open a listener, or execute a tool.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-professional-tool-governance.ps1'
+```
+
 ## Model Collaboration
 
 Model fusion is evidence collaboration, not several models chatting. L0-L2 use one model by default; L3 may use independent candidates plus evidence verification; L4 produces candidates only and requires human confirmation. See `.qianlima/model-portfolio.yaml` and `.qianlima/fusion-plan-schema.yaml`.
@@ -81,7 +98,7 @@ bash './start-qianlima.sh'
 
 ## Readiness
 
-Personal routing, memory, Skill gates, local read-only evidence execution, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
+Personal routing, memory, Skill gates, local read-only evidence execution, professional-tool learning simulation, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
 
 Deployment readiness is not execution authority. Every production write still requires a task Grant, approval, preflight snapshot, audit receipt, and rollback condition.
 
