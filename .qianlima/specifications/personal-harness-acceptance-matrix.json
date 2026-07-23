@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "contract_type": "qianlima_personal_harness_acceptance_matrix",
+  "contract_version": "1.0.0",
+  "edition": "personal",
+  "scope": ["T_tooling", "C_context", "L_lifecycle", "O_basic_observability", "V_basic_verification"],
+  "enterprise_layers_excluded": ["tenant_governance", "enterprise_approval", "soc_operations", "fleet_policy"],
+  "layers": {
+    "E_execution": {
+      "status": "bounded_local_only",
+      "required": ["no_network_by_default", "no_remote_runner", "reference_scoped_files", "local_process_limits"]
+    },
+    "T_tooling": {
+      "status": "implemented",
+      "required": ["profile_registered", "task_scoped_grant", "capability_allowlist", "stdio_preferred", "high_risk_capability_denied_by_default"],
+      "source_contracts": [".qianlima/specifications/personal-professional-tool-governance.json", ".qianlima/specifications/personal-readonly-evidence-tool.json"]
+    },
+    "C_context": {
+      "status": "implemented",
+      "required": ["grant_filter_before_recall", "task_relevance_filter", "state_and_expiry_filter", "source_reference", "minimal_top_k_injection", "memory_has_no_authority"],
+      "source_contracts": [".qianlima/specifications/personal-experience-policy.json", ".qianlima/specifications/edition-memory-learning-boundary.json"]
+    },
+    "L_lifecycle": {
+      "status": "implemented",
+      "required": ["planned", "executing", "revision_required", "revised", "completed", "frozen", "stopped", "replayable_reference_inputs", "cancel_and_freeze"],
+      "source_contracts": [".qianlima/specifications/qianlima-execution-plan-contract.json", ".qianlima/specifications/personal-governed-loop.json"]
+    },
+    "O_basic_observability": {
+      "status": "implemented",
+      "required": ["trace_id_or_task_id", "budget_snapshot", "step_status", "duration_if_verified", "unknown_cost_is_zero_and_marked"],
+      "raw_prompt_storage": "disabled_by_default"
+    },
+    "V_basic_verification": {
+      "status": "implemented",
+      "required": ["source_refs", "artifact_hash", "warnings", "pending_verification", "evidence_receipt", "missing_result_requires_revision"],
+      "command_success_is_business_success": false
+    },
+    "G_personal_progressive": {
+      "status": "minimal_personal_only",
+      "required": ["risk_visible_when_elevated", "high_impact_action_requires_confirmation", "preferences_cannot_change_authority", "user_can_clear_memory"],
+      "enterprise_controls": "excluded"
+    }
+  },
+  "two_stage_pipeline": {
+    "cheap_stage": {
+      "name": "local_filter_and_recall",
+      "allowed_levels": ["L0", "L1", "L2", "L3"],
+      "operations": ["task_route", "grant_filter", "memory_filter", "local_cache_or_summary"],
+      "external_calls": false,
+      "network": "none"
+    },
+    "review_stage": {
+      "name": "bounded_quality_review",
+      "trigger": ["L2_or_higher", "evidence_conflict", "missing_required_field", "user_requests_deep_review"],
+      "allowed_levels": ["L2", "L3"],
+      "requires": ["budget_remaining", "same_grant_scope", "evidence_receipt"],
+      "l0_l1_default": "suppressed"
+    }
+  },
+  "acceptance_invariants": [
+    "A fast retrieval result cannot expand a Grant or tool permission.",
+    "Context compression and memory tier changes cannot change authorization scope.",
+    "Every executable plan has a bounded state machine and terminal freeze or stop state.",
+    "A missing or conflicting receipt prevents result adoption.",
+    "An improvement candidate cannot modify production governance from the personal edition.",
+    "The acceptance test itself performs no network call, installation, delegation, or business write."
+  ]
+}

@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml/badge.svg)](https://github.com/Brian-dai694/beijixing/actions/workflows/qianlima-verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v2.8.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v2.8.3-blue.svg)](CHANGELOG.md)
 
-> Current release: v2.8.2 · 2026-07-23
+> Current release: v2.8.3 · 2026-07-23
 
 Qianlima Personal is a local-first Amazon operations workbench. It keeps business workflows, evidence, and result verification in the project while Codex and other Agents provide interaction and execution.
 
@@ -73,6 +73,16 @@ Every simulation requires a stdio design, a reference-only target, and a minimal
 powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-professional-tool-governance.ps1'
 ```
 
+### Personal Harness Acceptance
+
+The personal edition covers lightweight `T/C/L` with basic `O/V`: least-privilege tools, filter-before-recall memory, replayable and stoppable task state, minimal traces, and evidence checks. Enterprise tenancy, enterprise approvals, and fleet governance are outside this edition.
+
+Ordinary tasks use local low-cost filtering first. Only L2+, evidence conflicts, missing required fields, or an explicit deep-review request can enter the budgeted review stage, which keeps the original Grant scope. Review is suppressed by default for L0/L1.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File '.\.qianlima\scripts\test-personal-harness-acceptance.ps1'
+```
+
 ## Model Collaboration
 
 Model fusion is evidence collaboration, not several models chatting. L0-L2 use one model by default; L3 may use independent candidates plus evidence verification; L4 produces candidates only and requires human confirmation. See `.qianlima/model-portfolio.yaml` and `.qianlima/fusion-plan-schema.yaml`.
@@ -98,7 +108,7 @@ bash './start-qianlima.sh'
 
 ## Readiness
 
-Personal routing, memory, Skill gates, local read-only evidence execution, professional-tool learning simulation, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
+Personal routing, memory, Skill gates, local read-only evidence execution, professional-tool learning simulation, Harness acceptance, file organization, and offline regression are implemented. Network access, remote runners, credentials, MCP endpoints, and business writes are not enabled.
 
 Deployment readiness is not execution authority. Every production write still requires a task Grant, approval, preflight snapshot, audit receipt, and rollback condition.
 

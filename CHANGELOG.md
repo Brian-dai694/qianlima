@@ -2,6 +2,11 @@
 
 本项目遵循语义化版本。日期为公开模板仓的发布日。
 
+## [v2.8.3] - 2026-07-23
+- 将 ETCLOVG 提炼为个人版 `T/C/L + 基础 O/V` Harness 验收矩阵，不引入企业租户、企业审批或车队治理。
+- 固化“本地低成本筛选 -> L2+ 或证据冲突时受控复核”的两段式路径；复核保持原 Grant、预算和证据约束，L0/L1 默认短路。
+- 新增个人版 Harness 验收合同与 `9/9 PASS` 离线测试，并纳入 `verify-qianlima.ps1`。
+
 ## [v2.8.2] - 2026-07-23
 - 新增个人版专业工具治理学习合同和离线模拟器，借鉴 `ida-pro-mcp` 的 Profile 分层，但不安装、不运行、不联网。
 - `reverse-readonly` 与 `reverse-triage` 仅可标记为受限模拟；`reverse-edit`、`reverse-debug`、`py_eval` 和高风险能力在学习模式中阻断。
